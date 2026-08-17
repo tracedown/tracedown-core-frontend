@@ -2,7 +2,7 @@
     <div>
       <!-- Probe mode / queue policy -->
       <div class="grid grid-cols-2 gap-2 text-xs mb-3">
-        <div>
+        <div v-if="isFeatureEnabled('agents')">
           <div class="flex items-center gap-1">
             <span class="text-text-secondary">{{ t('service.probeMode') }}</span>
             <HelpTooltip :entries="probeModeHelp" />
@@ -86,7 +86,7 @@ import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 import HelpTooltip from '@/components/core/HelpTooltip.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import ServiceMetricsSummary from '@/components/service/detail/ServiceMetricsSummary.vue';
-import { getScriptEditor } from '@/config/extensions';
+import { getScriptEditor, isFeatureEnabled } from '@/config/extensions';
 import { useAuthStore } from '@/store/core/auth';
 import { useServiceHelp } from '@/composables/useServiceHelp';
 import { formatWindowTime, parseServiceWindowRule } from '@/lib/serviceWindow';

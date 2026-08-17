@@ -18,6 +18,14 @@ interface RuntimeEnv {
   apiUrl?: string;
   wsUrl?: string;
   wsMaxRetries?: string | number;
+  /**
+   * Feature availability the deployment declares about itself. Only `false`
+   * matters: those features are vetoed app-wide via a feature gate at
+   * bootstrap (e.g. a backend that executes probes in-process declares
+   * `{ agents: false }` — there are no agents to manage). Absent or `true`
+   * leaves the feature at its default.
+   */
+  features?: Record<string, boolean>;
 }
 
 declare global {
@@ -57,4 +65,5 @@ export const env = {
     runtime.wsMaxRetries ?? import.meta.env.VITE_WS_MAX_RETRIES,
     DEFAULT_WS_MAX_RETRIES,
   ),
+  features: runtime.features ?? {},
 };

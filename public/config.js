@@ -10,5 +10,6 @@
 //   apiUrl: "https://api.example.com/api/v1",
 //   wsUrl: "wss://api.example.com/ws",
 //   wsMaxRetries: 5,
+//   features: { agents: false },  // features this deployment lacks
 // };
 window.__TRACEDOWN_ENV__ = {};

@@ -21,7 +21,7 @@
         />
       </div>
       <div class="grid grid-cols-2 gap-3">
-        <div>
+        <div v-if="isFeatureEnabled('agents')">
           <div class="flex items-center gap-1 mb-1">
             <label class="text-xs font-medium text-text-secondary">{{ t('service.probeMode') }}</label>
             <HelpTooltip :entries="probeModeHelp" />
@@ -101,7 +101,10 @@
         @close="templateModalOpen = false"
       />
 
-      <div class="border-t border-text-secondary/25 pt-4 mt-2">
+      <div
+        v-if="isFeatureEnabled('agents')"
+        class="border-t border-text-secondary/25 pt-4 mt-2"
+      >
         <ServiceAgentsPicker :service-id="service.id" />
       </div>
 
@@ -153,7 +156,7 @@ import IconButton from '@/components/core/buttons/IconButton.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import GhostButton from '@/components/core/buttons/GhostButton.vue';
 import DangerButton from '@/components/core/buttons/DangerButton.vue';
-import { getScriptEditor } from '@/config/extensions';
+import { getScriptEditor, isFeatureEnabled } from '@/config/extensions';
 import { saveLaceFile } from '@/lib/lace-codemirror';
 import { useProjectStore } from '@/store/core/project';
 import { useNotificationStore } from '@/store/ui/notifications';

@@ -7,6 +7,8 @@ import { appRoutes } from '@/router/routes';
 import { prefetchRouteComponents } from '@/router/prefetch';
 import i18n from '@/plugins/i18n';
 import { DEFAULT_NAV_ITEMS } from '@/config/navigation';
+import { env } from '@/config/env';
+import { registerFeatureGate } from '@/config/extensions';
 import { useNavigationStore } from '@/store/ui/navigation';
 import { startTicks } from '@/lib/timeTick';
 import type { BootstrapOptions } from '@/types/bootstrap';
@@ -55,6 +57,13 @@ export function bootstrapApp(options: BootstrapOptions = {}): App {
   app.use(pinia);
   app.use(router);
   app.use(i18n);
+
+  // Features the deployment's runtime config declares unavailable are vetoed
+  // for every context — the deployment knows capabilities the bundle cannot
+  // (a backend executing probes in-process has no agents to manage).
+  for (const [feature, enabled] of Object.entries(env.features)) {
+    if (!enabled) registerFeatureGate(feature, () => false);
+  }
 
   useNavigationStore(pinia).registerNavItems(DEFAULT_NAV_ITEMS);
 
