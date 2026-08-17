@@ -1,14 +1,19 @@
 name: Release
 
-# Tag vX.Y.Z → GitHub release carrying the production SPA bundle as a tarball.
-# The bundle is built with same-origin defaults (/api/v1 and /ws), so it can be
-# unpacked into any web root that proxies those paths to the backend — see the
-# deploy compose and host server configs in the tracedown-core-backend repo.
+# Version-bump-driven, like the rest of the stack: runs on every push to main,
+# and publishes only when the version in package.json has no release yet.
+# Merging a PR that bumps the version IS the release trigger — the workflow
+# creates the vX.Y.Z tag and the GitHub release itself.
+#
+# The artifact is the production SPA bundle as a tarball, built with
+# same-origin defaults (/api/v1 and /ws) — unpack into any web root that
+# proxies those paths to the backend (see tracedown-core-backend's
+# docker/deploy/).
 
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -23,37 +28,51 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check tag matches package version
+      - name: Read version
+        id: version
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          TAG="${GITHUB_REF_NAME#v}"
-          if [ "$VERSION" != "$TAG" ]; then
-            echo "Tag v$TAG does not match package.json version $VERSION" >&2
-            exit 1
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check if already released
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "Release ${{ steps.version.outputs.tag }} already exists — nothing to do."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Setup Node
+        if: steps.check.outputs.exists == 'false'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
 
       - name: Install
+        if: steps.check.outputs.exists == 'false'
         run: npm ci
 
       - name: Build
+        if: steps.check.outputs.exists == 'false'
         run: npm run build
 
       - name: Package dist
-        run: |
-          TAG="${GITHUB_REF_NAME#v}"
-          tar -czf "tracedown-core-frontend-$TAG-dist.tar.gz" -C dist .
+        if: steps.check.outputs.exists == 'false'
+        run: tar -czf "tracedown-core-frontend-${{ steps.version.outputs.version }}-dist.tar.gz" -C dist .
 
       - name: Create GitHub release
+        if: steps.check.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            --title "Tracedown Core Frontend $GITHUB_REF_NAME" \
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --target "$GITHUB_SHA" \
+            --title "Tracedown Core Frontend ${{ steps.version.outputs.tag }}" \
             --notes "Production SPA bundle. Unpack into a web root and serve with the host web server; the app calls same-origin \`/api/v1\` and \`/ws\`, which the host server proxies to the backend." \
             tracedown-core-frontend-*-dist.tar.gz
