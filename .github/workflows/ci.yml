@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    # 'edited' fires on PR title/body changes, so removing a 'WIP:' prefix
+    # re-triggers the checks without needing a new push.
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches:
+      - main
+
+jobs:
+  # Pre-filter: skipped when the PR title starts with 'WIP:'. The build needs
+  # it, so a skipped gate cascades. Pushes to main always run.
+  wip-gate:
+    name: WIP gate
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.title, 'WIP:') }}
+    steps:
+      - name: Not WIP
+        run: echo "Running checks."
+
+  build:
+    name: Lint, type-check & build
+    needs: [wip-gate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # `npm run build` runs eslint --fix, vue-tsc --noEmit, and the Vite
+      # production build in sequence — the full quality gate in one script.
+      - name: Build
+        run: npm run build
