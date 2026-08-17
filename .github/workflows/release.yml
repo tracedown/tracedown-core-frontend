@@ -1,8 +1,8 @@
 name: Release
 
-# Version-bump-driven and CI-gated: runs after the CI workflow succeeds on a
-# main push, and publishes only when the version in package.json has no
-# release yet.
+# Version-bump-driven, like the rest of the stack: runs on every push to main
+# and publishes only when the version in package.json has no release yet.
+# main is PR-protected, so every commit here already passed the PR checks.
 # Merging a PR that bumps the version IS the release trigger — the workflow
 # creates the vX.Y.Z tag and the GitHub release itself.
 #
@@ -12,10 +12,9 @@ name: Release
 # docker/deploy/).
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
-    branches: [main]
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -24,18 +23,11 @@ jobs:
   release:
     name: Build & publish release
     # Upstream-only: forks never release.
-    # Runs only after the CI run for this main push succeeded — a release
-    # can never ship from an untested commit.
-    if: >-
-      github.repository == 'tracedown/tracedown-core-frontend' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push'
+    if: github.repository == 'tracedown/tracedown-core-frontend'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout tested commit
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Read version
         id: version
@@ -81,7 +73,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${{ steps.version.outputs.tag }}" \
-            --target "${{ github.event.workflow_run.head_sha }}" \
+            --target "$GITHUB_SHA" \
             --title "Tracedown Core Frontend ${{ steps.version.outputs.tag }}" \
             --notes "Production SPA bundle. Unpack into a web root and serve with the host web server; the app calls same-origin \`/api/v1\` and \`/ws\`, which the host server proxies to the backend." \
             tracedown-core-frontend-*-dist.tar.gz

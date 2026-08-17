@@ -7,23 +7,19 @@ on:
     # 'edited' fires on PR title/body changes, so removing a 'WIP:' prefix
     # re-triggers the checks without needing a new push.
     types: [opened, synchronize, reopened, edited]
-  push:
-    branches:
-      - main
 
 jobs:
   # Pre-filter: skipped when the PR title starts with 'WIP:'. Every other job
-  # needs it, so a skipped gate cascades. Pushes to main always run.
+  # needs it, so a skipped gate cascades.
   wip-gate:
     name: WIP gate
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.title, 'WIP:') }}
+    if: ${{ !startsWith(github.event.pull_request.title, 'WIP:') }}
     steps:
       - name: Not WIP
         run: echo "Running checks."
 
-  # Detects what changed so the build self-skips on docs-only PRs. Pushes to
-  # main always run.
+  # Detects what changed so the build self-skips on docs-only PRs.
   changed-paths:
     name: Detect changed paths
     needs: [wip-gate]
@@ -41,11 +37,6 @@ jobs:
         env:
           BASE: origin/${{ github.base_ref }}
         run: |
-          if [ "${{ github.event_name }}" != "pull_request" ]; then
-            echo "Push to main — running everything."
-            echo "code=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
           git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
           CODE=$(git diff --name-only "$BASE"...HEAD -- .github/workflows/ src/ public/ index.html package.json package-lock.json vite.config.ts tsconfig.json tsconfig.app.json tsconfig.node.json eslint.config.ts .env.production .env.development)
           if [ -n "$CODE" ]; then

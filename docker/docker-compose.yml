@@ -19,6 +19,12 @@ services:
         VITE_WS_URL: ${VITE_WS_URL:-/ws}
         VITE_WS_MAX_RETRIES: ${VITE_WS_MAX_RETRIES:-5}
     container_name: tracedown-dashboard
+    environment:
+      # Runtime endpoint config — regenerated into /config.js at container
+      # start. Unset = the bundle's same-origin defaults (/api/v1, /ws).
+      API_URL: ${API_URL:-}
+      WS_URL: ${WS_URL:-}
+      WS_MAX_RETRIES: ${WS_MAX_RETRIES:-}
     ports:
       - "${FRONTEND_PORT:-8088}:80"
     networks:

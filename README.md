@@ -41,6 +41,12 @@ proxies `/api` and `/ws` internally):
 docker compose -f docker/docker-compose.yml up --build
 ```
 
+Endpoints are configurable at **runtime** via container env — `API_URL`,
+`WS_URL`, `WS_MAX_RETRIES` are written into `/config.js` at container start,
+so the same image can point at any backend without rebuilding. Unset means the
+bundle's same-origin defaults. (Any deployment can use the same mechanism:
+edit `config.js` next to `index.html`.)
+
 ## Conventions
 
 - All user-visible strings go through i18n (`t()`), none hardcoded.
