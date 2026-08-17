@@ -47,7 +47,7 @@ jobs:
             exit 0
           fi
           git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
-          CODE=$(git diff --name-only "$BASE"...HEAD -- src/ public/ index.html package.json package-lock.json vite.config.ts tsconfig.json tsconfig.app.json tsconfig.node.json eslint.config.ts .env.production .env.development)
+          CODE=$(git diff --name-only "$BASE"...HEAD -- .github/workflows/ src/ public/ index.html package.json package-lock.json vite.config.ts tsconfig.json tsconfig.app.json tsconfig.node.json eslint.config.ts .env.production .env.development)
           if [ -n "$CODE" ]; then
             echo "Code changes detected (build will run):"; echo "$CODE"
             echo "code=true" >> "$GITHUB_OUTPUT"
