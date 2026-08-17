@@ -33,6 +33,14 @@ tarballs and served by a host web server; the deploy setup in
 [tracedown-core-backend](https://github.com/tracedown/tracedown-core-backend)'s
 `docker/deploy/` pulls and serves them.
 
+An optional container build lives in `docker/` for anyone who prefers to build
+and serve the SPA as its own image (it joins the backend stack's network and
+proxies `/api` and `/ws` internally):
+
+```bash
+docker compose -f docker/docker-compose.yml up --build
+```
+
 ## Conventions
 
 - All user-visible strings go through i18n (`t()`), none hardcoded.

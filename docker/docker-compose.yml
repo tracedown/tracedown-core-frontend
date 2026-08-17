@@ -1,0 +1,34 @@
+# Frontend dashboard — builds the SPA image and serves it, joining the backend
+# stack's network so nginx can reach the gateway and realtime services.
+#
+# Usage:
+#   cp .env.example .env    # adjust as needed
+#   docker compose up -d --build
+#
+# Requires the backend stack to be running (it owns the `tracedown-net` network).
+
+name: tracedown-frontend
+
+services:
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api/v1}
+        VITE_WS_URL: ${VITE_WS_URL:-/ws}
+        VITE_WS_MAX_RETRIES: ${VITE_WS_MAX_RETRIES:-5}
+    container_name: tracedown-dashboard
+    ports:
+      - "${FRONTEND_PORT:-8088}:80"
+    networks:
+      - tracedown-net
+    restart: unless-stopped
+
+networks:
+  # The backend compose (project name "tracedown") owns this network; we attach
+  # to it as external. Override the name via BACKEND_NETWORK if your project
+  # name differs.
+  tracedown-net:
+    external: true
+    name: ${BACKEND_NETWORK:-tracedown_tracedown-net}
