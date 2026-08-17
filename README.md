@@ -26,13 +26,12 @@ npm run build    # lint + type-check + production build
 npm run lint
 ```
 
-`.env.development` points the dev server at `http://localhost:20714`. Production
-source builds default to same-origin `/api/v1` and `/ws`, proxied by the
-dashboard's own nginx; Docker build args override them.
-
-```bash
-docker compose -f docker/docker-compose.yml up --build
-```
+The dev server proxies `/api` and `/ws` to the backend at `localhost:20714` /
+`localhost:20870` (see `vite.config.ts`), so the app always talks same-origin —
+in dev and production alike. Production bundles are published as release
+tarballs and served by a host web server; the deploy setup in
+[tracedown-core-backend](https://github.com/tracedown/tracedown-core-backend)'s
+`docker/deploy/` pulls and serves them.
 
 ## Conventions
 
