@@ -7,9 +7,14 @@
       <!--  Logo: same width as the nav ribbon so the columns align    -->
       <router-link
         :to="{ name: 'home' }"
-        class="w-sidebar shrink-0 h-full px-gutter flex items-center
+        class="w-sidebar shrink-0 h-full px-gutter flex items-center gap-2
              text-accent-primary font-bold text-lg select-none"
       >
+        <img
+          src="/logo.svg"
+          :alt="appConfig.appName"
+          class="h-6 w-6 shrink-0"
+        >
         {{ appConfig.appName }}
       </router-link>
 

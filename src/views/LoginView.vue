@@ -10,7 +10,12 @@
         <!-- The wordmark links to the root so any auth-adjacent page a host
              application adds can return to the entry point; on this view the
              router simply resolves back here. -->
-        <h1 class="text-3xl font-bold font-mono! text-right mb-2">
+        <h1 class="flex items-center justify-between text-3xl font-bold font-mono! mb-2">
+          <img
+            src="/logo.svg"
+            :alt="t('common.appName')"
+            class="h-10 w-10 shrink-0"
+          >
           <RouterLink :to="{ path: '/' }">
             {{ t('common.appName') }}
           </RouterLink>
