@@ -19,3 +19,4 @@ tmp/
 *.tar.gz
 
 !.env.development
+!.env.production
