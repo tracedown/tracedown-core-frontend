@@ -58,3 +58,9 @@ edit `config.js` next to `index.html`.)
 ## License
 
 Open source under the Apache License 2.0. See `LICENSE`.
+
+The Tracedown **name and logo** (`public/logo.svg` and the derived icons) are
+trademarks of the Tracedown project and are **not** covered by the Apache
+license: unmodified use to refer to Tracedown is welcome; modification, or use
+as another product's mark, is not. Policy:
+[tracedown.dev/project/brand](https://tracedown.dev/project/brand/).
