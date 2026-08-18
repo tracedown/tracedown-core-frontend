@@ -59,11 +59,8 @@ function parseRetries(raw: string | number | undefined, fallback: number): numbe
 }
 
 export const env = {
-  // The final same-origin fallbacks are load-bearing: a bundle built without
-  // any env files (e.g. a checkout missing the ignored-by-pattern .env.*)
-  // must still address the API and WebSocket, not the page root.
-  apiUrl: runtime.apiUrl || import.meta.env.VITE_API_URL || '/api/v1',
-  wsUrl: resolveWsUrl(runtime.wsUrl || import.meta.env.VITE_WS_URL || '/ws'),
+  apiUrl: runtime.apiUrl || import.meta.env.VITE_API_URL,
+  wsUrl: resolveWsUrl(runtime.wsUrl || import.meta.env.VITE_WS_URL),
   wsMaxRetries: parseRetries(
     runtime.wsMaxRetries ?? import.meta.env.VITE_WS_MAX_RETRIES,
     DEFAULT_WS_MAX_RETRIES,
