@@ -13,6 +13,7 @@
             <TextInput
               v-model="newSlug"
               class="w-48"
+              :prefix="slugPrefix ? `${slugPrefix}-` : undefined"
               :placeholder="t('agents.slugPlaceholder')"
             />
           </div>
@@ -82,8 +83,15 @@ import type { BootstrapTokenResponse } from '@/data/agents/AgentDto';
  * "Connect a new agent" flow: slug/label → one-time bootstrap token →
  * show-once panel with the token and the full local startup command.
  * The open state is owned by the parent (toggle sits in the list header).
+ *
+ * `slugPrefix` (optional): a host that namespaces agent slugs renders the
+ * namespace as the fixed head of the input — the user types only their part,
+ * and the submitted slug is `"<prefix>-<typed>"`.
  */
 const open = defineModel<boolean>('open', { required: true });
+const props = defineProps<{
+  slugPrefix?: string;
+}>();
 const { t } = useI18n();
 const agentStore = useAgentStore();
 const notifications = useNotificationStore();
@@ -95,7 +103,14 @@ const newLabel = ref<string>('');
 const generating = ref<boolean>(false);
 const issued = ref<BootstrapTokenResponse | null>(null);
 
-const slugValid = computed(() => SLUG_RE.test(newSlug.value.trim()));
+/** The slug actually submitted — the typed value under the fixed prefix, if any. */
+const fullSlug = computed(() => {
+  const typed = newSlug.value.trim();
+  return props.slugPrefix ? `${props.slugPrefix}-${typed}` : typed;
+});
+
+const slugValid = computed(() =>
+  newSlug.value.trim().length > 0 && SLUG_RE.test(fullSlug.value));
 
 /**
  * Full local startup command (locally built image; swaps to the published
@@ -122,7 +137,7 @@ async function handleGenerate() {
   generating.value = true;
   try {
     const result = await agentStore.createBootstrapToken({
-      slug: newSlug.value.trim(),
+      slug: fullSlug.value,
       label: newLabel.value.trim() || undefined,
     });
     if (!result.ok || !result.data) {
