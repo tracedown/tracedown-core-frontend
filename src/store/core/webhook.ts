@@ -26,13 +26,13 @@ export const useWebhookStore = defineStore('webhook', () => {
     }
   }
 
-  async function createWebhook(request: CreateWebhookRequest): Promise<ActionResult> {
+  async function createWebhook(request: CreateWebhookRequest): Promise<ActionDataResult<WebhookSummary>> {
     const res = await http.post<WebhookSummary, CreateWebhookRequest>('/webhooks', request);
     if (!res.success || !res.data) {
       return { ok: false, message: res.errorInfo?.message };
     }
     webhooks.value = [...webhooks.value, res.data];
-    return { ok: true };
+    return { ok: true, data: res.data };
   }
 
   async function updateWebhook(id: string, request: UpdateWebhookRequest): Promise<ActionResult> {
