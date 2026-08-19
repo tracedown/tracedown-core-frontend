@@ -11,10 +11,12 @@ export interface AgentHealthResponse {
 
 export type EffectiveHealth = 'healthy' | 'unhealthy' | 'down' | 'unknown';
 
-// The challenge is not a ping: the agent runs a Lace script that fetches a
-// token from the gateway (scheduler->agent->gateway->redis), so the healthy
-// budget must absorb three hops plus script startup.
-const UNHEALTHY_THRESHOLD_MS = 500;
+// The challenge is not a ping: a cold mTLS handshake plus a Lace script that
+// fetches a token from the gateway (scheduler->agent->gateway->redis), so the
+// healthy budget must absorb ~5 round trips plus script startup — for an
+// agent on another continent that is legitimately ~1-1.2s. Matches the
+// backend's DEGRADED_RTT_MS.
+const UNHEALTHY_THRESHOLD_MS = 1200;
 
 /** Derives display health from the raw status plus the last response time. */
 export function effectiveHealth(agent: AgentStatus): EffectiveHealth {
