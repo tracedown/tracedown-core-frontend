@@ -57,10 +57,14 @@ import type { CreateVariableRequest, VariableType } from '@/data/variables/Varia
 import type { HelpEntry } from '@/types/ui/help';
 import type { SelectOption } from '@/types/ui/common';
 
-defineProps<{
+const props = withDefaults(defineProps<{
   /** Key prefix of the owning resource, e.g. `$p.` for projects. */
   resourcePrefix: string;
-}>();
+  /** Offered types; scopes without metric writeback pass a narrower set. */
+  types?: VariableType[];
+}>(), {
+  types: () => ['variable', 'secret', 'metric'],
+});
 
 // Dismissal is owned by the header's CreateToggleButton — no cancel here.
 const emit = defineEmits<{
@@ -78,13 +82,14 @@ const typeOptions = computed<SelectOption[]>(() => [
   { value: 'variable', label: t('variables.typeVariable') },
   { value: 'secret', label: t('variables.typeSecret') },
   { value: 'metric', label: t('variables.typeMetric') },
-]);
+].filter(o => props.types.includes(o.value as VariableType)));
 
 const typeHelp = computed<HelpEntry[]>(() => [
-  { term: t('variables.typeSecret'), description: t('variables.typeSecretHelp') },
-  { term: t('variables.typeVariable'), description: t('variables.typeVariableHelp') },
-  { term: t('variables.typeMetric'), description: t('variables.typeMetricHelp') },
-]);
+  { term: t('variables.typeSecret'), description: t('variables.typeSecretHelp'), type: 'secret' },
+  { term: t('variables.typeVariable'), description: t('variables.typeVariableHelp'), type: 'variable' },
+  { term: t('variables.typeMetric'), description: t('variables.typeMetricHelp'), type: 'metric' },
+].filter(e => props.types.includes(e.type as VariableType))
+  .map(({ term, description }) => ({ term, description })));
 
 function submit() {
   emit('create', {

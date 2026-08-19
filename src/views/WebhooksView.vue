@@ -88,6 +88,10 @@
                 @submit="(payload) => handleUpdate(webhook, payload)"
                 @cancel="editingId = null"
               />
+              <WebhookVariablesPanel
+                :webhook-id="webhook.id"
+                :can-edit="canManage"
+              />
             </div>
           </li>
         </ul>
@@ -107,6 +111,7 @@ import IconButton from '@/components/core/buttons/IconButton.vue';
 import CreateToggleButton from '@/components/core/buttons/CreateToggleButton.vue';
 import SlotOutlet from '@/components/core/SlotOutlet.vue';
 import WebhookForm from '@/components/webhooks/WebhookForm.vue';
+import WebhookVariablesPanel from '@/components/webhooks/WebhookVariablesPanel.vue';
 import { useWebhookStore } from '@/store/core/webhook';
 import { useAuthStore } from '@/store/core/auth';
 import { useOrgStore } from '@/store/core/org';
