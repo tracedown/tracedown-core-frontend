@@ -433,7 +433,7 @@
       "admin": {
         "none": "No access to organization administration.",
         "read": "Can view the organization overview and general settings.",
-        "write": "Can manage organization-wide administration, including usage."
+        "write": "Can manage the organization's identity, policies and danger zone."
       },
       "workspaces": {
         "none": "No workspace access by default. To scope access, keep this at None and grant specific workspaces under resource permissions.",
