@@ -96,10 +96,12 @@ export const useProjectStore = defineStore('project', () => {
       redirectOnNotFound: true,
     });
     const project = res.data ?? null;
-    // Append only into the project's own workspace list — the cached list may
-    // belong to another workspace, which must not grow a foreign card.
+    // Append into the list unless it is a cached list of ANOTHER workspace —
+    // that one must not grow a foreign card. With no list fetched yet (hard
+    // refresh directly on /project/…), the project must still be stored, or
+    // the view that awaits it spins on Loading forever.
     if (project
-      && fetchedKey.value?.startsWith(`${project.workspaceId}|`)
+      && (fetchedKey.value == null || fetchedKey.value.startsWith(`${project.workspaceId}|`))
       && !projects.value.find(p => p.id === project.id)) {
       projects.value.push(project);
     }
