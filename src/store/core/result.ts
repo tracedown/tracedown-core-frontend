@@ -3,7 +3,7 @@ import { defineStore } from 'pinia';
 import { http } from '@/config/requests';
 import { defaultPfsParams, pfsToQueryString } from '@/utils/pfs';
 import type { Page } from '@/types/pfs';
-import type { ProbeResultDetail, ProbeResultSummary } from '@/data/results/ResultDto';
+import type { ProbeResultDetail, ProbeResultSummary, StepBodyResponse } from '@/data/results/ResultDto';
 import type { ActionResult } from '@/types/actions';
 
 /** Probe results, detail and step bodies of the inspected service. */
@@ -74,10 +74,23 @@ export const useResultStore = defineStore('result', () => {
     stepBodyLoading.value = true;
     stepBody.value = null;
     try {
-      const res = await http.get<string>(
+      const res = await http.get<StepBodyResponse>(
         `/services/${serviceId}/results/${resultId}/steps/${stepId}/body`,
       );
-      stepBody.value = res.data ?? null;
+      // Object-storage bodies arrive as a presigned URL fetched directly —
+      // plain fetch, deliberately: the page's own origin must reach the
+      // bucket (its CORS policy is scoped to it), and the session token must
+      // never be sent to the storage host.
+      if (res.data?.url) {
+        try {
+          const remote = await fetch(res.data.url);
+          stepBody.value = remote.ok ? await remote.text() : null;
+        } catch {
+          stepBody.value = null;
+        }
+      } else {
+        stepBody.value = res.data?.content ?? null;
+      }
     } finally {
       stepBodyLoading.value = false;
     }

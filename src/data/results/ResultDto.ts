@@ -46,3 +46,12 @@ export interface ParsedAssertion {
   actual: string;
   outcome: string;
 }
+
+/** Response of GET .../steps/{stepId}/body — exactly one field is set.
+ * `url` is a short-lived presigned object-storage URL the client fetches
+ * directly (not a redirect: the browser must send the page's real origin so
+ * an origin-scoped bucket CORS policy can match). */
+export interface StepBodyResponse {
+  content?: string | null;
+  url?: string | null;
+}
