@@ -266,7 +266,7 @@
     "hierarchyHint": "Variables resolve from this resource up through its parents. Inherited scopes are shown read-only; locked values are computed by the platform.",
     "orgTab": "Org variables",
     "orgTitle": "Organization variables",
-    "orgHint": "Variables at the root of the scope chain (referenced as $o.name in scripts). Inherited by every workspace, project, and service.",
+    "orgHint": "Variables at the root of the scope chain (referenced as $o.name in scripts), inherited by every workspace, project, and service. Any member who can edit a probe can use them — secrets included, masked or not — so add organization-wide credentials with care.",
     "inherited": "inherited",
     "scopeCount": "{n} variables",
     "lockedVariable": "Locked — computed by the platform, read-only",
@@ -433,7 +433,7 @@
       "admin": {
         "none": "No access to organization administration.",
         "read": "Can view the organization overview and general settings.",
-        "write": "Can manage organization-wide administration, including usage."
+        "write": "Can manage the organization's identity, policies and danger zone."
       },
       "workspaces": {
         "none": "No workspace access by default. To scope access, keep this at None and grant specific workspaces under resource permissions.",
