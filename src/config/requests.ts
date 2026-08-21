@@ -23,9 +23,16 @@ export const { http, bulk } = createRequests<ErrorCode>({
   resolveMessage: resolveError,
   onUnauthorized: () => {
     clearStoredToken();
-    if (window.location.pathname !== '/login') {
-      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
-    }
+    // Public pages (password reset, invite acceptance, signup, legal) own their
+    // 401s. Bouncing them to login strands a visitor who has no session to
+    // restore in the first place, and buries the token from their link in a
+    // `redirect` query they can never act on.
+    void import('@/router').then(({ getRouter }) => {
+      if (getRouter()?.currentRoute.value.meta.public) return;
+      if (window.location.pathname !== '/login') {
+        window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+      }
+    });
   },
   onNotFound: () => {
     void import('@/router').then(({ getRouter }) => {

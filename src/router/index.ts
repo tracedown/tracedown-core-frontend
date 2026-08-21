@@ -2,7 +2,7 @@ import { createRouter, createWebHistory, type Router, type RouteRecordRaw } from
 import { getStoredToken } from '@/utils/tokenStorage';
 import { useWorkspaceStore } from '@/store/core/workspace';
 import { useNavigationStore } from '@/store/ui/navigation';
-import { initSession } from '@/composables/useSessionInit';
+import { initSession, isSessionRestored, markSessionRestored } from '@/composables/useSessionInit';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -16,7 +16,6 @@ declare module 'vue-router' {
 }
 
 let router: Router | null = null;
-let sessionRestored = false;
 
 /**
  * Creates the app router from a route table (the built-in `appRoutes`, or a superset).
@@ -42,10 +41,16 @@ function installGuards(r: Router) {
     // One-time session restore on hard load: hydrates user, orgs and
     // workspaces before the first authorized route resolves. An invalid token
     // is cleared inside, so the auth check below reroutes to login.
-    if (!sessionRestored) {
-      sessionRestored = true;
+    // Public routes are skipped, and leave the flag unset so the first
+    // authorized route still restores. A stale token in storage must otherwise
+    // turn a password-reset or invite link into a bounce to /login: the restore
+    // 401s, and the global unauthorized handler navigates away before the
+    // public page can render.
+    if (!isSessionRestored() && !to.meta.public) {
       if (getStoredToken()) {
         await initSession();
+      } else {
+        markSessionRestored();
       }
     }
 

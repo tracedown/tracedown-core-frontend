@@ -20,6 +20,23 @@ const SILENCES_URL = `/silences${pfsToQueryString(defaultPfsParams({ pageSize: 1
 const SYSTEM_ALERTS_URL = '/system-alerts';
 
 /**
+ * Whether a session restore already ran this page load — set by `initSession`
+ * itself, so a caller that restores directly (login, invite acceptance) spares
+ * the router guard a second identical round-trip on the next navigation.
+ */
+let restored = false;
+
+/** Whether {@link initSession} has run since the page loaded. */
+export function isSessionRestored(): boolean {
+  return restored;
+}
+
+/** Records a restore as unnecessary (no token to restore from). */
+export function markSessionRestored(): void {
+  restored = true;
+}
+
+/**
  * Restores a session in a single bulk round-trip. Essentials (/auth/me,
  * /auth/orgs, /workspaces) gate the result; the shell's mount-time data
  * (silences for the bells, system alerts for admins) piggybacks on the same
@@ -27,6 +44,7 @@ const SYSTEM_ALERTS_URL = '/system-alerts';
  * (e.g. /system-alerts is 403 for non-admins).
  */
 export async function initSession(): Promise<boolean> {
+  restored = true;
   const authStore = useAuthStore();
   const orgStore = useOrgStore();
   const silenceStore = useSilenceStore();
