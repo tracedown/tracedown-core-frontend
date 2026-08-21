@@ -2,7 +2,7 @@ import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { http } from '@/config/requests';
 import type {
-  CreateDomainRequest, DomainSummary, VerifyDomainResponse,
+  CreateDomainRequest, DnsHandoff, DomainSummary, VerifyDomainResponse,
 } from '@/data/domains/DomainDto';
 import type { ActionDataResult, ActionResult } from '@/types/actions';
 import type { Page } from '@/types/pfs';
@@ -61,6 +61,15 @@ export const useDomainStore = defineStore('domain', () => {
     return { ok: true, data: res.data };
   }
 
+  /** Where this domain's DNS records are edited, when we recognise the provider. */
+  async function fetchDnsHandoff(domainId: string): Promise<ActionDataResult<DnsHandoff>> {
+    const res = await http.get<DnsHandoff>(`/domains/${domainId}/dns-handoff`, { disableLoading: true });
+    if (!res.success || !res.data) {
+      return { ok: false, message: res.errorInfo?.message };
+    }
+    return { ok: true, data: res.data };
+  }
+
   async function setWildcard(domainId: string, wildcardEnabled: boolean): Promise<ActionResult> {
     const res = await http.patch<DomainSummary, { wildcardEnabled: boolean }>(`/domains/${domainId}`, { wildcardEnabled });
     if (!res.success || !res.data) {
@@ -82,6 +91,6 @@ export const useDomainStore = defineStore('domain', () => {
 
   return {
     domains, loading, fetchDomains, createDomain, verifyDomain, setWildcard, deleteDomain,
-    markVerified,
+    markVerified, fetchDnsHandoff,
   };
 });

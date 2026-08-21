@@ -11,6 +11,7 @@ export { establishSession } from '@/app/session';
 export {
   registerSlot,
   getSlotComponents,
+  slotIsFilled,
   setScriptEditor,
   registerFeatureGate,
   isFeatureEnabled,

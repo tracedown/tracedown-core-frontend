@@ -775,6 +775,10 @@
     "challengeUrl": "URL",
     "challengeBody": "Response body",
     "createdTitle": "{domain} added",
-    "createdHint": "Once the record is in place, open the domain in the list and hit Verify. You can view these instructions again anytime by clicking the domain row."
+    "createdHint": "Once the record is in place, open the domain in the list and hit Verify. You can view these instructions again anytime by clicking the domain row.",
+    "handoffHint": "This domain is on {provider}. Open its DNS page and paste the record above.",
+    "handoffAction": "Open DNS in {provider}",
+    "handoffWaiting": "Add the record in the {provider} tab, then come back — this checks again every few seconds.",
+    "handoffCheckNow": "Check now"
   }
 }

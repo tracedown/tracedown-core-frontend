@@ -31,6 +31,15 @@ export function getSlotComponents(name: string): Component[] {
   return slotComponents.get(name) ?? [];
 }
 
+/**
+ * Whether a host has taken over a slot. Lets a built-in surface stand down in
+ * favour of a host's richer replacement, instead of the two rendering side by
+ * side and offering the user the same thing twice.
+ */
+export function slotIsFilled(name: string): boolean {
+  return getSlotComponents(name).length > 0;
+}
+
 // ── Script editor ────────────────────────────────────────────────────────────
 
 /**

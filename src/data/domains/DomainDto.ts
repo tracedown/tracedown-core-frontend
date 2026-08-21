@@ -29,3 +29,11 @@ export interface VerifyDomainResponse {
   status: string;
   error?: string | null;
 }
+
+/** Where to send someone so their own DNS provider takes the record. */
+export interface DnsHandoff {
+  /** `dashboard` — a deep link to this zone's DNS page. `none` — unrecognised. */
+  mode: 'dashboard' | 'none';
+  providerName?: string | null;
+  url?: string | null;
+}

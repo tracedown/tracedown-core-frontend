@@ -41,13 +41,20 @@
       >
         <DomainChallengeInfo :domain="domain" />
 
-        <!-- A host may offer a way to place the record for the user, e.g. by
-             handing them off to their own DNS provider. -->
-        <SlotOutlet
-          v-if="canManage && effectiveStatus !== 'verified' && domain.verificationType === 'dns-01'"
-          name="domain-dns-setup"
-          :slot-props="{ domain, onVerified: () => { verifyError = null; } }"
-        />
+        <template v-if="canManage && effectiveStatus !== 'verified' && domain.verificationType === 'dns-01'">
+          <!-- A host may replace this with something richer (its own provider
+               integration); when it has, the built-in hand-off stands down
+               rather than offering the same thing twice. -->
+          <SlotOutlet
+            name="domain-dns-setup"
+            :slot-props="{ domain, onVerified: () => { verifyError = null; } }"
+          />
+          <DomainDnsHandoff
+            v-if="!hostOwnsDnsSetup"
+            :domain="domain"
+            @verified="verifyError = null"
+          />
+        </template>
 
         <div class="flex items-center gap-3 flex-wrap">
           <PrimaryButton
@@ -86,7 +93,9 @@ import IconButton from '@/components/core/buttons/IconButton.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import ToggleSwitch from '@/components/core/input/ToggleSwitch.vue';
 import SlotOutlet from '@/components/core/SlotOutlet.vue';
+import DomainDnsHandoff from '@/components/settings/DomainDnsHandoff.vue';
 import DomainChallengeInfo from '@/components/settings/DomainChallengeInfo.vue';
+import { slotIsFilled } from '@/config/extensions';
 import { useDomainStore } from '@/store/core/domain';
 import { useNotificationStore } from '@/store/ui/notifications';
 import type { DomainSummary } from '@/data/domains/DomainDto';
@@ -107,6 +116,8 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+/** A host registered its own DNS setup surface, so ours steps aside. */
+const hostOwnsDnsSetup = slotIsFilled('domain-dns-setup');
 const domainStore = useDomainStore();
 const notifications = useNotificationStore();
 
