@@ -21,9 +21,9 @@
         :disabled="disabled || loading || !waitAfterRender"
         @click="handleClick"
 
-        @mousedown.left="startHold"
-        @mouseup.left="cancelHold"
-        @mouseleave="cancelHold"
+        @mousedown.left="hold.start"
+        @mouseup.left="hold.release"
+        @mouseleave="hold.cancel"
       >
         <span
           v-if="loading"
@@ -39,7 +39,7 @@
         </span>
 
         <div
-          v-if="holdOffsetSec && isHolding"
+          v-if="holdOffsetSec && hold.isHolding.value"
           class="absolute inset-0 flex justify-center items-center bg-black/30 rounded"
         >
           <svg class="w-8 h-8 transform -rotate-90">
@@ -66,17 +66,26 @@
             />
           </svg>
           <span class="absolute text-white font-bold text-sm">
-            {{ remainingSeconds }}
+            {{ hold.remainingSeconds.value }}
           </span>
         </div>
+
+        <!-- Clicking instead of holding is a misread, not a decision: say so. -->
+        <HoldHint
+          v-if="holdOffsetSec"
+          :visible="hold.hintVisible.value"
+          :hold-seconds="holdOffsetSec"
+        />
       </button>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, getCurrentInstance, nextTick, onMounted, ref } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import HoldHint from '@/components/core/buttons/HoldHint.vue';
+import { useHoldGesture } from '@/composables/useHoldGesture';
 
 /**
  * This button can be used either with default '@click' emit,
@@ -146,55 +155,19 @@ const handleClick = () => {
 
 // Parameters for hold-to-activate button
 
-const holdTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
-const interval = ref<ReturnType<typeof setInterval> | null>(null);
-const isHolding = ref<boolean>(false);
-const elapsed = ref<number>(0);
+const hold = useHoldGesture({
+  holdSeconds: () => props.holdOffsetSec,
+  disabled: () => props.disabled,
+  onComplete: () => {
+    emit('safeClick');
+    props.onClick?.(props.onClickParam);
+  },
+});
 
 const radius = 12;
 const circumference = 2 * Math.PI * radius;
 
-const strokeDashoffset = computed(() => {
-  const progress = Math.min(
-    elapsed.value / ((props.holdOffsetSec ?? 0) * 1000),
-    1
-  );
-  return circumference * (1 - progress);
-});
-
-const remainingSeconds = computed(() =>
-  Math.floor(((props.holdOffsetSec ?? 0) * 1000 - elapsed.value + 200) / 1000) + 1);
-
-const startHold = () => {
-  if (props.disabled || !props.holdOffsetSec) return;
-  isHolding.value = true;
-  elapsed.value = 0;
-
-  holdTimeout.value = setTimeout(
-    () => {
-      emit('safeClick');
-      props.onClick?.(props.onClickParam);
-      cancelHold();
-    },
-    (props.holdOffsetSec ?? 0) * 1000
-  );
-
-  interval.value = setInterval(
-    () => {
-      elapsed.value += 100;
-    },
-    100
-  );
-};
-
-const cancelHold = () => {
-  if (holdTimeout.value) clearTimeout(holdTimeout.value);
-  if (interval.value) clearInterval(interval.value);
-  holdTimeout.value = null;
-  interval.value = null;
-  isHolding.value = false;
-  elapsed.value = 0;
-};
+const strokeDashoffset = computed(() => circumference * (1 - hold.progress.value));
 
 const waitAfterRender = ref<boolean>(false);
 
@@ -202,6 +175,4 @@ onMounted(async () => {
   await nextTick();
   waitAfterRender.value = true;
 });
-
-onBeforeUnmount(() => cancelHold());
 </script>

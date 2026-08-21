@@ -41,6 +41,14 @@
       >
         <DomainChallengeInfo :domain="domain" />
 
+        <!-- A host may offer a way to place the record for the user, e.g. by
+             handing them off to their own DNS provider. -->
+        <SlotOutlet
+          v-if="canManage && effectiveStatus !== 'verified' && domain.verificationType === 'dns-01'"
+          name="domain-dns-setup"
+          :slot-props="{ domain, onVerified: () => { verifyError = null; } }"
+        />
+
         <div class="flex items-center gap-3 flex-wrap">
           <PrimaryButton
             v-if="canManage && effectiveStatus !== 'verified'"
@@ -77,6 +85,7 @@ import BadgePill from '@/components/core/BadgePill.vue';
 import IconButton from '@/components/core/buttons/IconButton.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import ToggleSwitch from '@/components/core/input/ToggleSwitch.vue';
+import SlotOutlet from '@/components/core/SlotOutlet.vue';
 import DomainChallengeInfo from '@/components/settings/DomainChallengeInfo.vue';
 import { useDomainStore } from '@/store/core/domain';
 import { useNotificationStore } from '@/store/ui/notifications';

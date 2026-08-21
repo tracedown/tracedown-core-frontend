@@ -78,6 +78,14 @@
       >
         <div class="space-y-3 max-w-lg">
           <DomainChallengeInfo :domain="justCreated" />
+          <!-- The same hand-off the row offers: the moment right after adding a
+               domain is when someone most wants it, not after hunting for the
+               row and expanding it. -->
+          <SlotOutlet
+            v-if="justCreated.verificationType === 'dns-01'"
+            name="domain-dns-setup"
+            :slot-props="{ domain: justCreated }"
+          />
           <p class="text-xs text-text-secondary">
             {{ t('domains.createdHint') }}
           </p>
@@ -99,6 +107,7 @@ import EmptyState from '@/components/core/EmptyState.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import CreateToggleButton from '@/components/core/buttons/CreateToggleButton.vue';
 import ModalDialog from '@/components/core/ModalDialog.vue';
+import SlotOutlet from '@/components/core/SlotOutlet.vue';
 import DomainChallengeInfo from '@/components/settings/DomainChallengeInfo.vue';
 import DomainListRow from '@/components/settings/DomainListRow.vue';
 import TextInput from '@/components/core/input/TextInput.vue';

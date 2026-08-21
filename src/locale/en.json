@@ -31,7 +31,8 @@
       "moreMatches": "{n} more — refine the search",
       "noMatches": "No matches.",
       "copied": "Copied to clipboard.",
-      "pageRange": "{from}–{to} of {total}"
+      "pageRange": "{from}–{to} of {total}",
+      "holdHint": "Hold this button for {seconds}s to confirm."
     },
     "labels": {
       "name": "Name",
@@ -211,7 +212,7 @@
     "timingOverlapNote": "Phases may overlap; sum may exceed total response time.",
     "expected": "expected",
     "got": "got",
-    "skippedQueueFull": "Probe skipped — the scheduler's dispatch queue was full. The platform is over its probing capacity; please contact your system administrator.",
+    "skippedQueueFull": "Probe skipped — the platform is over its probing capacity. Contact your system administrator.",
     "skippedGeneric": "Probe skipped — it was never dispatched to an agent."
   },
   "resource": {
@@ -552,7 +553,8 @@
     "unknown_error": "An unexpected error occurred.",
     "unverified_domain_call_limit": "Scripts targeting unverified domains are limited to 3 calls. Verify the domain in Settings → Domains, or shorten the chain.",
     "unverified_domain_interval": "Probes against unverified domains need at least a 5-minute interval. Verify the domain or relax the schedule.",
-    "unverified_domain_includes": "includes() can only be used against domains you've verified. Verify the domain in Infrastructure → Domains, or remove includes() from the script."
+    "unverified_domain_includes": "includes() can only be used against domains you've verified. Verify the domain in Infrastructure → Domains, or remove includes() from the script.",
+    "variable_limit_reached": "This resource already has the maximum number of variables. Remove one to add another."
   },
   "meta": {
     "description": "API monitoring and uptime tracking"
@@ -644,7 +646,7 @@
     "generic": "System alert: {type} (since {since}).",
     "logTab": "Warning log",
     "logTitle": "Warning log",
-    "logHint": "History of platform warnings: probing capacity, agent health and other operational events. Banners show only the latest episode of each type — this is the full record.",
+    "logHint": "History of platform warnings: probing capacity, agent health and other operational events.",
     "logEmpty": "No warnings recorded.",
     "colSeverity": "Severity",
     "colType": "Warning",
@@ -686,9 +688,9 @@
     "attempts": "Retries",
     "attemptsLabel": "{n} attempt(s)",
     "url": "URL",
-    "urlVarsHint": "Reference webhook variables with $h.name (e.g. .../bot$h.telegramToken/...) to keep secrets out of the stored URL — they're resolved at delivery. Org variables work too ($o.name), but those are visible to the whole org; webhook variables stay private to this webhook.",
+    "urlVarsHint": "Reference webhook variables with $h.name (e.g. .../bot$h.telegramToken/...) to keep secrets out of the stored URL. Org variables ($o.name) work here too.",
     "variablesTitle": "Webhook variables",
-    "variablesHint": "Referenced as $h.name in this webhook's URL and delivery config. Resolved only when the webhook fires — unlike org variables, they can never be read or used from probe scripts.",
+    "variablesHint": "Referenced as $h.name in this webhook's URL and delivery config. Only this webhook can use them.",
     "body": "Body template",
     "bodyNoText": "The template does not contain {'${text}'} — the notification text will not be injected.",
     "config": "Delivery config (JSON: auth headers, query params)",
@@ -705,7 +707,7 @@
     "paused": "Paused"
   },
   "templates": {
-    "pageHint": "Reusable notification texts. Scripts reference them as template(\"name\"); {'${var}'} placeholders resolve at dispatch time. A template is available to the projects it is bound to.",
+    "pageHint": "Reusable notification texts. Scripts reference them as template(\"name\"); {'${var}'} placeholders are filled in when the notification is sent. A template is available to the projects it is bound to.",
     "none": "No templates yet.",
     "create": "New template",
     "name": "Name",

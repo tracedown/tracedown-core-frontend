@@ -7,9 +7,9 @@
       :disabled="disabled || (holdOffsetSec != null && !waitAfterRender)"
       :title="title"
       @click="handleClick"
-      @mousedown.left="startHold"
-      @mouseup.left="cancelHold"
-      @mouseleave="cancelHold"
+      @mousedown.left="hold.start"
+      @mouseup.left="hold.release"
+      @mouseleave="hold.cancel"
     >
       <FontAwesomeIcon
         :icon="faIcon"
@@ -19,7 +19,7 @@
       <!-- Hold-to-confirm overlay: the same radial gesture the primary button
            uses, scaled for the icon surface. Only ever shown while holding. -->
       <span
-        v-if="holdOffsetSec != null && isHolding"
+        v-if="holdOffsetSec != null && hold.isHolding.value"
         class="absolute inset-0 flex items-center justify-center bg-black/40 rounded"
       >
         <svg class="w-5 h-5 -rotate-90">
@@ -46,13 +46,22 @@
           />
         </svg>
       </span>
+
+      <!-- Clicking instead of holding is a misread, not a decision: say so. -->
+      <HoldHint
+        v-if="holdOffsetSec != null"
+        :visible="hold.hintVisible.value"
+        :hold-seconds="holdOffsetSec"
+      />
     </button>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import HoldHint from '@/components/core/buttons/HoldHint.vue';
+import { useHoldGesture } from '@/composables/useHoldGesture';
 
 /**
  * Icon-only action button (close, edit, pagination, …). Pass `holdOffsetSec`
@@ -99,45 +108,16 @@ function handleClick(event: MouseEvent) {
   emit('click', event);
 }
 
-const holdTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
-const interval = ref<ReturnType<typeof setInterval> | null>(null);
-const isHolding = ref<boolean>(false);
-const elapsed = ref<number>(0);
+const hold = useHoldGesture({
+  holdSeconds: () => props.holdOffsetSec,
+  disabled: () => props.disabled,
+  onComplete: () => emit('safeClick'),
+});
 
 const radius = 8;
 const circumference = 2 * Math.PI * radius;
 
-const strokeDashoffset = computed(() => {
-  const progress = Math.min(elapsed.value / ((props.holdOffsetSec ?? 0) * 1000), 1);
-  return circumference * (1 - progress);
-});
-
-function startHold() {
-  if (props.disabled || props.holdOffsetSec == null) return;
-  isHolding.value = true;
-  elapsed.value = 0;
-
-  holdTimeout.value = setTimeout(
-    () => {
-      emit('safeClick');
-      cancelHold();
-    },
-    props.holdOffsetSec * 1000
-  );
-
-  interval.value = setInterval(() => {
-    elapsed.value += 100;
-  }, 100);
-}
-
-function cancelHold() {
-  if (holdTimeout.value) clearTimeout(holdTimeout.value);
-  if (interval.value) clearInterval(interval.value);
-  holdTimeout.value = null;
-  interval.value = null;
-  isHolding.value = false;
-  elapsed.value = 0;
-}
+const strokeDashoffset = computed(() => circumference * (1 - hold.progress.value));
 
 // Mirrors the primary button: stay disabled until the first render settles so
 // a stray pointer event can't complete a zero-length hold on mount.
@@ -146,6 +126,4 @@ onMounted(async () => {
   await nextTick();
   waitAfterRender.value = true;
 });
-
-onBeforeUnmount(() => cancelHold());
 </script>

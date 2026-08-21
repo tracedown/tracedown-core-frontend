@@ -11,6 +11,9 @@ export interface DomainSummary {
   lastCheckedAt: string | null;
   /** Previously verified but the token disappeared — unverified limits apply. */
   lapsed: boolean;
+  /** How the DNS record was placed: a provider id, a host's own method, or null for by hand. */
+  dnsSetupMethod: string | null;
+  dnsSetupAt: string | null;
 }
 
 /** Request of POST /domains. */
