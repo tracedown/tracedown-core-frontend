@@ -1,6 +1,10 @@
 :root {
   --chart-line: var(--color-accent-primary);
-  --chart-success: var(--color-accent-secondary);
+  /* Was --color-accent-secondary (#3c3c3c), which sits at about 1.3:1 against
+     the #222729 ground — the uptime line and the success bars were effectively
+     invisible. Reuses the existing status token rather than inventing a colour,
+     so success reads the same here as it does everywhere else in the app. */
+  --chart-success: var(--color-status-success);
   --chart-failure: var(--color-status-failure);
   --chart-warning: var(--color-status-warning);
   /* Skipped probes: visible but deliberately muted. */
