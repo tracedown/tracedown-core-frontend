@@ -210,7 +210,7 @@
       "disabledToast": "Disabled {changed} of {matched} services.",
       "changed": "{changed} of {matched} services changed.",
       "skippedHeading": "{count} left unchanged:",
-      "skippedMore": "…and {count} more not listed here.",
+      "skippedMore": "…and {count} more.",
       "reasons": {
         "script_missing": "No script yet",
         "script_invalid": "Script has errors",

@@ -85,6 +85,8 @@ export interface ScopedToggleResult {
   skipped: SkippedService[];
   /** How many were skipped in total; exceeds `skipped.length` once capped. */
   skippedTotal: number;
+  /** Skip count per reason, over all skips rather than the capped sample. */
+  skippedByReason: Record<string, number>;
 }
 
 /** Combined detail + recent probe points, served by /services/{id}/snapshot. */

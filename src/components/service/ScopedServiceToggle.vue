@@ -54,6 +54,21 @@
           <p class="text-sm font-medium text-text-primary mb-2">
             {{ t('service.scopedToggle.skippedHeading', { count: outcome.skippedTotal }) }}
           </p>
+          <!-- The tally first: it covers every skip, while the list below is a
+               sample. For a large scope this is the only part that can be read. -->
+          <ul
+            v-if="breakdown.length > 1 || undisclosed > 0"
+            class="mb-3 space-y-1"
+          >
+            <li
+              v-for="entry in breakdown"
+              :key="entry.reason"
+              class="flex items-baseline justify-between gap-4 text-sm"
+            >
+              <span class="text-text-secondary">{{ reasonLabel(entry.reason) }}</span>
+              <span class="text-text-primary font-medium tabular-nums shrink-0">{{ entry.count }}</span>
+            </li>
+          </ul>
           <!-- Bounded: the server caps the sample, and this scrolls whatever
                arrives so a long list cannot push the buttons off the dialog. -->
           <ul class="divide-y divide-text-secondary/20 border-y border-text-secondary/20 max-h-64 overflow-y-auto">
@@ -140,6 +155,12 @@ const pending = ref<boolean | null>(null);
 const submitting = ref<boolean>(false);
 /** Set only when the call left services behind — the modal then explains them. */
 const outcome = ref<ScopedToggleResult | null>(null);
+
+/** Per-reason skip counts, heaviest first — the digest above the sample list. */
+const breakdown = computed(() =>
+  Object.entries(outcome.value?.skippedByReason ?? {})
+    .map(([reason, count]) => ({ reason, count }))
+    .sort((a, b) => b.count - a.count));
 
 /** Skipped services the response did not name, because the sample is capped. */
 const undisclosed = computed(() =>
