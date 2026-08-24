@@ -81,8 +81,10 @@ export interface ScopedToggleResult {
   changed: number;
   /** Already in the requested state, so left untouched. */
   unchanged: number;
-  /** Covered by the scope but not acted on. */
+  /** A capped sample of those covered but not acted on — see `skippedTotal`. */
   skipped: SkippedService[];
+  /** How many were skipped in total; exceeds `skipped.length` once capped. */
+  skippedTotal: number;
 }
 
 /** Combined detail + recent probe points, served by /services/{id}/snapshot. */

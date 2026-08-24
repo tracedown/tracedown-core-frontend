@@ -52,9 +52,11 @@
         </p>
         <div>
           <p class="text-sm font-medium text-text-primary mb-2">
-            {{ t('service.scopedToggle.skippedHeading', { count: outcome.skipped.length }) }}
+            {{ t('service.scopedToggle.skippedHeading', { count: outcome.skippedTotal }) }}
           </p>
-          <ul class="divide-y divide-text-secondary/20 border-y border-text-secondary/20">
+          <!-- Bounded: the server caps the sample, and this scrolls whatever
+               arrives so a long list cannot push the buttons off the dialog. -->
+          <ul class="divide-y divide-text-secondary/20 border-y border-text-secondary/20 max-h-64 overflow-y-auto">
             <li
               v-for="skipped in outcome.skipped"
               :key="skipped.serviceId"
@@ -64,6 +66,12 @@
               <span class="text-text-secondary shrink-0">{{ reasonLabel(skipped.reason) }}</span>
             </li>
           </ul>
+          <p
+            v-if="undisclosed > 0"
+            class="text-xs text-text-secondary mt-2"
+          >
+            {{ t('service.scopedToggle.skippedMore', { count: undisclosed }) }}
+          </p>
         </div>
         <div class="flex justify-end">
           <PrimaryButton
@@ -132,6 +140,10 @@ const pending = ref<boolean | null>(null);
 const submitting = ref<boolean>(false);
 /** Set only when the call left services behind — the modal then explains them. */
 const outcome = ref<ScopedToggleResult | null>(null);
+
+/** Skipped services the response did not name, because the sample is capped. */
+const undisclosed = computed(() =>
+  outcome.value ? outcome.value.skippedTotal - outcome.value.skipped.length : 0);
 
 const confirmKey = computed(() => {
   if (pending.value) {
