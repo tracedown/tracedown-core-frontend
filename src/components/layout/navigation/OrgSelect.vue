@@ -2,7 +2,7 @@
     <!-- Single org: plain label, no dropdown -->
     <span
       v-if="orgStore.orgs.length === 1"
-      class="text-sm text-text-primary font-medium px-3 py-1.5"
+      class="block px-1.5 py-0.5 text-sm text-text-primary font-medium truncate"
     >
       {{ orgStore.orgs[0].name }}
     </span>
@@ -10,14 +10,16 @@
     <DropdownPanel v-else-if="orgStore.orgs.length > 1">
       <template #trigger="{ open, toggle }">
         <button
-          class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-text-secondary
+          class="w-full flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg text-sm text-text-secondary
                hover:bg-background-primary transition-colors"
           @click="toggle"
         >
-          <span class="text-text-primary font-medium">{{ orgStore.currentOrg?.name ?? t('nav.selectOrg') }}</span>
+          <span class="min-w-0 text-text-primary font-medium truncate">
+            {{ orgStore.currentOrg?.name ?? t('nav.selectOrg') }}
+          </span>
           <FontAwesomeIcon
             :icon="open ? faChevronDown : faChevronRight"
-            class="w-2.5 h-2.5"
+            class="w-2.5 h-2.5 shrink-0"
           />
         </button>
       </template>

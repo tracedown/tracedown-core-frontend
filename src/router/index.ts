@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, type Router, type RouteRecordRaw } from 'vue-router';
 import { getStoredToken } from '@/utils/tokenStorage';
+import { useProjectStore } from '@/store/core/project';
 import { useWorkspaceStore } from '@/store/core/workspace';
 import { useNavigationStore } from '@/store/ui/navigation';
 import { initSession, isSessionRestored, markSessionRestored } from '@/composables/useSessionInit';
@@ -79,8 +80,12 @@ function installGuards(r: Router) {
     }
   });
 
-  // The resolved route declares which ribbon item it belongs to.
+  // The resolved route declares which ribbon item it belongs to, and owns the
+  // header project picker's selection — it holds only while a project is open.
   r.afterEach((to) => {
     useNavigationStore().setActiveItem(to.meta.navItem ?? null);
+    useProjectStore().setSelectedProject(
+      to.name === 'project' ? (to.params.projectId as string) : null
+    );
   });
 }

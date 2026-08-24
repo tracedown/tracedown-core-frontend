@@ -171,6 +171,10 @@ watch(projectId, async (id) => {
     await projectStore.fetchProject(id);
     if (stale()) return;
   }
+  // A deep link can arrive with another workspace persisted — the header
+  // selects belong to the project actually open.
+  if (project.value) workspaceStore.setSelectedWorkspace(project.value.workspaceId);
+
   await serviceStore.fetchServices(id);
   if (stale()) return;
   // Background — can take seconds on large fleets; the chart spinner covers it.

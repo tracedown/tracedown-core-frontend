@@ -118,6 +118,8 @@
     "namePlaceholder": "Workspace name"
   },
   "project": {
+    "select": "Select project",
+    "searchPlaceholder": "Search projects",
     "createNew": "New project",
     "createTitle": "Create project",
     "noProjects": "No projects yet",

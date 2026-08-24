@@ -16,11 +16,26 @@ export const useProjectStore = defineStore('project', () => {
   /** `workspaceId|search|page` of the currently loaded page — repeat fetches are skipped. */
   const fetchedKey = ref<string | null>(null);
 
+  /** Header picker list, held apart from the paged grid so its search never disturbs it. */
+  const options = ref<ProjectSummary[]>([]);
+  const optionsTotal = ref<number>(0);
+  const optionsKey = ref<string | null>(null);
+
+  /** Route-driven: the project view sets it, every other route clears it. */
+  const selectedProjectId = ref<string | null>(null);
+
   /** Monotonic fetch generation — a superseded response is discarded on arrival. */
   let generation = 0;
+  let optionsGeneration = 0;
 
   /** True when all results fit on the current page — local aggregation is accurate. */
   const isFullPage = computed(() => totalResults.value <= DEFAULT_PAGE_SIZE);
+
+  /** The picked project — a deep-linked one is only ever in the paged list. */
+  const currentProject = computed(() =>
+    projects.value.find(p => p.id === selectedProjectId.value)
+    ?? options.value.find(p => p.id === selectedProjectId.value)
+    ?? null);
 
   /** Aggregates metrics from all projects on the current page. */
   const aggregatedMetrics = computed(() => aggregateMetrics(projects.value));
@@ -88,6 +103,45 @@ export const useProjectStore = defineStore('project', () => {
     } finally {
       if (!opts.silent) loading.value = false;
     }
+  }
+
+  /**
+   * Loads one page of projects for the header picker. A workspace can hold more
+   * than a page of them, so `optionsTotal` lets the panel say how many are shown
+   * and `search` (server-side) reaches the rest.
+   */
+  async function fetchProjectOptions(
+    workspaceId: string,
+    search?: string,
+    opts: FetchOptions = {},
+  ): Promise<ActionResult> {
+    const key = `${workspaceId}|${search?.trim() ?? ''}`;
+    if (!opts.force && optionsKey.value === key) return { ok: true };
+    const gen = ++optionsGeneration;
+    const filters: PfsFilter[] = search?.trim()
+      ? [{ table: 'projects', column: 'name', operator: 'like', value: search.trim(), ignoreCase: true }]
+      : [];
+    const pfs = defaultPfsParams({
+      filters,
+      sorters: [{ table: 'projects', column: 'name', order: 'asc' }],
+    });
+    const res = await http.get<Page<ProjectSummary>>(
+      `/projects?workspaceId=${workspaceId}${pfsToQueryString(pfs, '&')}`,
+      { disableLoading: true },
+    );
+    // A newer keystroke superseded this one.
+    if (gen !== optionsGeneration) return { ok: true };
+    if (!res.success || !res.data) {
+      return { ok: false, message: res.errorInfo?.message };
+    }
+    options.value = res.data.items;
+    optionsTotal.value = res.data.total;
+    optionsKey.value = key;
+    return { ok: true };
+  }
+
+  function setSelectedProject(id: string | null) {
+    selectedProjectId.value = id;
   }
 
   /** Fetches a single project (direct URL navigation). A 404 redirects to resource-not-found. */
@@ -165,10 +219,17 @@ export const useProjectStore = defineStore('project', () => {
     totalResults.value = 0;
     page.value = 1;
     fetchedKey.value = null;
+    // The picker list belongs to a workspace too; the selection does not —
+    // it follows the route.
+    options.value = [];
+    optionsTotal.value = 0;
+    optionsKey.value = null;
   }
 
   return {
     projects, totalResults, loading, page, pageSize: DEFAULT_PAGE_SIZE, isFullPage, aggregatedMetrics,
-    ensureContext, fetchProjects, fetchProject, createProject, renameProject, applyMetricsDelta, deleteProject, clear,
+    options, optionsTotal, selectedProjectId, currentProject,
+    ensureContext, fetchProjects, fetchProjectOptions, setSelectedProject, fetchProject,
+    createProject, renameProject, applyMetricsDelta, deleteProject, clear,
   };
 });
