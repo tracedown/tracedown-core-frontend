@@ -65,6 +65,26 @@ export interface ToggleServiceRequest {
   isActive: boolean;
 }
 
+/** One service a scoped toggle did not act on, and why. */
+export interface SkippedService {
+  serviceId: string;
+  name: string;
+  /** `forbidden`, `script_missing` or `script_invalid`. */
+  reason: string;
+}
+
+/** Outcome of enabling or disabling every service in a project or workspace. */
+export interface ScopedToggleResult {
+  /** Services the scope covered, before any were filtered out. */
+  matched: number;
+  /** Services whose `isActive` actually moved. */
+  changed: number;
+  /** Already in the requested state, so left untouched. */
+  unchanged: number;
+  /** Covered by the scope but not acted on. */
+  skipped: SkippedService[];
+}
+
 /** Combined detail + recent probe points, served by /services/{id}/snapshot. */
 export interface ServiceSnapshot {
   service: ServiceSummary;

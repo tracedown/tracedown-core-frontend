@@ -13,6 +13,7 @@ import type { Page, PfsFilter } from '@/types/pfs';
 import type { ServiceCategory, ServiceCategoryState } from '@/types/services';
 import type { FailedAssertion,
   CreateServiceRequest,
+  ScopedToggleResult,
   ServiceSummary,
   ToggleServiceRequest,
   UpdateServiceConfigRequest,
@@ -187,6 +188,47 @@ export const useServiceStore = defineStore('service', () => {
     return applyUpdateResponse(serviceId, res.success ? res.data : undefined, res.errorInfo?.message);
   }
 
+  /**
+   * Enables or disables every service in a project or workspace, in one call.
+   *
+   * The whole scope moves or none of it does — the backend runs it as a single
+   * transaction — so there is no partial state to reconcile here. The loaded
+   * list is refetched rather than patched in place: the response reports counts,
+   * not the rows, and a scope can touch services outside the current page.
+   */
+  async function toggleServicesInScope(
+    scope: 'project' | 'workspace',
+    scopeId: string,
+    isActive: boolean,
+  ): Promise<ActionDataResult<ScopedToggleResult>> {
+    const collection = scope === 'project' ? 'projects' : 'workspaces';
+    const res = await http.patch<ScopedToggleResult, ToggleServiceRequest>(
+      `/${collection}/${scopeId}/services/toggle`,
+      { isActive },
+    );
+    if (!res.success || !res.data) {
+      return { ok: false, message: res.errorInfo?.message };
+    }
+    if (res.data.changed > 0) await refreshLoadedList();
+    return { ok: true, data: res.data };
+  }
+
+  /**
+   * Refetches whatever service list is currently loaded, if any.
+   *
+   * A workspace-scoped change can reach the open project without naming it, so
+   * the loaded key — not the scope — decides what to reload. Silent and forced:
+   * the list is already on screen and its cache entry is now wrong.
+   */
+  async function refreshLoadedList(): Promise<void> {
+    const key = fetchedKey.value;
+    if (!key) return;
+    const separator = key.indexOf('|');
+    const projectId = key.slice(0, separator);
+    const search = key.slice(separator + 1);
+    await fetchServices(projectId, search || undefined, { force: true, silent: true });
+  }
+
   /** Requests an immediate one-off probe run. The scheduler dispatches asynchronously. */
   async function runService(serviceId: string): Promise<ActionResult> {
     const res = await http.post<{ ok: boolean }>(`/services/${serviceId}/run`);
@@ -252,7 +294,8 @@ export const useServiceStore = defineStore('service', () => {
   return {
     categories, services, totalResults, loading, isFullPage, aggregatedMetrics,
     ensureContext, fetchServices, fetchService, refreshService,
-    createService, deleteService, updateServiceConfig, updateScript, toggleService, runService,
+    createService, deleteService, updateServiceConfig, updateScript, toggleService,
+    toggleServicesInScope, runService,
     updateInPlace, applyProbeResult, fetchAllowedAgents, setAllowedAgents, clear,
   };
 });

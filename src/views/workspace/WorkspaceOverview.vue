@@ -10,13 +10,22 @@
             :slot-props="{ resource: 'projects' }"
           />
         </div>
-        <CreateToggleButton
-          v-if="authStore.canWriteScoped([`workspace::${workspaceId}`])"
-          v-model="showCreateForm"
-          :label-text="t('project.createNew')"
-          :disabled="!isFeatureEnabled('project.create')"
-          :hint="t('common.actionUnavailable')"
-        />
+        <div class="flex items-center gap-1">
+          <CreateToggleButton
+            v-if="canEditWorkspace"
+            v-model="showCreateForm"
+            :label-text="t('project.createNew')"
+            :disabled="!isFeatureEnabled('project.create')"
+            :hint="t('common.actionUnavailable')"
+          />
+          <!-- Reaches every service in every project below, so it is offered
+               only once there is a project for it to reach into. -->
+          <ScopedServiceToggle
+            v-if="canEditWorkspace && projectStore.projects.length > 0"
+            scope="workspace"
+            :scope-id="workspaceId"
+          />
+        </div>
       </div>
 
       <InlineCreateForm
@@ -66,6 +75,7 @@ import SlotOutlet from '@/components/core/SlotOutlet.vue';
 import EmptyState from '@/components/core/EmptyState.vue';
 import InlineCreateForm from '@/components/resource/InlineCreateForm.vue';
 import ProjectCard from '@/components/project/ProjectCard.vue';
+import ScopedServiceToggle from '@/components/service/ScopedServiceToggle.vue';
 import TablePager from '@/components/core/TablePager.vue';
 import { useAuthStore } from '@/store/core/auth';
 import { useProjectStore } from '@/store/core/project';
@@ -82,6 +92,8 @@ const notifications = useNotificationStore();
 const searchStore = useSearchStore();
 
 const workspaceId = computed(() => route.params.workspaceId as string);
+const canEditWorkspace = computed(() =>
+  authStore.canWriteScoped([`workspace::${workspaceId.value}`]));
 const showCreateForm = ref<boolean>(false);
 
 useResourceSearch((value) => {

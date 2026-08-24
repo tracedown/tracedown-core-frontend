@@ -193,6 +193,29 @@
       "FR": "Fri",
       "SA": "Sat",
       "SU": "Sun"
+    },
+    "scopedToggle": {
+      "menu": "Bulk actions",
+      "enableAll": "Enable all services",
+      "disableAll": "Disable all services",
+      "enableTitle": "Enable all services",
+      "disableTitle": "Disable all services",
+      "enableProjectConfirm": "Every service in this project will start probing on its schedule.",
+      "disableProjectConfirm": "Every service in this project will stop probing.",
+      "enableWorkspaceConfirm": "Every service in every project of this workspace will start probing on its schedule.",
+      "disableWorkspaceConfirm": "Every service in every project of this workspace will stop probing.",
+      "disableNote": "Nothing is deleted, and results already collected are kept. You can enable them again at any time.",
+      "enableConfirm": "Enable all",
+      "disableConfirm": "Disable all",
+      "enabledToast": "Enabled {changed} of {matched} services.",
+      "disabledToast": "Disabled {changed} of {matched} services.",
+      "changed": "{changed} of {matched} services changed.",
+      "skippedHeading": "{count} left unchanged:",
+      "reasons": {
+        "script_missing": "No script yet",
+        "script_invalid": "Script has errors",
+        "forbidden": "You cannot edit it"
+      }
     }
   },
   "results": {
