@@ -1,7 +1,6 @@
 export interface WorkspaceSummary {
   id: string;
   name: string;
-  isActive: boolean;
   createdAt: string;
 }
 

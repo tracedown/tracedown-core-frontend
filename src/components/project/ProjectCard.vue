@@ -16,15 +16,9 @@
         />
         <span class="ml-auto" />
         <span
-          class="inline-flex items-center gap-1.5 text-xs shrink-0"
-          :class="project.isActive ? 'text-text-secondary' : 'text-text-secondary/60'"
-        >
-          <span
-            class="w-1.5 h-1.5 rounded-full"
-            :class="statusDot"
-          />
-          {{ project.isActive ? t('common.states.active') : t('common.states.inactive') }}
-        </span>
+          class="w-1.5 h-1.5 rounded-full shrink-0"
+          :class="statusDot"
+        />
       </div>
       <div class="grid grid-cols-3 gap-3 text-xs">
         <div>
@@ -73,9 +67,11 @@ const successRate = computed(() => {
   return rate == null ? '-' : `${rate.toFixed(1)}%`;
 });
 
-/** Inactive projects show muted; active ones reflect their last probe status. */
-const statusDot = computed(() => {
-  if (!props.project.isActive) return 'bg-text-secondary/50';
-  return statusDotClass(props.project.metrics?.state.lastStatus);
-});
+/**
+ * The project's last probe status. The Active/Inactive wording that used to sit
+ * beside this dot came from `projects.is_active`, a column that was true for
+ * every project ever created — so it always read "Active" and told the reader
+ * nothing. Dot only now, matching ServiceListItem.
+ */
+const statusDot = computed(() => statusDotClass(props.project.metrics?.state.lastStatus));
 </script>

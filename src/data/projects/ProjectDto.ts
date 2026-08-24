@@ -4,7 +4,6 @@ export interface ProjectSummary {
   id: string;
   workspaceId: string;
   name: string;
-  isActive: boolean;
   createdAt: string;
   metrics: ServiceMetricsDto | null;
   serviceCount: number;
