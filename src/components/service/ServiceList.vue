@@ -5,21 +5,13 @@
         <h2 class="text-sm font-semibold text-text-primary">
           {{ t('common.entities.services') }}
         </h2>
-        <div class="flex items-center gap-1">
-          <CreateToggleButton
-            v-if="canEdit"
-            v-model="showCreateForm"
-            :label-text="t('service.createNew')"
-            :disabled="!isFeatureEnabled('service.create')"
-            :hint="t('common.actionUnavailable')"
-          />
-          <!-- Only worth offering once there is more than one thing to sweep. -->
-          <ScopedServiceToggle
-            v-if="canEdit && serviceStore.totalResults > 1"
-            scope="project"
-            :scope-id="projectId"
-          />
-        </div>
+        <CreateToggleButton
+          v-if="canEdit"
+          v-model="showCreateForm"
+          :label-text="t('service.createNew')"
+          :disabled="!isFeatureEnabled('service.create')"
+          :hint="t('common.actionUnavailable')"
+        />
       </div>
 
       <div
@@ -76,7 +68,6 @@ import EmptyState from '@/components/core/EmptyState.vue';
 import InlineCreateForm from '@/components/resource/InlineCreateForm.vue';
 import ServiceListSection from '@/components/service/ServiceListSection.vue';
 import ServiceListItem from '@/components/service/ServiceListItem.vue';
-import ScopedServiceToggle from '@/components/service/ScopedServiceToggle.vue';
 import { useServiceStore } from '@/store/core/service';
 import { useNotificationStore } from '@/store/ui/notifications';
 import { SERVICE_CATEGORIES } from '@/utils/serviceCategories';

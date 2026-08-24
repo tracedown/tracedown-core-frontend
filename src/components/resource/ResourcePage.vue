@@ -11,6 +11,9 @@
           class="px-gutter pt-6 pb-4"
         >
           <slot name="title-actions" />
+          <template #controls>
+            <slot name="title-controls" />
+          </template>
         </BreadcrumbsDisplay>
         <slot name="stats" />
         <TabBar

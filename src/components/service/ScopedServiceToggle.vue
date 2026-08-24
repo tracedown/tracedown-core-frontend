@@ -1,32 +1,13 @@
 <template>
-    <DropdownPanel
-      align-right
-      panel-class="w-56"
-    >
-      <template #trigger="{ toggle }">
-        <IconButton
-          :fa-icon="faEllipsisVertical"
-          :title="t('service.scopedToggle.menu')"
-          @click="toggle"
-        />
-      </template>
-
-      <template #default="{ close }">
-        <button
-          v-for="option in OPTIONS"
-          :key="option.key"
-          class="flex items-center gap-2 w-full px-3 py-2 text-left text-sm
-               text-text-primary hover:bg-background-primary/50 transition-colors"
-          @click="ask(option.enable, close)"
-        >
-          <FontAwesomeIcon
-            :icon="option.icon"
-            class="w-3.5 h-3.5 text-text-secondary"
-          />
-          {{ t(option.labelKey) }}
-        </button>
-      </template>
-    </DropdownPanel>
+    <IconButton
+      v-for="option in OPTIONS"
+      :key="option.key"
+      :fa-icon="option.icon"
+      :title="t(option.labelKey)"
+      :color-class="option.colorClass"
+      icon-class="w-3.5 h-3.5"
+      @click="ask(option.enable)"
+    />
 
     <ModalDialog
       v-if="pending !== null"
@@ -101,12 +82,14 @@
  * One request, not a loop: the backend moves the whole scope in a single
  * transaction, so there is no half-applied state for this component to show or
  * recover from. It either all moved, or nothing did and the message says why.
+ *
+ * Rendered as two pictograms on the resource's title row rather than inside a
+ * menu: these are the resource's own controls, and burying them one click deep
+ * made them invisible on the page where they matter most.
  */
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faEllipsisVertical, faPlay, faPause } from '@fortawesome/free-solid-svg-icons';
-import DropdownPanel from '@/components/core/DropdownPanel.vue';
+import { faPlay, faPause } from '@fortawesome/free-solid-svg-icons';
 import ModalDialog from '@/components/core/ModalDialog.vue';
 import IconButton from '@/components/core/buttons/IconButton.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
@@ -124,9 +107,24 @@ const { t } = useI18n();
 const serviceStore = useServiceStore();
 const notifications = useNotificationStore();
 
+// Icon-only: these sit beside the resource name, where a pair of labelled
+// buttons would out-shout the title. The label rides the tooltip, and the
+// confirm dialog spells the action out before anything happens.
 const OPTIONS = [
-  { key: 'enable', enable: true, icon: faPlay, labelKey: 'service.scopedToggle.enableAll' },
-  { key: 'disable', enable: false, icon: faPause, labelKey: 'service.scopedToggle.disableAll' },
+  {
+    key: 'enable',
+    enable: true,
+    icon: faPlay,
+    labelKey: 'service.scopedToggle.enableAll',
+    colorClass: 'text-text-secondary hover:text-status-success',
+  },
+  {
+    key: 'disable',
+    enable: false,
+    icon: faPause,
+    labelKey: 'service.scopedToggle.disableAll',
+    colorClass: 'text-text-secondary hover:text-status-warning',
+  },
 ] as const;
 
 /** The action awaiting confirmation: true = enable, false = disable, null = idle. */
@@ -146,8 +144,7 @@ const confirmKey = computed(() => {
     : 'service.scopedToggle.disableWorkspaceConfirm';
 });
 
-function ask(enable: boolean, close: () => void) {
-  close();
+function ask(enable: boolean) {
   outcome.value = null;
   pending.value = enable;
 }

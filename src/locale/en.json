@@ -195,7 +195,6 @@
       "SU": "Sun"
     },
     "scopedToggle": {
-      "menu": "Bulk actions",
       "enableAll": "Enable all services",
       "disableAll": "Disable all services",
       "enableTitle": "Enable all services",

@@ -12,6 +12,13 @@
           :parent-keys="project ? [`workspace::${project.workspaceId}`] : []"
         />
       </template>
+      <template #title-controls>
+        <ScopedServiceToggle
+          v-if="canManage"
+          scope="project"
+          :scope-id="projectId"
+        />
+      </template>
       <template #stats>
         <ResourceWindowStats
           :history="metricsStore.history"
@@ -75,6 +82,7 @@ import type { DisplayTab } from '@/types/ui/tabs';
 import LoadingState from '@/components/core/LoadingState.vue';
 import ResourceAccessTab from '@/components/resource/access/ResourceAccessTab.vue';
 import SilenceBell from '@/components/core/notifications/SilenceBell.vue';
+import ScopedServiceToggle from '@/components/service/ScopedServiceToggle.vue';
 
 const { t } = useI18n();
 const route = useRoute();

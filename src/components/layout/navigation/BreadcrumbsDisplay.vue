@@ -20,12 +20,20 @@
         </template>
         <span class="text-text-secondary">{{ title }}</span>
       </nav>
-      <div class="flex items-center gap-2">
-        <h1 class="text-xl font-semibold text-text-primary cursor-default">
-          {{ title }}
-        </h1>
-        <!-- Inline title actions (e.g. the silence bell) -->
-        <slot />
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2 min-w-0">
+          <h1 class="text-xl font-semibold text-text-primary cursor-default truncate">
+            {{ title }}
+          </h1>
+          <!-- Inline title actions: things that read as part of the name, like
+               the silence bell. They stay glued to it. -->
+          <slot />
+        </div>
+        <!-- Trailing controls: actions ON the resource, pushed right so they
+             read as a toolbar rather than as decoration of the title. -->
+        <div class="flex items-center gap-2 shrink-0">
+          <slot name="controls" />
+        </div>
       </div>
     </div>
 </template>
