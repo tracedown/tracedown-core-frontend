@@ -86,8 +86,10 @@ const canEditWorkspace = computed(() =>
   authStore.canWriteScoped([`workspace::${workspaceId.value}`]));
 const showCreateForm = ref<boolean>(false);
 
+// Silent — see ProjectOverview: a per-keystroke refetch must not flash the
+// full-screen loading overlay over the grid it is filtering.
 useResourceSearch((value) => {
-  void projectStore.fetchProjects(workspaceId.value, value || undefined);
+  void projectStore.fetchProjects(workspaceId.value, value || undefined, { silent: true });
 });
 
 // Store-cached: a no-op unless a stale search filter is still applied.

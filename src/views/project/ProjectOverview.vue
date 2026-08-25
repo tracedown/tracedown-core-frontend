@@ -69,8 +69,11 @@ const newlyCreatedId = ref<string | null>(null);
 const selectedService = computed(() =>
   serviceStore.services.find(s => s.id === selectedServiceId.value) ?? null);
 
+// Silent: a search-as-you-type filter refetches on every debounce tick, and the
+// app's loading indicator is a full-screen overlay — flashing it per keystroke
+// would obscure the very list being narrowed. The results simply swap in.
 useResourceSearch((value) => {
-  void serviceStore.fetchServices(projectId.value, value || undefined);
+  void serviceStore.fetchServices(projectId.value, value || undefined, { silent: true });
 });
 
 // Store-cached: a no-op unless a stale search filter is still applied.
