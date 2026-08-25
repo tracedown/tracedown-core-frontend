@@ -56,9 +56,15 @@
           >
             {{ error }}
           </p>
+          <SlotOutlet
+            name="invite-consent"
+            :slot-props="{ userExists: true }"
+          />
+
           <PrimaryButton
             full-width
             :label-text="t('invite.accept')"
+            :disabled="!acceptAvailable"
             :on-click="accept"
           />
         </div>
@@ -126,12 +132,17 @@
             {{ error }}
           </p>
 
+          <SlotOutlet
+            name="invite-consent"
+            :slot-props="{ userExists: false }"
+          />
+
           <PrimaryButton
             type="submit"
             full-width
             :label-text="t('invite.accept')"
             :loading="submitting"
-            :disabled="!displayName.trim() || !password"
+            :disabled="!displayName.trim() || !password || !acceptAvailable"
           />
         </form>
 
@@ -152,6 +163,7 @@ import LoadingSpinner from '@/components/core/LoadingSpinner.vue';
 import SlotOutlet from '@/components/core/SlotOutlet.vue';
 import { useAuthStore } from '@/store/core/auth';
 import { initSession } from '@/composables/useSessionInit';
+import { isFeatureEnabled } from '@/config/extensions';
 import type { InviteInfo } from '@/data/orgs/InviteDto';
 
 /**
@@ -180,6 +192,19 @@ const displayName = ref<string>('');
 const password = ref<string>('');
 const submitting = ref<boolean>(false);
 const error = ref<string | null>(null);
+
+/**
+ * Whether accepting is available right now. Un-extended this is always true —
+ * the gate exists so a host application that renders something into the
+ * `invite-consent` slot can require it to be satisfied before the invitee may
+ * join. This view never learns what the condition is, only whether it holds.
+ *
+ * The slot is told whether the invitee already has an account (`userExists`),
+ * because the two entries are not the same act: one is a first arrival, the
+ * other is an existing user joining another org. Which of them warrants a
+ * condition is the host's call, not this view's.
+ */
+const acceptAvailable = computed<boolean>(() => isFeatureEnabled('invite.accept'));
 
 /** True when the current session belongs to the invited account. */
 const sessionMatches = computed(() =>
