@@ -20,7 +20,13 @@
             {{ service.queuePolicy }}
           </p>
         </div>
-        <div class="col-span-2">
+        <div>
+          <span class="text-text-secondary">{{ t('service.saveResponseBodies') }}</span>
+          <p class="text-text-primary mt-0.5">
+            {{ service.saveResponseBodies ? t('service.saveResponseBodiesOn') : t('service.saveResponseBodiesOff') }}
+          </p>
+        </div>
+        <div>
           <span class="text-text-secondary">{{ t('service.window') }}</span>
           <p
             class="mt-0.5"

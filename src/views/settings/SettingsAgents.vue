@@ -75,6 +75,7 @@
 
             <template v-if="expandedSlug === agent.slug">
               <AgentHistoryPanel :slug="agent.slug" />
+              <AgentEncryptionToggle :agent="agent" />
               <div
                 v-if="authStore.canWrite('settings')"
                 class="pl-5 pb-4"
@@ -105,6 +106,7 @@ import LoadingState from '@/components/core/LoadingState.vue';
 import EmptyState from '@/components/core/EmptyState.vue';
 import BadgePill from '@/components/core/BadgePill.vue';
 import AgentHistoryPanel from '@/components/settings/AgentHistoryPanel.vue';
+import AgentEncryptionToggle from '@/components/settings/AgentEncryptionToggle.vue';
 import DangerButton from '@/components/core/buttons/DangerButton.vue';
 import AgentConnectForm from '@/components/settings/AgentConnectForm.vue';
 import CreateToggleButton from '@/components/core/buttons/CreateToggleButton.vue';

@@ -103,6 +103,9 @@
       "pass": "Passed",
       "fail": "Failed"
     },
+    "encryptPayload": "Encrypt payload in flight",
+    "encryptPayloadHint": "Probe dispatches already travel inside mutual TLS. This seals the payload to this agent’s own certificate as well, so it stays closed to anything between the scheduler and the agent that terminates TLS — an ingress, a managed edge, a tunnel. It costs an RSA operation per run, so it is off by default and worth turning on only for agents reached that way.",
+    "encryptPayloadUnsupported": "This agent reports it cannot open a sealed dispatch. Upgrade the agent — the setting unlocks after its next health check.",
     "delete": "Delete agent",
     "deleteHint": "Revokes the agent’s certificates and removes it from dispatch. Probe history is kept.",
     "deleted": "Agent deleted."
@@ -160,6 +163,10 @@
     "queuePolicySkipHelp": "If a probe is already running, the next scheduled run is skipped.",
     "queuePolicyEnqueue": "Enqueue once",
     "queuePolicyEnqueueHelp": "If a probe is already running, one run is queued. Further triggers are dropped until the queue clears.",
+    "saveResponseBodies": "Save response bodies",
+    "saveResponseBodiesHelp": "Keep the response body of each call so a failed run can be opened and read. With this off, runs record only status, timings and assertions — when this service fails there will be no stored body to inspect.",
+    "saveResponseBodiesOn": "Saved",
+    "saveResponseBodiesOff": "Not saved",
     "config": "Config",
     "deleteButton": "Delete service",
     "deleted": "Service deleted.",

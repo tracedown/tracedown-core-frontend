@@ -29,6 +29,8 @@ export interface ServiceSummary {
   probeMode: string;
   queuePolicy: string;
   serviceWindow: string | null;
+  /** When false, runs are dispatched with body saving off — no stored body to inspect. */
+  saveResponseBodies: boolean;
   isActive: boolean;
   lastStatus: string | null;
   lastStatusSince: string | null;
@@ -43,6 +45,7 @@ export interface CreateServiceRequest {
   name: string;
   label?: string;
   schedule?: string;
+  saveResponseBodies?: boolean;
 }
 
 /** PATCH /services/{id} — any subset of the editable config fields. */
@@ -54,6 +57,7 @@ export interface UpdateServiceConfigRequest {
   queuePolicy?: string;
   /** Maintenance-window RRULE; an empty string clears the window. */
   serviceWindow?: string;
+  saveResponseBodies?: boolean;
 }
 
 export interface UpdateServiceScriptRequest {

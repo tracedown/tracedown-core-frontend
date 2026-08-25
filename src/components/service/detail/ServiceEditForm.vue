@@ -48,6 +48,16 @@
         v-model:valid="windowValid"
       />
 
+      <div class="flex items-start gap-3">
+        <ToggleSwitch v-model="saveResponseBodies" />
+        <div>
+          <label class="block text-xs font-medium text-text-secondary">{{ t('service.saveResponseBodies') }}</label>
+          <p class="text-xs text-text-secondary/70 mt-0.5">
+            {{ t('service.saveResponseBodiesHelp') }}
+          </p>
+        </div>
+      </div>
+
       <div class="group relative">
         <LaceEditor
           v-model="script"
@@ -147,6 +157,7 @@ import { useI18n } from 'vue-i18n';
 import { faDownload, faFileImport, faUpload } from '@fortawesome/free-solid-svg-icons';
 import TextInput from '@/components/core/input/TextInput.vue';
 import AppSelect from '@/components/core/input/AppSelect.vue';
+import ToggleSwitch from '@/components/core/input/ToggleSwitch.vue';
 import HelpTooltip from '@/components/core/HelpTooltip.vue';
 import ServiceWindowEditor from '@/components/service/detail/ServiceWindowEditor.vue';
 import ServiceTemplateModal from '@/components/service/detail/ServiceTemplateModal.vue';
@@ -190,6 +201,7 @@ const schedule = ref<string>(props.service.schedule);
 const probeMode = ref<string>(props.service.probeMode);
 const queuePolicy = ref<string>(props.service.queuePolicy);
 const script = ref<string>(props.service.script);
+const saveResponseBodies = ref<boolean>(props.service.saveResponseBodies);
 
 // Maintenance-window rule ('' = none); the editor owns the field logic.
 const serviceWindowRule = ref<string>(props.service.serviceWindow ?? '');
@@ -259,6 +271,9 @@ function save() {
   if (schedule.value !== props.service.schedule) config.schedule = schedule.value;
   if (probeMode.value !== props.service.probeMode) config.probeMode = probeMode.value;
   if (queuePolicy.value !== props.service.queuePolicy) config.queuePolicy = queuePolicy.value;
+  if (saveResponseBodies.value !== props.service.saveResponseBodies) {
+    config.saveResponseBodies = saveResponseBodies.value;
+  }
   // Empty string clears the window server-side.
   if (serviceWindowRule.value !== (props.service.serviceWindow ?? '')) {
     config.serviceWindow = serviceWindowRule.value;

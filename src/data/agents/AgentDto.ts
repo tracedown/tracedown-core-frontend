@@ -37,6 +37,10 @@ export interface AgentSummary {
   lastStatus: string;
   lastPing: string | null;
   lastPongDeltaMs: number | null;
+  /** Operator setting: seal dispatches to this agent's certificate on top of mTLS. */
+  encryptPayload: boolean;
+  /** Read-only — what the agent reported at its last health challenge. */
+  supportsEncryptedPayload: boolean;
   createdAt: string;
 }
 
