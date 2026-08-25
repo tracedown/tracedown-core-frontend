@@ -121,6 +121,12 @@ const startCommand = computed(() => {
   return [
     `docker run -d \\`,
     `  --name tracedown-agent-${issued.value.slug} \\`,
+    // The hostname MUST be the slug. The agent registers itself as
+    // https://<its own FQDN>:<port>, and the certificate it is issued carries
+    // the slug as its SAN — which the scheduler pins. Without this the
+    // container's FQDN is its container id, and every dispatch fails against a
+    // name the certificate does not carry.
+    `  --hostname ${issued.value.slug} \\`,
     `  --network tracedown_tracedown-net \\`,
     `  -v tracedown_tracedown-bodies:/data/bodies \\`,
     `  -e PROBE_AGENT_BOOTSTRAP_TOKEN="${issued.value.token}" \\`,
