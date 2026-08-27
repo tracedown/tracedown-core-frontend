@@ -6,6 +6,7 @@ import {
   beginForcedTotpEnroll,
   beginTotpEnroll,
   changePassword,
+  closeAccount,
   confirmPasswordReset,
   fetchDataExport,
   fetchInviteInfo,
@@ -272,7 +273,7 @@ export const useAuthStore = defineStore('auth', () => {
     // Session-stateless account calls (lib/authApi), re-exposed unchanged so
     // components keep a single auth surface.
     fetchInviteInfo, requestPasswordReset, confirmPasswordReset,
-    fetchProfileCapabilities, changePassword, fetchDataExport,
+    fetchProfileCapabilities, changePassword, fetchDataExport, closeAccount,
     beginTotpEnroll, beginForcedTotpEnroll, regenerateRecoveryCodes,
   };
 });

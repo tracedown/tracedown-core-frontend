@@ -1,8 +1,10 @@
 import { http } from '@/config/requests';
 import type {
   ChangePasswordRequest,
+  DeleteAccountRequest,
   PasswordResetConfirmRequest,
   PasswordResetRequest,
+  ProfileCapabilities,
   TotpDisableRequest,
   TotpSetupRequest,
   TotpSetupResponse,
@@ -50,10 +52,35 @@ export async function confirmPasswordReset(token: string, newPassword: string): 
   return { ok: true };
 }
 
-/** Whether the platform lets this user edit their own profile. */
-export async function fetchProfileCapabilities(): Promise<boolean> {
-  const res = await http.get<{ allowProfileEdit: boolean }>('/auth/profile/capabilities');
-  return res.success && res.data?.allowProfileEdit === true;
+/**
+ * What this user may do to their own account, and what stands in the way of
+ * closing it. Falls back to the most restrictive answer if the call fails —
+ * a section that cannot confirm it is allowed does not offer itself.
+ */
+export async function fetchProfileCapabilities(): Promise<ProfileCapabilities> {
+  const res = await http.get<ProfileCapabilities>('/auth/profile/capabilities');
+  if (!res.success || !res.data) {
+    return { allowProfileEdit: false, allowAccountClosure: false, ownedOrgs: [] };
+  }
+  return {
+    allowProfileEdit: res.data.allowProfileEdit === true,
+    allowAccountClosure: res.data.allowAccountClosure === true,
+    ownedOrgs: res.data.ownedOrgs ?? [],
+  };
+}
+
+/**
+ * Closes the current account. Requires the password, plus a TOTP or recovery
+ * code when two-factor is enrolled. `deleteOwnedOrgs` takes along the owned
+ * organizations this account is the only member of; anything with other
+ * members has to be handed over first and is refused either way.
+ */
+export async function closeAccount(request: DeleteAccountRequest): Promise<ActionResult> {
+  const res = await http.delete<{ ok: boolean }, DeleteAccountRequest>('/auth/account', request);
+  if (!res.success) {
+    return { ok: false, message: res.errorInfo?.message };
+  }
+  return { ok: true };
 }
 
 /** Changes the password; requires the current one. */

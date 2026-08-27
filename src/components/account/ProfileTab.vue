@@ -45,6 +45,11 @@
       <TotpSection />
 
       <DataExportSection />
+
+      <AccountClosureSection
+        v-if="allowClosure"
+        :owned-orgs="ownedOrgs"
+      />
     </div>
 </template>
 
@@ -54,24 +59,35 @@ import { useI18n } from 'vue-i18n';
 import LabeledInput from '@/components/core/input/LabeledInput.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import SectionHeading from '@/components/core/SectionHeading.vue';
+import AccountClosureSection from '@/components/account/AccountClosureSection.vue';
 import DataExportSection from '@/components/account/DataExportSection.vue';
 import EmailChangeForm from '@/components/account/EmailChangeForm.vue';
 import PasswordChangeForm from '@/components/account/PasswordChangeForm.vue';
 import TotpSection from '@/components/account/TotpSection.vue';
+import type { OwnedOrgSummary } from '@/data/auth/AuthDto';
 import { useAuthStore } from '@/store/core/auth';
 import { useNotificationStore } from '@/store/ui/notifications';
 
-/** Profile & security: display name, email change, password change, two-factor, data export. */
+/**
+ * Profile & security: display name, email change, password change, two-factor,
+ * data export and — where the platform allows it — account closure. Export sits
+ * above closure deliberately: take your data before you end the account.
+ */
 const { t } = useI18n();
 const authStore = useAuthStore();
 const notifications = useNotificationStore();
 
 const displayName = ref<string>(authStore.user?.displayName ?? '');
 const canEdit = ref<boolean>(true);
+const allowClosure = ref<boolean>(false);
+const ownedOrgs = ref<OwnedOrgSummary[]>([]);
 const savingName = ref<boolean>(false);
 
 onMounted(async () => {
-  canEdit.value = await authStore.fetchProfileCapabilities();
+  const capabilities = await authStore.fetchProfileCapabilities();
+  canEdit.value = capabilities.allowProfileEdit;
+  allowClosure.value = capabilities.allowAccountClosure;
+  ownedOrgs.value = capabilities.ownedOrgs;
 });
 
 async function handleSaveName() {

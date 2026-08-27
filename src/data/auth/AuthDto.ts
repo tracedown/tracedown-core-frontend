@@ -34,6 +34,33 @@ export interface TotpDisableRequest {
 }
 
 /**
+ * An organization the current account owns. `soleMember` means nobody else
+ * holds a membership, so it can be deleted along with the account instead of
+ * having to be handed to someone first.
+ */
+export interface OwnedOrgSummary {
+  id: string;
+  name: string;
+  soleMember: boolean;
+}
+
+/** Response of GET /auth/profile/capabilities. */
+export interface ProfileCapabilities {
+  allowProfileEdit: boolean;
+  allowAccountClosure: boolean;
+  /** Empty unless closure is allowed — only that section reads it. */
+  ownedOrgs: OwnedOrgSummary[];
+}
+
+/** Request of DELETE /auth/account — `code` accepts a TOTP or a recovery code. */
+export interface DeleteAccountRequest {
+  password: string;
+  code?: string;
+  /** Delete the owned organizations this account is the only member of. */
+  deleteOwnedOrgs?: boolean;
+}
+
+/**
  * Per-section permission levels of the session's org membership:
  * 0 none, 1 read, 2 write. Owners bypass section levels entirely.
  */

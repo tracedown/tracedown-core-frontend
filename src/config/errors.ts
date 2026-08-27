@@ -46,6 +46,8 @@ export type ErrorCode =
   | 'password_too_weak'
   | 'incorrect_password'
   | 'profile_edit_disabled'
+  | 'account_closure_disabled'
+  | 'account_owns_organizations'
   | 'email_taken'
   // Rate limit / general
   | 'rate_limited'
