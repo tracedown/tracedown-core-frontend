@@ -10,16 +10,16 @@ import {
 import { defaultPfsParams, DEFAULT_PAGE_SIZE, pfsToQueryString } from '@/utils/pfs';
 import { CATEGORY_STATUS_FILTERS, SERVICE_CATEGORIES } from '@/utils/serviceCategories';
 import type { Page, PfsFilter } from '@/types/pfs';
-import type { ServiceCategory, ServiceCategoryState } from '@/types/services';
+import type { ServiceCategory, ServiceCategoryState, ServiceEditPayload } from '@/types/services';
 import type { FailedAssertion,
   CreateServiceRequest,
   ScopedToggleResult,
   ServiceSummary,
   ToggleServiceRequest,
-  UpdateServiceConfigRequest,
-  UpdateServiceScriptRequest,
+  UpdateServiceRequest,
 } from '@/data/services/ServiceDto';
 import type { ActionDataResult, ActionResult, FetchOptions } from '@/types/actions';
+import type { ErrorCode } from '@/config/errors';
 
 export const useServiceStore = defineStore('service', () => {
   const categories = reactive<Record<ServiceCategory, ServiceCategoryState>>({
@@ -160,24 +160,31 @@ export const useServiceStore = defineStore('service', () => {
     return { ok: true };
   }
 
-  async function updateServiceConfig(
+  /**
+   * Saves an edit — changed config, the script when it changed, and the version
+   * it was based on — as ONE request.
+   *
+   * The two halves used to be two PATCHes, config first. A conflicted save then
+   * committed the config and only afterwards learned the script was stale, so
+   * the service ended up with one editor's schedule and another's script. The
+   * backend applies both in one transaction; a stale version fails the whole
+   * thing with `version_conflict` and writes nothing, leaving the caller's draft
+   * the only copy of their work.
+   */
+  async function saveService(
     serviceId: string,
-    config: UpdateServiceConfigRequest,
-  ): Promise<ActionDataResult<ServiceSummary>> {
-    const res = await http.patch<ServiceSummary, UpdateServiceConfigRequest>(`/services/${serviceId}`, config);
-    return applyUpdateResponse(serviceId, res.success ? res.data : undefined, res.errorInfo?.message);
-  }
-
-  async function updateScript(
-    serviceId: string,
-    script: string,
+    payload: ServiceEditPayload,
     version: number,
   ): Promise<ActionDataResult<ServiceSummary>> {
-    const res = await http.patch<ServiceSummary, UpdateServiceScriptRequest>(
-      `/services/${serviceId}/script`,
-      { script, version },
+    const body: UpdateServiceRequest = { ...payload.config, version };
+    if (payload.script !== null) body.script = payload.script;
+    const res = await http.patch<ServiceSummary, UpdateServiceRequest>(`/services/${serviceId}`, body);
+    return applyUpdateResponse(
+      serviceId,
+      res.success ? res.data : undefined,
+      res.errorInfo?.message,
+      res.errorInfo?.code,
     );
-    return applyUpdateResponse(serviceId, res.success ? res.data : undefined, res.errorInfo?.message);
   }
 
   async function toggleService(serviceId: string, isActive: boolean): Promise<ActionDataResult<ServiceSummary>> {
@@ -242,9 +249,10 @@ export const useServiceStore = defineStore('service', () => {
     serviceId: string,
     updated: ServiceSummary | undefined,
     message: string | undefined,
+    code?: ErrorCode,
   ): ActionDataResult<ServiceSummary> {
     if (!updated) {
-      return { ok: false, message };
+      return { ok: false, message, code };
     }
     updateInPlace(serviceId, updated);
     return { ok: true, data: updated };
@@ -294,7 +302,7 @@ export const useServiceStore = defineStore('service', () => {
   return {
     categories, services, totalResults, loading, isFullPage, aggregatedMetrics,
     ensureContext, fetchServices, fetchService, refreshService,
-    createService, deleteService, updateServiceConfig, updateScript, toggleService,
+    createService, deleteService, saveService, toggleService,
     toggleServicesInScope, runService,
     updateInPlace, applyProbeResult, fetchAllowedAgents, setAllowedAgents, clear,
   };

@@ -48,7 +48,7 @@ export interface CreateServiceRequest {
   saveResponseBodies?: boolean;
 }
 
-/** PATCH /services/{id} — any subset of the editable config fields. */
+/** The editable config fields — any subset; omitted means unchanged. */
 export interface UpdateServiceConfigRequest {
   name?: string;
   label?: string;
@@ -60,8 +60,19 @@ export interface UpdateServiceConfigRequest {
   saveResponseBodies?: boolean;
 }
 
-export interface UpdateServiceScriptRequest {
-  script: string;
+/**
+ * PATCH /services/{id} — one save: changed config fields, the script when it
+ * changed, and the version the editor loaded.
+ *
+ * Config and script go in the same request because the backend applies them in
+ * one transaction. Sent as two, a save that lost a race committed the config
+ * and only then learned the script was stale, leaving the service wearing one
+ * editor's schedule and another's script.
+ */
+export interface UpdateServiceRequest extends UpdateServiceConfigRequest {
+  /** Omitted when the script is unchanged. */
+  script?: string;
+  /** The version this edit was based on; a mismatch is rejected with 409. */
   version: number;
 }
 

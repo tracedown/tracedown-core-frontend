@@ -128,22 +128,29 @@ async function handleDelete() {
   emit('close');
 }
 
+/**
+ * Saves config and script together, version-checked, in one request.
+ *
+ * It used to be two — config, then script — and a save that lost a race
+ * committed the config before the script came back 409, leaving the service
+ * with this editor's schedule and someone else's script. One request means the
+ * backend either takes both or takes neither.
+ *
+ * A rejected save leaves the form open with the draft intact, which is the only
+ * remaining copy of the user's work: nothing here discards it, and on a version
+ * conflict the notification tells them to reload and reapply.
+ */
 async function handleSave(payload: ServiceEditPayload) {
+  if (Object.keys(payload.config).length === 0 && payload.script === null) {
+    editing.value = false;
+    return;
+  }
   saving.value = true;
   try {
-    if (Object.keys(payload.config).length > 0) {
-      const result = await serviceStore.updateServiceConfig(props.service.id, payload.config);
-      if (!result.ok) {
-        if (result.message) notifications.show(result.message, 'error');
-        return;
-      }
-    }
-    if (payload.script != null) {
-      const result = await serviceStore.updateScript(props.service.id, payload.script, props.service.version);
-      if (!result.ok) {
-        if (result.message) notifications.show(result.message, 'error');
-        return;
-      }
+    const result = await serviceStore.saveService(props.service.id, payload, props.service.version);
+    if (!result.ok) {
+      if (result.message) notifications.show(result.message, 'error');
+      return;
     }
     editing.value = false;
   } finally {

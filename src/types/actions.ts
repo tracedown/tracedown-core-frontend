@@ -4,10 +4,18 @@
  * `message` is already user-facing (resolved through the error-code i18n).
  */
 
+import type { ErrorCode } from '@/config/errors';
+
 export interface ActionResult {
   ok: boolean;
   /** Resolved, user-facing message when `ok` is false. */
   message?: string;
+  /**
+   * The raw backend error code, when a caller has to branch on *which* failure
+   * it was rather than just show it — a version conflict that must keep the
+   * user's draft, say. Stores only set it where a caller needs it.
+   */
+  code?: ErrorCode;
 }
 
 export interface ActionDataResult<T> extends ActionResult {

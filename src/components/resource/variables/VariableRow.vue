@@ -62,8 +62,14 @@
           class="flex items-center gap-2"
         >
           <span class="text-text-secondary italic">{{ t('variables.encrypted') }}</span>
+          <!--
+            Reveal is a write-level operation: seeing a configured value in the
+            clear is the same privilege as being able to replace it. A caller
+            without write on this scope is refused by the API, so the button is
+            not offered rather than offered and failing.
+          -->
           <LinkButton
-            v-if="!readonly"
+            v-if="!readonly && canEdit"
             :label-text="t('common.actions.reveal')"
             @click="emit('reveal', variable.id)"
           />
@@ -128,6 +134,7 @@ import BadgePill from '@/components/core/BadgePill.vue';
 const props = defineProps<{
   variable: VariableSummary;
   resourcePrefix: string;
+  /** Write access on the scope that owns this row: gates edit, delete and reveal. */
   canEdit: boolean;
   /** Inherited (ancestor-scope) row: no edit/delete and no reveal path. */
   readonly?: boolean;
