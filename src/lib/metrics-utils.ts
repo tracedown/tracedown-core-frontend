@@ -113,10 +113,15 @@ export function statusTextClass(status: string | null | undefined): string {
   return 'text-status-failure';
 }
 
-/** Dot background class for a probe status value (`skipped` falls through to neutral). */
+/**
+ * Dot background class for a probe status value (`skipped` falls through to
+ * neutral). `error` — a run that could not be evaluated — shares the failure
+ * colour rather than the neutral one: it is not a healthy check, and the text
+ * class above already treats it that way.
+ */
 export function statusDotClass(status: string | null | undefined): string {
   if (status === 'success') return 'bg-status-success';
   if (status === 'timeout') return 'bg-status-warning';
-  if (status === 'failure') return 'bg-status-failure';
+  if (status === 'failure' || status === 'error') return 'bg-status-failure';
   return 'bg-text-secondary';
 }

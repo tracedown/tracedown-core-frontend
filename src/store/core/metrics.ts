@@ -103,10 +103,15 @@ export const useMetricsStore = defineStore('metrics', () => {
     callCount = 1,
   ) {
     if (!historyKey.value?.startsWith(`${resourceType}:${resourceId}:`)) return;
-    if (status !== 'success' && status !== 'failure' && status !== 'timeout') return;
+    // A skipped tick never ran, so it belongs in neither the numerator nor the
+    // denominator — the server's buckets leave it out too.
+    if (status === 'skipped') return;
     const bucket = currentBucket();
     bucket.total++;
-    bucket[status]++;
+    // `error` (a run that could not be evaluated) counts toward the total but
+    // has no bucket of its own — matching the server, which counts it in the
+    // probe total and in no success/failure/timeout bucket.
+    if (status === 'success' || status === 'failure' || status === 'timeout') bucket[status]++;
     bucket.sumMs += avgResponseMs * Math.max(callCount, 1);
     bucket.callCount += Math.max(callCount, 1);
   }

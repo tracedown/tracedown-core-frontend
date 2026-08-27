@@ -64,6 +64,18 @@ function messageOf(alert: SystemAlertSummary): string {
         ms: (alert.data?.roundTripMs as number | undefined) ?? '?',
         since,
       });
+    case 'no_eligible_agent':
+      return t('systemAlerts.noEligibleAgent', { since });
+    case 'agent_dispatch_failed':
+      return t('systemAlerts.agentDispatchFailed', { since });
+    case 'health_token_unavailable':
+      return t('systemAlerts.healthTokenUnavailable', { endpoint: alert.subject, since });
+    case 'scheduler_error':
+      return t('systemAlerts.schedulerError', { since });
+    case 'result_ingest_failed':
+      return t('systemAlerts.resultIngestFailed', { since });
+    case 'outbox_consumer_stalled':
+      return t('systemAlerts.outboxConsumerStalled', { consumers: alert.subject, since });
     default:
       return t('systemAlerts.generic', { type: alert.alertType, since });
   }
