@@ -16,8 +16,14 @@ export {
   registerFeatureGate,
   isFeatureEnabled,
   registerDeleteOrgHandler,
+  registerDataExportContributor,
 } from '@/config/extensions';
-export type { FeatureContext } from '@/config/extensions';
+export type {
+  FeatureContext,
+  DeleteOrgCredentials,
+  DeleteOrgHandler,
+  DataExportContributor,
+} from '@/config/extensions';
 
 export { registerPermissionSections, getPermissionSections } from '@/config/permissionSections';
 export { DEFAULT_NAV_ITEMS } from '@/config/navigation';

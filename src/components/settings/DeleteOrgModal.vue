@@ -80,11 +80,17 @@ async function submit() {
   if (submitting.value) return;
   submitting.value = true;
   try {
-    // A host may route deletion through its own flow; otherwise delete immediately.
+    // A host may route deletion through its own flow; otherwise delete
+    // immediately. Either way it gets the credentials collected here, so the
+    // owner confirms once and a host handler can delegate back to `deleteOrg`.
+    const credentials = {
+      password: password.value,
+      code: totpEnabled.value ? code.value : undefined,
+    };
     const handler = getDeleteOrgHandler();
     const result = handler
-      ? await handler()
-      : await org.deleteOrg(password.value, totpEnabled.value ? code.value : undefined);
+      ? await handler(credentials)
+      : await org.deleteOrg(credentials.password, credentials.code);
     if (!result.ok) {
       if (result.message) notifications.show(result.message, 'error');
       return;

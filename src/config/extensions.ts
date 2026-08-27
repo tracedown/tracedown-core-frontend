@@ -1,6 +1,6 @@
 import { defineAsyncComponent, type Component } from 'vue';
 import LoadingSpinner from '@/components/core/LoadingSpinner.vue';
-import type { ActionResult } from '@/types/actions';
+import type { ActionDataResult, ActionResult } from '@/types/actions';
 
 /**
  * In-memory extension registry. A host application can register additional
@@ -106,16 +106,67 @@ export function isFeatureEnabled(feature: string, context: FeatureContext = {}):
   return gates.every(gate => gate(context));
 }
 
+// ── Personal data export ─────────────────────────────────────────────────────
+
+/**
+ * An extra section of the personal data export.
+ *
+ * The app produces one export document. A host that holds personal data of its
+ * own contributes it here rather than offering a second download beside the
+ * built-in one: the person asking is owed a copy of their data, not a
+ * reconciliation exercise across several files.
+ */
+export interface DataExportContributor {
+  /**
+   * Key this contribution is filed under in the export document. It must not
+   * collide with a section the built-in export already produces — a collision
+   * is refused rather than silently overwriting either side.
+   */
+  section: string;
+  /**
+   * Fetches the section's content, at the moment the export is asked for. A
+   * failure here fails the whole download: a document that quietly omits part
+   * of the record is worse than no document, because nothing in it says so.
+   */
+  load: () => Promise<ActionDataResult<unknown>>;
+}
+
+const dataExportContributors: DataExportContributor[] = [];
+
+/** Register a section to be merged into the personal data export document. */
+export function registerDataExportContributor(contributor: DataExportContributor): void {
+  dataExportContributors.push(contributor);
+}
+
+/** Registered export sections, in registration order (empty if none). */
+export function getDataExportContributors(): DataExportContributor[] {
+  return dataExportContributors;
+}
+
 // ── Delete-org handler ───────────────────────────────────────────────────────
 
-let deleteOrgHandler: (() => Promise<ActionResult>) | null = null;
+/**
+ * The credentials the deletion dialog has already collected and confirmed:
+ * the account password, and a TOTP or recovery code where two-factor is
+ * enrolled. They are handed to the handler so a host can complete the
+ * deletion — including by delegating straight back to the built-in path —
+ * without asking the owner to type the same password a second time.
+ */
+export interface DeleteOrgCredentials {
+  password: string;
+  code?: string;
+}
+
+export type DeleteOrgHandler = (credentials: DeleteOrgCredentials) => Promise<ActionResult>;
+
+let deleteOrgHandler: DeleteOrgHandler | null = null;
 
 /** Override the org-deletion action with host-provided behaviour. */
-export function registerDeleteOrgHandler(fn: () => Promise<ActionResult>): void {
+export function registerDeleteOrgHandler(fn: DeleteOrgHandler): void {
   deleteOrgHandler = fn;
 }
 
 /** The registered handler, or null to use the built-in deletion path. */
-export function getDeleteOrgHandler(): (() => Promise<ActionResult>) | null {
+export function getDeleteOrgHandler(): DeleteOrgHandler | null {
   return deleteOrgHandler;
 }
