@@ -10,6 +10,11 @@
         <p class="text-sm text-text-secondary mb-6 text-center max-w-sm">
           {{ t('workspace.noOrganizationsDescription') }}
         </p>
+        <!-- A host may know a way out of this state that the built-in app does
+             not: how an account without any organization gets one here. Nothing
+             is rendered when no host fills it, so the un-extended behaviour is
+             unchanged. -->
+        <SlotOutlet name="no-organizations" />
       </template>
 
       <!-- In an org, but it has no (accessible) workspaces yet. -->
@@ -65,6 +70,7 @@ import { useOrgStore } from '@/store/core/org';
 import { useWorkspaceStore } from '@/store/core/workspace';
 import { useNotificationStore } from '@/store/ui/notifications';
 import InputActionRow from '@/components/core/input/InputActionRow.vue';
+import SlotOutlet from '@/components/core/SlotOutlet.vue';
 
 /**
  * Landing view of `/` for sessions without any workspace — the router guard
