@@ -14,20 +14,33 @@
 
           active:not-disabled:opacity-70"
 
-        :class="iconRight ? 'flex-row-reverse' : 'flex-row'"
+        :class="[
+          iconRight ? 'flex-row-reverse' : 'flex-row',
+          // A hold must not be stolen by the browser's own touch handling —
+          // without this a press that drifts a pixel becomes a scroll and the
+          // gesture is cancelled.
+          holdOffsetSec ? 'touch-none' : '',
+          // The keyboard's armed confirm needs a visible state of its own; the
+          // ring only exists while a pointer is down.
+          hold.confirmArmed.value ? 'outline-2 outline-offset-2 outline-current' : '',
+        ]"
 
         :type="type"
         :style="buttonStyle"
         :disabled="disabled || loading || !waitAfterRender"
         @click="handleClick"
 
-        @mousedown.left="hold.start"
-        @mouseup.left="hold.release"
-        @mouseleave="hold.cancel"
+        @pointerdown.left="hold.start"
+        @pointerup.left="hold.release"
+        @pointerleave="hold.cancel"
+        @pointercancel="hold.cancel"
+        @keydown="hold.keydown"
+        @blur="hold.blur"
       >
         <span
           v-if="loading"
-          class="inline-block h-4 w-4 rounded-full border-2 border-current/40 border-t-current animate-spin"
+          class="inline-block h-4 w-4 rounded-full border-2 border-current/40 border-t-current
+            animate-spin motion-reduce:animate-none"
         />
         <FontAwesomeIcon
           v-else-if="faIcon"
@@ -42,7 +55,10 @@
           v-if="holdOffsetSec && hold.isHolding.value"
           class="absolute inset-0 flex justify-center items-center bg-black/30 rounded"
         >
-          <svg class="w-8 h-8 transform -rotate-90">
+          <!-- The sweeping ring is decoration over the countdown, which carries
+               the same information as a number. Reduced motion drops the ring
+               and keeps the number. -->
+          <svg class="w-8 h-8 transform -rotate-90 motion-reduce:hidden">
             <circle
               class="text-white/20"
               stroke="currentColor"
@@ -70,10 +86,13 @@
           </span>
         </div>
 
-        <!-- Clicking instead of holding is a misread, not a decision: say so. -->
+        <!-- Clicking instead of holding is a misread, not a decision: say so.
+             The same slot carries the keyboard's "press again to confirm"
+             prompt, since the two states are mutually exclusive. -->
         <HoldHint
           v-if="holdOffsetSec"
-          :visible="hold.hintVisible.value"
+          :visible="hold.hintVisible.value || hold.confirmArmed.value"
+          :confirm-key="hold.confirmKey.value"
           :hold-seconds="holdOffsetSec"
         />
       </button>
@@ -145,9 +164,12 @@ const buttonStyle = computed(() => {
   };
 });
 
-// A hold-to-activate button only fires through the completed hold; a plain
-// button only through click. Without this split, every click used to fire
-// twice: the 0ms "hold" timer on mousedown plus the click event on mouseup.
+// A hold-to-activate button only fires through the completed hold (pointer) or
+// the two-step confirm (keyboard); a plain button only through click. Without
+// this split, every click used to fire twice: the 0ms "hold" timer on press
+// plus the click event on release. It also swallows the `click` a touch device
+// synthesises after `pointerup`, and the one Enter/Space would produce — the
+// keydown handler suppresses those, and this is the second line of defence.
 const handleClick = () => {
   if (props.holdOffsetSec) return;
   props.onClick?.(props.onClickParam);

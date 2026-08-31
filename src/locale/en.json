@@ -32,7 +32,12 @@
       "noMatches": "No matches.",
       "copied": "Copied to clipboard.",
       "pageRange": "{from}–{to} of {total}",
-      "holdHint": "Hold this button for {seconds}s to confirm."
+      "holdHint": "Hold this button for {seconds}s to confirm.",
+      "holdConfirmKey": "Press {key} again to confirm. Esc cancels."
+    },
+    "keys": {
+      "enter": "Enter",
+      "space": "Space"
     },
     "labels": {
       "name": "Name",
@@ -595,7 +600,9 @@
     "unverified_domain_call_limit": "Scripts targeting unverified domains are limited to 3 calls. Verify the domain in Settings → Domains, or shorten the chain.",
     "unverified_domain_interval": "Probes against unverified domains need at least a 5-minute interval. Verify the domain or relax the schedule.",
     "unverified_domain_includes": "includes() can only be used against domains you've verified. Verify the domain in Infrastructure → Domains, or remove includes() from the script.",
-    "variable_limit_reached": "This resource already has the maximum number of variables. Remove one to add another."
+    "variable_limit_reached": "This resource already has the maximum number of variables. Remove one to add another.",
+    "blocked_probe_target": "This script points at an address probes are not allowed to reach — a private, loopback, link-local or otherwise internal address, or a scheme other than http/https. Point it at a publicly reachable http(s) URL. Nothing else is affected: your other services keep running as they are.",
+    "request_body_too_large": "That request is too large. The API accepts up to 1 MiB at a time — shorten what you are sending, or save it in smaller pieces, and try again."
   },
   "meta": {
     "description": "API monitoring and uptime tracking"

@@ -3,13 +3,24 @@
       type="button"
       class="relative p-1.5 rounded transition-colors select-none
         disabled:opacity-30 disabled:cursor-not-allowed"
-      :class="colorClass"
+      :class="[
+        colorClass,
+        // Keep the browser's own touch handling off a press-and-hold, or a
+        // press that drifts a pixel becomes a scroll and cancels the gesture.
+        holdOffsetSec != null ? 'touch-none' : '',
+        // The keyboard confirm needs a state of its own: the ring only exists
+        // while a pointer is down.
+        hold.confirmArmed.value ? 'outline-2 outline-offset-2 outline-current' : '',
+      ]"
       :disabled="disabled || (holdOffsetSec != null && !waitAfterRender)"
       :title="title"
       @click="handleClick"
-      @mousedown.left="hold.start"
-      @mouseup.left="hold.release"
-      @mouseleave="hold.cancel"
+      @pointerdown.left="hold.start"
+      @pointerup.left="hold.release"
+      @pointerleave="hold.cancel"
+      @pointercancel="hold.cancel"
+      @keydown="hold.keydown"
+      @blur="hold.blur"
     >
       <FontAwesomeIcon
         :icon="faIcon"
@@ -22,7 +33,10 @@
         v-if="holdOffsetSec != null && hold.isHolding.value"
         class="absolute inset-0 flex items-center justify-center bg-black/40 rounded"
       >
-        <svg class="w-5 h-5 -rotate-90">
+        <!-- Decoration over the press: reduced motion drops the sweep. The
+             icon button has no countdown digits, so the darkened overlay behind
+             it stays as the static "held" state. -->
+        <svg class="w-5 h-5 -rotate-90 motion-reduce:hidden">
           <circle
             class="text-white/20"
             stroke="currentColor"
@@ -47,10 +61,12 @@
         </svg>
       </span>
 
-      <!-- Clicking instead of holding is a misread, not a decision: say so. -->
+      <!-- Clicking instead of holding is a misread, not a decision: say so.
+           The same slot carries the keyboard's confirm prompt. -->
       <HoldHint
         v-if="holdOffsetSec != null"
-        :visible="hold.hintVisible.value"
+        :visible="hold.hintVisible.value || hold.confirmArmed.value"
+        :confirm-key="hold.confirmKey.value"
         :hold-seconds="holdOffsetSec"
       />
     </button>
@@ -97,9 +113,11 @@ const emit = defineEmits<{
   safeClick: [];
 }>();
 
-// A hold-gated button only fires through the completed hold. A plain click is
-// swallowed (and its propagation stopped, so a click inside a clickable row
-// never triggers the row) — the same click/hold split the primary button uses.
+// A hold-gated button only fires through the completed hold (pointer) or the
+// two-step keyboard confirm. A plain click is swallowed (and its propagation
+// stopped, so a click inside a clickable row never triggers the row) — the same
+// click/hold split the primary button uses. This also absorbs the `click` a
+// touch device synthesises after `pointerup`.
 function handleClick(event: MouseEvent) {
   if (props.holdOffsetSec != null) {
     event.stopPropagation();
