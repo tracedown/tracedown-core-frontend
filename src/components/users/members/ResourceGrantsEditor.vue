@@ -26,7 +26,7 @@
       </AccessLevelRow>
 
       <!-- Add grant: type → workspace → project → service cascade -->
-      <div class="flex flex-wrap items-center gap-2 mt-3">
+      <div class="flex flex-wrap items-center gap-2 mt-3 max-md:flex-col max-md:items-stretch">
         <AppSelect
           v-model="newType"
           class="w-32"

@@ -55,7 +55,7 @@
           </form>
         </div>
 
-        <div class="flex items-end gap-2">
+        <div class="flex items-end gap-2 max-md:flex-col max-md:items-stretch">
           <div>
             <p class="text-xs text-text-secondary mb-1">
               {{ t('templates.filterByProject') }}
@@ -75,38 +75,75 @@
           compact
           :message="t('templates.none')"
         />
-        <table
+        <ResponsiveTable
           v-else
-          class="w-full table-fixed max-w-4xl"
+          :columns="columns"
+          :rows="filteredTemplates"
+          :row-key="(template: NotificationTemplateSummary) => template.id"
+          :expanded-key="expandedId"
+          table-class="table-fixed max-w-4xl"
         >
-          <thead>
-            <tr class="border-b border-text-secondary/50">
-              <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-44">
-                {{ t('templates.name') }}
-              </th>
-              <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3">
-                {{ t('templates.text') }}
-              </th>
-              <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-64">
-                {{ t('templates.boundProjects') }}
-              </th>
-              <th class="w-20" />
-            </tr>
-          </thead>
-          <tbody>
-            <NotificationTemplateRow
-              v-for="template in filteredTemplates"
-              :key="template.id"
-              :template="template"
-              :expanded="expandedId === template.id"
-              :can-manage="canManage"
-              :projects="projects"
-              @toggle="expandedId = expandedId === template.id ? null : template.id"
-              @bind="(projectId: string) => handleBind(template.id, projectId)"
-              @unbind="(projectId: string) => handleUnbind(template.id, projectId)"
-            />
-          </tbody>
-        </table>
+          <template #cell:name="{ row }">
+            {{ row.name }}
+          </template>
+          <template #cell:text="{ row }">
+            {{ row.text }}
+          </template>
+          <template #cell:projects="{ row }">
+            <div class="flex flex-wrap gap-1 max-md:justify-end">
+              <BadgePill
+                v-for="projectName in projectNames(row).slice(0, 3)"
+                :key="projectName"
+                color-class="bg-text-secondary/10 text-text-secondary"
+                :label="projectName"
+              />
+              <BadgePill
+                v-if="projectNames(row).length > 3"
+                color-class="bg-text-secondary/10 text-text-secondary"
+                :label="`+${projectNames(row).length - 3}`"
+              />
+              <span
+                v-if="projectNames(row).length === 0"
+                class="text-xs text-text-secondary italic"
+              >
+                {{ t('templates.noneBoundShort') }}
+              </span>
+            </div>
+          </template>
+          <template
+            v-if="canManage"
+            #actions="{ row }"
+          >
+            <div class="flex items-center gap-1 justify-end">
+              <IconButton
+                :fa-icon="faPen"
+                :title="t('common.actions.edit')"
+                color-class="text-text-secondary hover:text-accent-primary"
+                icon-class="w-3.5 h-3.5"
+                @click="expandedId = expandedId === row.id ? null : row.id"
+              />
+              <IconButton
+                :fa-icon="faTrash"
+                :title="t('common.actions.delete')"
+                color-class="text-text-secondary hover:text-status-failure"
+                icon-class="w-3.5 h-3.5"
+                :hold-offset-sec="3"
+                @safe-click="handleDelete(row)"
+              />
+            </div>
+          </template>
+          <template #expanded="{ row }">
+            <div class="px-3 pb-4 max-md:pt-2">
+              <NotificationTemplateRow
+                :template="row"
+                :projects="projects"
+                @toggle="expandedId = null"
+                @bind="(projectId: string) => handleBind(row.id, projectId)"
+                @unbind="(projectId: string) => handleUnbind(row.id, projectId)"
+              />
+            </div>
+          </template>
+        </ResponsiveTable>
 
         <TablePager
           :page="templateStore.page"
@@ -121,21 +158,27 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 import SectionHeading from '@/components/core/SectionHeading.vue';
 import LoadingState from '@/components/core/LoadingState.vue';
 import EmptyState from '@/components/core/EmptyState.vue';
+import BadgePill from '@/components/core/BadgePill.vue';
+import IconButton from '@/components/core/buttons/IconButton.vue';
 import CreateToggleButton from '@/components/core/buttons/CreateToggleButton.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import TextInput from '@/components/core/input/TextInput.vue';
 import TextArea from '@/components/core/input/TextArea.vue';
 import AppSelect from '@/components/core/input/AppSelect.vue';
+import ResponsiveTable from '@/components/core/ResponsiveTable.vue';
 import TablePager from '@/components/core/TablePager.vue';
 import NotificationTemplateRow from '@/components/settings/NotificationTemplateRow.vue';
 import { useNotificationTemplateStore } from '@/store/core/notificationTemplate';
 import { useWorkspaceStore } from '@/store/core/workspace';
 import { useAuthStore } from '@/store/core/auth';
 import { useNotificationStore } from '@/store/ui/notifications';
+import type { NotificationTemplateSummary } from '@/data/notifications/NotificationTemplateDto';
 import type { ProjectSummary } from '@/data/projects/ProjectDto';
+import type { DataColumn } from '@/types/ui/table';
 import type { SelectOption } from '@/types/ui/common';
 
 /**
@@ -153,6 +196,19 @@ const canManage = computed(() => authStore.canWrite('notifications'));
 
 const expandedId = ref<string | null>(null);
 const projectFilter = ref<string>('');
+
+// The template name is the headline of the mobile card; the text and the
+// bindings become its labelled rows.
+const columns = computed<DataColumn[]>(() => [
+  { key: 'name', label: t('templates.name'), headerClass: 'w-44', cellClass: 'text-sm text-text-primary truncate align-top', primary: true },
+  { key: 'text', label: t('templates.text'), cellClass: 'text-xs text-text-secondary font-mono truncate align-top' },
+  { key: 'projects', label: t('templates.boundProjects'), headerClass: 'w-64', cellClass: 'align-top' },
+]);
+
+function projectNames(template: NotificationTemplateSummary): string[] {
+  return template.projectIds.map(id =>
+    projects.value.find(p => p.id === id)?.name ?? id);
+}
 
 const filterOptions = computed<SelectOption[]>(() => [
   { value: '', label: t('templates.allProjects') },
@@ -190,6 +246,11 @@ async function handleCreate() {
   } finally {
     creating.value = false;
   }
+}
+
+async function handleDelete(template: NotificationTemplateSummary) {
+  const result = await templateStore.deleteTemplate(template.id);
+  if (!result.ok && result.message) notifications.show(result.message, 'error');
 }
 
 async function handleBind(templateId: string, projectId: string) {

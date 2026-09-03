@@ -42,7 +42,10 @@
             :disabled="submitting"
           />
         </div>
+      </div>
 
+      <!--  Pinned above the fold on a phone, inline on desktop.  -->
+      <template #footer>
         <div class="flex items-center gap-2">
           <PrimaryButton
             :label-text="t('users.transferConfirm')"
@@ -56,7 +59,7 @@
             :on-click="() => emit('close')"
           />
         </div>
-      </div>
+      </template>
     </ModalDialog>
 </template>
 

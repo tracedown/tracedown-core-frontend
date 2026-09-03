@@ -6,7 +6,7 @@
       <div
         v-for="alert in systemAlertStore.alerts"
         :key="alert.id"
-        class="flex items-center gap-3 border px-3 py-2"
+        class="flex items-center gap-3 border px-3 py-2 max-md:items-start"
         :class="alert.severity === 'error'
           ? 'border-status-failure/40 bg-status-failure/10'
           : 'border-status-warning/40 bg-status-warning/10'"

@@ -12,7 +12,7 @@
 
         <div class="space-y-3 max-w-xl">
           <template v-if="createOpen">
-            <div class="flex items-end gap-2 flex-wrap">
+            <div class="flex items-end gap-2 flex-wrap max-md:flex-col max-md:items-stretch">
               <div>
                 <p class="text-xs text-text-secondary mb-1">
                   {{ t('apiKeys.name') }}
@@ -51,7 +51,7 @@
               {{ t('apiKeys.issued', { name: issued.name }) }}
             </p>
             <div class="flex items-center gap-2">
-              <code class="text-xs font-mono text-text-primary bg-background-primary rounded px-2 py-1.5 break-all">
+              <code class="min-w-0 text-xs font-mono text-text-primary bg-background-primary rounded px-2 py-1.5 break-all">
                 {{ issued.key }}
               </code>
               <IconButton
@@ -80,10 +80,10 @@
           <li
             v-for="key in apiKeyStore.keys"
             :key="key.id"
-            class="flex items-center gap-3 py-2.5"
+            class="flex items-center gap-3 py-2.5 max-md:flex-wrap"
             :class="{ 'opacity-50': key.revoked }"
           >
-            <div class="min-w-0">
+            <div class="min-w-0 max-md:w-full">
               <p class="text-sm text-text-primary truncate">
                 {{ key.name }}
               </p>

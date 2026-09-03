@@ -15,7 +15,7 @@
 
         <div
           v-if="createOpen"
-          class="flex items-end gap-2"
+          class="flex items-end gap-2 max-md:flex-col max-md:items-stretch"
         >
           <div>
             <p class="text-xs text-text-secondary mb-1">
@@ -94,11 +94,14 @@
           <p class="text-xs text-text-secondary">
             {{ t('domains.createdHint') }}
           </p>
+        </div>
+        <!--  Pinned above the fold on a phone, inline on desktop.  -->
+        <template #footer>
           <PrimaryButton
             :label-text="t('common.actions.close')"
             :on-click="() => justCreated = null"
           />
-        </div>
+        </template>
       </ModalDialog>
     </div>
 </template>

@@ -4,15 +4,19 @@
         <span class="text-xs text-text-secondary">{{ t(labelKey) }}</span>
         <HelpTooltip :entries="help" />
       </div>
-      <AppSelect
-        v-model="display"
-        class="w-28"
-        :options="options"
-        :disabled="disabled || floor.level >= 2"
-        :title="floor.level >= 2
-          ? t('permissions.grantedBy', { group: floor.source })
-          : undefined"
-      />
+      <!--  The width lives on the wrapper, not the select: below the
+            breakpoint a select stretches to its container, and one that
+            stretched here would start at a different x on every row.  -->
+      <div class="w-28 shrink-0">
+        <AppSelect
+          v-model="display"
+          :options="options"
+          :disabled="disabled || floor.level >= 2"
+          :title="floor.level >= 2
+            ? t('permissions.grantedBy', { group: floor.source })
+            : undefined"
+        />
+      </div>
     </div>
 </template>
 

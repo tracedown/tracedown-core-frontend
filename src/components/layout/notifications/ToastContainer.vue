@@ -1,5 +1,7 @@
 <template>
-    <div class="fixed bottom-4 right-4 z-9999">
+    <!--  Anchored bottom-right; on a phone it also pins to the left edge so a
+          long message wraps inside the viewport instead of running off it.  -->
+    <div class="fixed bottom-4 right-4 z-9999 max-md:left-4">
       <transition-group name="list">
         <ToastNotification
           v-for="message in notificationStore.messages"

@@ -5,7 +5,7 @@
           {{ t('agents.connectHint') }}
         </p>
 
-        <div class="flex items-end gap-2 flex-wrap">
+        <div class="flex items-end gap-2 flex-wrap max-md:flex-col max-md:items-stretch">
           <div>
             <p class="text-xs text-text-secondary mb-1">
               {{ t('agents.slug') }}

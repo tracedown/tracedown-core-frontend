@@ -4,12 +4,12 @@
       :class="!user.isActive ? 'opacity-60' : ''"
     >
       <div
-        class="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
+        class="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors max-md:flex-wrap"
         :class="canExpand ? 'cursor-pointer hover:bg-background-secondary/50' : ''"
         @click="canExpand && emit('toggle')"
       >
         <span class="text-sm font-medium text-text-primary shrink-0">{{ user.displayName }}</span>
-        <span class="text-xs text-text-secondary truncate">{{ user.email }}</span>
+        <span class="min-w-0 text-xs text-text-secondary truncate">{{ user.email }}</span>
 
         <!-- Pills: owner first, then groups, then state -->
         <BadgePill

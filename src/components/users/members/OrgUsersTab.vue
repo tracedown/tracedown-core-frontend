@@ -27,7 +27,7 @@
           {{ t('users.inviteTitle') }}
         </h3>
         <form
-          class="flex items-center gap-2 max-w-2xl"
+          class="flex items-center gap-2 max-w-2xl max-md:flex-col max-md:items-stretch"
           @submit.prevent="handleInvite(inviteEmail)"
         >
           <TextInput
@@ -67,11 +67,11 @@
           class="border-b border-text-secondary/25"
         >
           <div
-            class="flex items-center gap-3 px-4 py-2 text-sm"
+            class="flex items-center gap-3 px-4 py-2 text-sm max-md:flex-wrap"
             :class="canEdit ? 'cursor-pointer hover:bg-background-secondary/50' : ''"
             @click="canEdit && (expandedInviteId = expandedInviteId === invite.id ? null : invite.id)"
           >
-            <span class="text-text-primary">{{ invite.email }}</span>
+            <span class="text-text-primary max-md:w-full max-md:break-all">{{ invite.email }}</span>
             <BadgePill
               v-for="name in inviteGroupNames(invite)"
               :key="name"

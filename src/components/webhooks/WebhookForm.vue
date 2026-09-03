@@ -3,7 +3,7 @@
       class="space-y-3 max-w-2xl"
       @submit.prevent="handleSubmit"
     >
-      <div class="flex items-end gap-2 flex-wrap">
+      <div class="flex items-end gap-2 flex-wrap max-md:flex-col max-md:items-stretch">
         <div>
           <p class="text-xs text-text-secondary mb-1">
             {{ t('webhooks.name') }}

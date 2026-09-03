@@ -41,8 +41,11 @@
             v-for="webhook in webhookStore.webhooks"
             :key="webhook.id"
           >
-            <div class="flex items-center gap-3 py-2.5">
-              <div class="min-w-0">
+            <!--  On a phone the name/URL take the full width and the attempt
+                  count and actions drop to a second line rather than squeezing
+                  the URL down to a few characters.  -->
+            <div class="flex items-center gap-3 py-2.5 max-md:flex-wrap">
+              <div class="min-w-0 max-md:w-full">
                 <p class="text-sm text-text-primary truncate">
                   {{ webhook.name }}
                   <BadgePill
@@ -56,10 +59,13 @@
                   {{ webhook.method }} {{ webhook.url }}
                 </p>
               </div>
-              <span class="text-xs text-text-secondary ml-auto shrink-0">
+              <span class="text-xs text-text-secondary ml-auto shrink-0 max-md:ml-0">
                 {{ t('webhooks.attemptsLabel', { n: webhook.attemptCount }) }}
               </span>
-              <template v-if="canManage">
+              <div
+                v-if="canManage"
+                class="flex items-center gap-3 shrink-0 max-md:ml-auto"
+              >
                 <IconButton
                   :fa-icon="faPen"
                   :title="t('common.actions.edit')"
@@ -75,7 +81,7 @@
                   :hold-offset-sec="3"
                   @safe-click="handleDelete(webhook)"
                 />
-              </template>
+              </div>
             </div>
 
             <div

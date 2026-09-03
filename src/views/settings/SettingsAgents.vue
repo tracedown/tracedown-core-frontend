@@ -37,9 +37,12 @@
             v-for="agent in agentStore.agents"
             :key="agent.slug"
           >
+            <!--  Below the breakpoint the identity keeps the first line (the
+                  dot plus everything left of the gap) and the health pill, the
+                  last check and the activation switch wrap under it.  -->
             <button
               type="button"
-              class="w-full flex items-center gap-3 py-2.5 text-left cursor-pointer"
+              class="w-full flex items-center gap-3 py-2.5 text-left cursor-pointer max-md:flex-wrap"
               :class="{ 'opacity-50': !agent.isActive }"
               @click="expandedSlug = expandedSlug === agent.slug ? null : agent.slug"
             >
@@ -47,7 +50,7 @@
                 class="w-2 h-2 rounded-full shrink-0"
                 :class="healthDot(agent)"
               />
-              <div class="min-w-0">
+              <div class="min-w-0 max-md:basis-[calc(100%-1.25rem)]">
                 <p class="text-sm text-text-primary truncate">
                   {{ agent.label }}
                   <span class="text-text-secondary font-mono text-xs ml-1">{{ agent.slug }}</span>

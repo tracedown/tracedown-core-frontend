@@ -1,10 +1,10 @@
 <template>
     <div
-      class="min-h-screen bg-background-primary
-             flex flex-col gap-2 items-center justify-center"
+      class="min-h-dvh bg-background-primary
+             flex flex-col gap-2 items-center justify-center max-md:px-4"
     >
       <div
-        class="w-full max-w-sm p-8
+        class="w-full max-w-sm p-8 max-md:p-6
              bg-background-secondary rounded-tr-xl rounded-bl-xl"
       >
         <!-- The wordmark links to the root so any auth-adjacent page a host

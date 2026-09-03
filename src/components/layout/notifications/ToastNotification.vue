@@ -1,6 +1,6 @@
 <template>
     <div
-      class="p-3 rounded-lg m-2 max-w-96 font-medium flex items-center justify-between gap-3 shadow-lg text-white"
+      class="p-3 rounded-lg m-2 max-w-96 max-md:max-w-none font-medium flex items-center justify-between gap-3 shadow-lg text-white"
       :class="{
         'bg-status-success': message.type === 'success',
         'bg-status-warning': message.type === 'warning',

@@ -28,43 +28,48 @@
         :message="t('variables.noVariables')"
       />
 
-      <table
+      <!--  The rows are the shared `VariableRow` (a real `<tr>`), so this list
+            stays a table on a phone; it scrolls inside its own box instead of
+            widening the page.  -->
+      <div
         v-else
-        class="w-full table-fixed"
+        class="max-md:overflow-x-auto"
       >
-        <thead>
-          <tr class="border-b border-text-secondary/50">
-            <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-1/3">
-              {{ t('common.labels.key') }}
-            </th>
-            <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-1/3">
-              {{ t('common.labels.value') }}
-            </th>
-            <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-24">
-              {{ t('common.labels.type') }}
-            </th>
-            <th
-              v-if="canEdit"
-              class="w-20"
+        <table class="w-full table-fixed max-md:min-w-[34rem]">
+          <thead>
+            <tr class="border-b border-text-secondary/50">
+              <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-1/3">
+                {{ t('common.labels.key') }}
+              </th>
+              <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-1/3">
+                {{ t('common.labels.value') }}
+              </th>
+              <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-24">
+                {{ t('common.labels.type') }}
+              </th>
+              <th
+                v-if="canEdit"
+                class="w-20"
+              />
+            </tr>
+          </thead>
+          <tbody>
+            <VariableRow
+              v-for="variable in variables"
+              :key="variable.id"
+              :variable="variable"
+              :resource-prefix="PREFIX"
+              :can-edit="canEdit"
+              :revealed-value="store.revealedValues.get(variable.id)"
+              @save="actions.handleSave"
+              @delete="actions.handleDelete"
+              @toggle="actions.handleToggle"
+              @reveal="actions.handleReveal"
+              @hide="store.hideValue"
             />
-          </tr>
-        </thead>
-        <tbody>
-          <VariableRow
-            v-for="variable in variables"
-            :key="variable.id"
-            :variable="variable"
-            :resource-prefix="PREFIX"
-            :can-edit="canEdit"
-            :revealed-value="store.revealedValues.get(variable.id)"
-            @save="actions.handleSave"
-            @delete="actions.handleDelete"
-            @toggle="actions.handleToggle"
-            @reveal="actions.handleReveal"
-            @hide="store.hideValue"
-          />
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
 </template>
 

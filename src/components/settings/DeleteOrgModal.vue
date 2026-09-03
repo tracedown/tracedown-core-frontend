@@ -24,7 +24,10 @@
             :disabled="submitting"
           />
         </div>
+      </div>
 
+      <!--  Pinned above the fold on a phone, inline on desktop.  -->
+      <template #footer>
         <div class="flex items-center gap-2">
           <DangerButton
             :label-text="t('settings.deleteOrgConfirm')"
@@ -37,7 +40,7 @@
             :on-click="() => emit('close')"
           />
         </div>
-      </div>
+      </template>
     </ModalDialog>
 </template>
 

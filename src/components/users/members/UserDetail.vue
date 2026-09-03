@@ -1,5 +1,5 @@
 <template>
-    <div class="px-4 pb-4 grid grid-cols-2 gap-8 mt-2">
+    <div class="px-4 pb-4 grid grid-cols-2 gap-8 mt-2 max-md:grid-cols-1 max-md:gap-6">
       <!-- Left: global section permissions -->
       <div>
         <SectionHeading class="mb-2" :label="t('permissions.title')" />
