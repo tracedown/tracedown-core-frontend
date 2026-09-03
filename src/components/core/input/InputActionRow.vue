@@ -1,5 +1,5 @@
 <template>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 max-md:flex-col max-md:items-stretch">
       <TextInput
         v-model="model"
         class="flex-1"

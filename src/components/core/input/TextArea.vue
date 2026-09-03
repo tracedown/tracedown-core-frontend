@@ -1,7 +1,7 @@
 <template>
     <textarea
       v-model="value"
-      class="w-full rounded-lg px-2 py-1.5 text-sm font-mono
+      class="w-full max-md:w-full rounded-lg px-2 py-1.5 text-sm font-mono
            bg-accent-secondary text-text-primary placeholder:text-text-secondary
            focus:outline-none focus:ring-accent-primary resize-y"
       :rows="rows"

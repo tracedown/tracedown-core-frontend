@@ -6,12 +6,15 @@
     >
       <template #trigger="{ toggle }">
         <button
-          class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors hover:bg-background-primary"
+          class="flex items-center gap-2 px-3 max-md:px-2 py-1.5 rounded-lg text-sm transition-colors hover:bg-background-primary"
           :class="summaryClass"
+          :title="summaryText"
           @click="toggle"
         >
           <FontAwesomeIcon :icon="faHeartPulse" class="w-3.5 h-3.5" />
-          <span>{{ summaryText }}</span>
+          <!--  On a phone the bar has no room for the count — the pulse icon
+                keeps its status colour and the panel carries the detail.  -->
+          <span class="max-md:hidden">{{ summaryText }}</span>
         </button>
       </template>
 

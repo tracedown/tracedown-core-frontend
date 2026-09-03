@@ -1,7 +1,7 @@
 <template>
     <div>
       <!-- Probe mode / queue policy -->
-      <div class="grid grid-cols-2 gap-2 text-xs mb-3">
+      <div class="grid grid-cols-2 max-md:grid-cols-1 gap-2 text-xs mb-3">
         <div v-if="isFeatureEnabled('agents')">
           <div class="flex items-center gap-1">
             <span class="text-text-secondary">{{ t('service.probeMode') }}</span>
@@ -46,11 +46,12 @@
       <!-- Script viewer -->
       <div
         v-if="service.script"
-        class="mb-4 max-h-72 overflow-hidden"
+        class="mb-4 max-md:max-h-none max-h-72 overflow-hidden"
       >
-        <LaceEditor
+        <ScriptEditorField
           :model-value="service.script"
-          :readonly="true"
+          :title="t('editor.scriptTitle', { name: service.name })"
+          readonly
           min-height="3rem"
           max-height="18rem"
           :service-name="service.name"
@@ -91,8 +92,9 @@ import { useI18n } from 'vue-i18n';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 import HelpTooltip from '@/components/core/HelpTooltip.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
+import ScriptEditorField from '@/components/core/editor/ScriptEditorField.vue';
 import ServiceMetricsSummary from '@/components/service/detail/ServiceMetricsSummary.vue';
-import { getScriptEditor, isFeatureEnabled } from '@/config/extensions';
+import { isFeatureEnabled } from '@/config/extensions';
 import { useAuthStore } from '@/store/core/auth';
 import { useServiceHelp } from '@/composables/useServiceHelp';
 import { formatWindowTime, parseServiceWindowRule } from '@/lib/serviceWindow';
@@ -107,10 +109,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   edit: [];
 }>();
-
-// Resolved from the extension registry — the built-in Lace editor by default,
-// or a host-provided replacement.
-const LaceEditor = getScriptEditor();
 
 const { t } = useI18n();
 const authStore = useAuthStore();

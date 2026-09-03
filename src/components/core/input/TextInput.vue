@@ -3,7 +3,7 @@
       class="min-w-12 w-full rounded-lg
              flex items-center gap-6 justify-between
             bg-accent-secondary text-text-primary"
-      :class="[wrapperClass, compact ? 'h-8' : '']"
+      :class="[wrapperClass, compact ? 'h-8' : '', 'max-md:w-full']"
     >
       <div class="w-full flex items-center min-w-0">
         <span

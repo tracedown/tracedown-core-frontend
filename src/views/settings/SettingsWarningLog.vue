@@ -12,54 +12,33 @@
         :message="t('systemAlerts.logEmpty')"
       />
       <template v-else>
-        <table class="w-full max-w-4xl text-sm">
-          <thead>
-            <tr class="text-left text-xs text-text-secondary border-b border-text-secondary/30">
-              <th class="py-2 pr-3 font-medium">
-                {{ t('systemAlerts.colSeverity') }}
-              </th>
-              <th class="py-2 pr-3 font-medium">
-                {{ t('systemAlerts.colType') }}
-              </th>
-              <th class="py-2 pr-3 font-medium">
-                {{ t('systemAlerts.colSubject') }}
-              </th>
-              <th class="py-2 pr-3 font-medium">
-                {{ t('systemAlerts.colFirstSeen') }}
-              </th>
-              <th class="py-2 font-medium">
-                {{ t('systemAlerts.colLastSeen') }}
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-text-secondary/15">
-            <tr
-              v-for="entry in entries"
-              :key="entry.id"
-            >
-              <td class="py-2 pr-3">
-                <BadgePill
-                  :color-class="entry.severity === 'error'
-                    ? 'bg-status-failure/10 text-status-failure'
-                    : 'bg-status-warning/10 text-status-warning'"
-                  :label="t(`systemAlerts.severity.${entry.severity}`, entry.severity)"
-                />
-              </td>
-              <td class="py-2 pr-3 text-text-primary">
-                {{ typeLabel(entry.alertType) }}
-              </td>
-              <td class="py-2 pr-3 font-mono text-xs text-text-secondary">
-                {{ entry.subject || '—' }}
-              </td>
-              <td class="py-2 pr-3 text-text-secondary tabular-nums">
-                {{ formatTime(entry.createdAt) }}
-              </td>
-              <td class="py-2 text-text-secondary tabular-nums">
-                {{ formatTime(entry.lastSeenAt) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <ResponsiveTable
+          :columns="columns"
+          :rows="entries"
+          :row-key="(entry: SystemAlertSummary) => entry.id"
+          table-class="max-w-4xl text-sm"
+        >
+          <template #cell:type="{ row }">
+            {{ typeLabel(row.alertType) }}
+          </template>
+          <template #cell:severity="{ row }">
+            <BadgePill
+              :color-class="row.severity === 'error'
+                ? 'bg-status-failure/10 text-status-failure'
+                : 'bg-status-warning/10 text-status-warning'"
+              :label="t(`systemAlerts.severity.${row.severity}`, row.severity)"
+            />
+          </template>
+          <template #cell:subject="{ row }">
+            {{ row.subject || '—' }}
+          </template>
+          <template #cell:firstSeen="{ row }">
+            {{ formatTime(row.createdAt) }}
+          </template>
+          <template #cell:lastSeen="{ row }">
+            {{ formatTime(row.lastSeenAt) }}
+          </template>
+        </ResponsiveTable>
         <TablePager
           :page="page"
           :page-size="PAGE_SIZE"
@@ -71,15 +50,17 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SectionHeading from '@/components/core/SectionHeading.vue';
 import LoadingState from '@/components/core/LoadingState.vue';
 import EmptyState from '@/components/core/EmptyState.vue';
 import BadgePill from '@/components/core/BadgePill.vue';
+import ResponsiveTable from '@/components/core/ResponsiveTable.vue';
 import TablePager from '@/components/core/TablePager.vue';
 import { useSystemAlertStore } from '@/store/core/systemAlert';
 import { useNotificationStore } from '@/store/ui/notifications';
+import type { DataColumn } from '@/types/ui/table';
 import type { SystemAlertSummary } from '@/data/alerts/SystemAlertDto';
 
 /**
@@ -92,6 +73,16 @@ const systemAlertStore = useSystemAlertStore();
 const notifications = useNotificationStore();
 
 const PAGE_SIZE = 50;
+
+// The alert type is the headline of the mobile card; severity and the two
+// timestamps become its labelled rows.
+const columns = computed<DataColumn[]>(() => [
+  { key: 'severity', label: t('systemAlerts.colSeverity') },
+  { key: 'type', label: t('systemAlerts.colType'), cellClass: 'text-text-primary', primary: true },
+  { key: 'subject', label: t('systemAlerts.colSubject'), cellClass: 'font-mono text-xs text-text-secondary' },
+  { key: 'firstSeen', label: t('systemAlerts.colFirstSeen'), cellClass: 'text-text-secondary tabular-nums' },
+  { key: 'lastSeen', label: t('systemAlerts.colLastSeen'), cellClass: 'text-text-secondary tabular-nums' },
+]);
 
 const entries = ref<SystemAlertSummary[]>([]);
 const page = ref<number>(1);

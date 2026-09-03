@@ -25,6 +25,13 @@ export type {
   DataExportContributor,
 } from '@/config/extensions';
 
+// Mobile shell: the single breakpoint the app switches layouts on. A host that
+// renders chrome of its own reads the same source of truth rather than picking
+// its own media query.
+export { useViewport, MOBILE_MEDIA_QUERY, MOBILE_MAX_WIDTH_PX } from '@/composables/useViewport';
+export { default as ResponsiveTable } from '@/components/core/ResponsiveTable.vue';
+export type { DataColumn } from '@/types/ui/table';
+
 export { registerPermissionSections, getPermissionSections } from '@/config/permissionSections';
 export { DEFAULT_NAV_ITEMS } from '@/config/navigation';
 export { useNavigationStore } from '@/store/ui/navigation';

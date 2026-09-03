@@ -1,6 +1,6 @@
 <template>
     <div class="space-y-3">
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-2 max-md:grid-cols-1 gap-3">
         <div>
           <label class="block text-xs font-medium text-text-secondary mb-1">{{ t('common.labels.name') }}</label>
           <TextInput v-model="name" />
@@ -20,7 +20,7 @@
           class="font-mono"
         />
       </div>
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-2 max-md:grid-cols-1 gap-3">
         <div v-if="isFeatureEnabled('agents')">
           <div class="flex items-center gap-1 mb-1">
             <label class="text-xs font-medium text-text-secondary">{{ t('service.probeMode') }}</label>
@@ -58,20 +58,15 @@
         </div>
       </div>
 
-      <div class="group relative">
-        <LaceEditor
-          v-model="script"
-          min-height="12rem"
-          :service-name="name"
-          :collab-id="service.id"
-          @validate="onValidation"
-        />
-        <!-- Floating editor actions — dimmed at rest, full opacity on hover. -->
-        <div
-          class="absolute top-2 right-2 z-10 flex flex-col gap-1 rounded
-                 bg-background-secondary/70 backdrop-blur-sm p-1
-                 opacity-50 transition-opacity group-hover:opacity-100"
-        >
+      <ScriptEditorField
+        v-model="script"
+        :title="t('editor.scriptTitle', { name })"
+        min-height="12rem"
+        :service-name="name"
+        :collab-id="service.id"
+        @validate="onValidation"
+      >
+        <template #actions>
           <IconButton
             :fa-icon="faFileImport"
             :title="t('presets.load')"
@@ -93,15 +88,15 @@
             icon-class="w-4 h-4"
             @click="triggerLoadFile"
           />
-        </div>
-        <input
-          ref="fileInput"
-          type="file"
-          accept=".lace,text/plain"
-          class="hidden"
-          @change="onFileSelected"
-        >
-      </div>
+        </template>
+      </ScriptEditorField>
+      <input
+        ref="fileInput"
+        type="file"
+        accept=".lace,text/plain"
+        class="hidden"
+        @change="onFileSelected"
+      >
 
       <ServiceTemplateModal
         v-if="templateModalOpen"
@@ -125,7 +120,7 @@
         />
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 max-md:flex-wrap">
         <PrimaryButton
           :label-text="t('common.actions.save')"
           :disabled="saving || !script.trim() || hasValidationErrors || !windowValid"
@@ -164,10 +159,11 @@ import ServiceTemplateModal from '@/components/service/detail/ServiceTemplateMod
 import WebhookBindings from '@/components/webhooks/WebhookBindings.vue';
 import ServiceAgentsPicker from '@/components/service/detail/ServiceAgentsPicker.vue';
 import IconButton from '@/components/core/buttons/IconButton.vue';
+import ScriptEditorField from '@/components/core/editor/ScriptEditorField.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import GhostButton from '@/components/core/buttons/GhostButton.vue';
 import DangerButton from '@/components/core/buttons/DangerButton.vue';
-import { getScriptEditor, isFeatureEnabled } from '@/config/extensions';
+import { isFeatureEnabled } from '@/config/extensions';
 import { saveLaceFile } from '@/lib/lace-codemirror';
 import { useProjectStore } from '@/store/core/project';
 import { useNotificationStore } from '@/store/ui/notifications';
@@ -186,10 +182,6 @@ const emit = defineEmits<{
   cancel: [];
   delete: [];
 }>();
-
-// Resolved from the extension registry — the built-in Lace editor by default,
-// or a host-provided replacement.
-const LaceEditor = getScriptEditor();
 
 const { t } = useI18n();
 const projectStore = useProjectStore();

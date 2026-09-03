@@ -33,9 +33,29 @@
   --spacing-sidebar: 10rem;
 }
 
+/* Mobile shell: one breakpoint, mirroring `useViewport` / Tailwind's `md`.
+   Overriding the theme variable here re-gutters every `px-gutter` / `gap-gutter`
+   surface in the app at once, so views need no per-view mobile padding. */
+@media (width < 48rem) {
+  :root {
+    --spacing-gutter: 0.75rem;
+  }
+}
+
 @utility hover-muted {
   &:hover {
     opacity: 0.5;
+  }
+}
+
+/* Horizontal strips that must scroll without showing a bar under the content
+   (mobile tab bars, table overflow). */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 

@@ -1,5 +1,6 @@
 <template>
     <DropdownPanel
+      class="max-md:w-full"
       panel-class="w-full"
       @closed="query = ''"
     >
@@ -31,7 +32,7 @@
                focus:outline-none focus:border-accent-primary"
           :placeholder="t('common.actions.search')"
         >
-        <div class="max-h-64 overflow-y-auto">
+        <div class="max-h-64 max-md:max-h-[55dvh] overflow-y-auto">
           <button
             v-for="option in filteredOptions"
             :key="option.value"

@@ -3,7 +3,7 @@
       <SectionHeading :label="t('nav.audit')" />
 
       <!-- Filters -->
-      <div class="flex items-end gap-2 flex-wrap">
+      <div class="flex items-end gap-2 flex-wrap max-md:flex-col max-md:items-stretch">
         <div>
           <p class="text-xs text-text-secondary mb-1">
             {{ t('audit.filterAction') }}
@@ -45,66 +45,44 @@
         compact
         :message="t('audit.none')"
       />
-      <table
+      <ResponsiveTable
         v-else
-        class="w-full table-fixed"
+        :columns="columns"
+        :rows="auditStore.entries"
+        :row-key="(entry: AuditLogEntry) => entry.id"
+        :expanded-key="expandedId"
+        clickable
+        table-class="table-fixed"
+        @row-click="(entry: AuditLogEntry) => expandedId = expandedId === entry.id ? null : entry.id"
       >
-        <thead>
-          <tr class="border-b border-text-secondary/50">
-            <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-40">
-              {{ t('audit.time') }}
-            </th>
-            <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-52">
-              {{ t('audit.actor') }}
-            </th>
-            <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-56">
-              {{ t('audit.action') }}
-            </th>
-            <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3">
-              {{ t('audit.entity') }}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <template
-            v-for="entry in auditStore.entries"
-            :key="entry.id"
-          >
-            <tr
-              class="border-b border-text-secondary/15 cursor-pointer hover:bg-background-primary/50"
-              @click="expandedId = expandedId === entry.id ? null : entry.id"
-            >
-              <td class="py-2 px-3 text-xs text-text-secondary tabular-nums">
-                {{ formatTime(entry.createdAt) }}
-              </td>
-              <td class="py-2 px-3 text-sm text-text-primary truncate">
-                {{ actorLabel(entry) }}
-              </td>
-              <td class="py-2 px-3">
-                <code class="text-xs font-mono text-text-primary">{{ entry.action }}</code>
-              </td>
-              <td class="py-2 px-3 text-xs text-text-secondary truncate">
-                <template v-if="entry.entityType">
-                  {{ entry.entityType }}
-                  <!-- The name the entity had at the time reads far better than its
-                       raw id; fall back to the id only when no name was recorded. -->
-                  <span
-                    v-if="entry.entityDisplayName"
-                    class="text-text-primary"
-                  >{{ entry.entityDisplayName }}</span>
-                  <span
-                    v-else-if="entry.entityId"
-                    class="font-mono"
-                  >{{ entry.entityId }}</span>
-                </template>
-              </td>
-            </tr>
-            <tr v-if="expandedId === entry.id">
-              <AuditEntryDetail :entry="entry" />
-            </tr>
+        <template #cell:time="{ row }">
+          {{ formatTime(row.createdAt) }}
+        </template>
+        <template #cell:actor="{ row }">
+          {{ actorLabel(row) }}
+        </template>
+        <template #cell:action="{ row }">
+          <code class="text-xs font-mono text-text-primary">{{ row.action }}</code>
+        </template>
+        <template #cell:entity="{ row }">
+          <template v-if="row.entityType">
+            {{ row.entityType }}
+            <!-- The name the entity had at the time reads far better than its
+                 raw id; fall back to the id only when no name was recorded. -->
+            <span
+              v-if="row.entityDisplayName"
+              class="text-text-primary"
+            >{{ row.entityDisplayName }}</span>
+            <span
+              v-else-if="row.entityId"
+              class="font-mono"
+            >{{ row.entityId }}</span>
           </template>
-        </tbody>
-      </table>
+        </template>
+        <template #expanded="{ row }">
+          <AuditEntryDetail :entry="row" />
+        </template>
+      </ResponsiveTable>
 
       <TablePager
         :page="auditStore.page"
@@ -123,12 +101,14 @@ import LoadingState from '@/components/core/LoadingState.vue';
 import EmptyState from '@/components/core/EmptyState.vue';
 import TextInput from '@/components/core/input/TextInput.vue';
 import AppSelect from '@/components/core/input/AppSelect.vue';
+import ResponsiveTable from '@/components/core/ResponsiveTable.vue';
 import TablePager from '@/components/core/TablePager.vue';
 import AuditEntryDetail from '@/components/audit/AuditEntryDetail.vue';
 import { useAuditStore } from '@/store/core/audit';
 import { useOrgUserStore } from '@/store/core/orgUser';
 import { useAuthStore } from '@/store/core/auth';
 import type { AuditLogEntry } from '@/data/audit/AuditDto';
+import type { DataColumn } from '@/types/ui/table';
 import type { SelectOption } from '@/types/ui/common';
 
 /**
@@ -155,6 +135,15 @@ const actionFilter = ref<string>('');
 const entityFilter = ref<string>('');
 const actorFilter = ref<string>('');
 const expandedId = ref<string | null>(null);
+
+// The action code is the headline of the mobile card; the rest become its
+// labelled rows.
+const columns = computed<DataColumn[]>(() => [
+  { key: 'time', label: t('audit.time'), headerClass: 'w-40', cellClass: 'text-xs text-text-secondary tabular-nums' },
+  { key: 'actor', label: t('audit.actor'), headerClass: 'w-52', cellClass: 'text-sm text-text-primary truncate' },
+  { key: 'action', label: t('audit.action'), headerClass: 'w-56', primary: true },
+  { key: 'entity', label: t('audit.entity'), cellClass: 'text-xs text-text-secondary truncate' },
+]);
 
 const entityOptions = computed<SelectOption[]>(() => [
   { value: '', label: t('audit.allEntities') },

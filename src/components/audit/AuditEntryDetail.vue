@@ -1,8 +1,5 @@
 <template>
-    <td
-      colspan="4"
-      class="pb-3 px-3"
-    >
+    <div class="pb-3 px-3">
       <p
         v-if="entry.comment"
         class="text-sm text-text-primary mb-2"
@@ -40,7 +37,7 @@
       >
         {{ t('audit.noDetail') }}
       </p>
-    </td>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -49,7 +46,7 @@ import { useI18n } from 'vue-i18n';
 import type { AuditLogEntry } from '@/data/audit/AuditDto';
 
 /**
- * Expanded audit-row detail cell: the free-text comment plus the diff payload,
+ * Expanded audit-row detail: the free-text comment plus the diff payload,
  * rendered as a colored line diff for script changes and pretty-printed JSON
  * otherwise.
  */

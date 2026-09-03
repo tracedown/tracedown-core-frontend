@@ -72,7 +72,12 @@
     "domains": "Domains",
     "apiKeys": "API keys",
     "audit": "Audit log",
-    "account": "My account"
+    "account": "My account",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "openSearch": "Open search",
+    "closeSearch": "Close search"
   },
   "agents": {
     "noProbes": "No probes registered",
@@ -649,6 +654,11 @@
     "saveToFile": "Save to file (.lace)",
     "loadFromFile": "Load from file",
     "loadFailed": "Could not read the file.",
+    "scriptTitle": "{name} script",
+    "editScript": "Edit script",
+    "viewScript": "View script",
+    "emptyScript": "No script yet.",
+    "moreLines": "+{count} more lines",
     "othersEditing": "Editing live with {names}"
   },
   "presets": {
