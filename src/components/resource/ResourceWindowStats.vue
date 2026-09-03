@@ -1,21 +1,27 @@
 <template>
     <div class="px-gutter py-4">
-      <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-6">
+      <!--  A single row of five stats plus a period select is ~600px wide and
+            pushed the page sideways on a phone. Below the breakpoint the row
+            becomes a two-column grid and the select drops under it — nothing
+            shrinks, nothing scrolls off.  -->
+      <div class="flex items-center justify-between mb-4 max-md:flex-col max-md:items-stretch max-md:gap-3">
+        <div class="flex items-center gap-6 max-md:grid max-md:grid-cols-2 max-md:gap-x-4 max-md:gap-y-3">
           <!-- Static entity counts, separated from the window-scoped metrics -->
           <template v-if="staticStats.length > 0">
             <div
               v-for="stat in staticStats"
               :key="stat.label"
+              class="min-w-0"
             >
               <SectionHeading class="mb-1" :label="stat.label" />
               <p class="text-2xl font-semibold text-text-primary">
                 {{ stat.value }}
               </p>
             </div>
-            <div class="w-px h-10 bg-text-secondary/25" />
+            <!-- Separator: a vertical rule has no meaning in a stacked grid. -->
+            <div class="w-px h-10 bg-text-secondary/25 max-md:hidden" />
           </template>
-          <div>
+          <div class="min-w-0">
             <SectionHeading class="mb-1" :label="t('metrics.successRate')" />
             <p
               class="text-2xl font-semibold"
@@ -24,19 +30,19 @@
               {{ successRate }}
             </p>
           </div>
-          <div>
+          <div class="min-w-0">
             <SectionHeading class="mb-1" :label="t('metrics.avgResponse')" />
             <p class="text-2xl font-semibold text-text-primary">
               {{ avgResponse }}
             </p>
           </div>
-          <div>
+          <div class="min-w-0">
             <SectionHeading class="mb-1" :label="t('metrics.probesInWindow')" />
             <p class="text-2xl font-semibold text-text-primary">
               {{ probeCount }}
             </p>
           </div>
-          <div>
+          <div class="min-w-0">
             <SectionHeading class="mb-1" :label="t('metrics.failuresInWindow')" />
             <p
               class="text-2xl font-semibold"

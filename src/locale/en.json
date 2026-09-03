@@ -149,6 +149,7 @@
     "noServices": "No services yet",
     "noServicesDescription": "Create a service to start monitoring an endpoint.",
     "selectService": "Select a service to view details",
+    "backToServices": "Back to services",
     "namePlaceholder": "Service name",
     "labelField": "Label",
     "labelPlaceholder": "Optional display label",

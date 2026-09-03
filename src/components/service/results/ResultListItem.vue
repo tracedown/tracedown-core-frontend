@@ -11,7 +11,7 @@
           class="inline-block w-2 h-2 rounded-full flex-shrink-0"
           :class="statusDotClass(result.status)"
         />
-        <span class="text-text-primary truncate">{{ result.status }}</span>
+        <span class="text-text-primary truncate min-w-0">{{ result.status }}</span>
         <span class="text-text-secondary ml-auto flex-shrink-0">{{ result.totalResponseMs }}ms</span>
       </div>
       <div class="flex items-center gap-2 text-text-secondary mt-0.5 pl-4">

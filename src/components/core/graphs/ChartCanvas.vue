@@ -1,9 +1,16 @@
 <template>
+    <!--  `min-w-0` + `overflow-hidden`: Chart.js sizes the canvas from the
+          container, so a container that can grow with its canvas (a flex or
+          grid child, whose default min-width is its content) never shrinks
+          back and pushes the page sideways on a phone.  -->
     <div
-      class="relative"
+      class="relative w-full min-w-0 overflow-hidden"
       :style="{ height }"
     >
-      <canvas ref="canvasEl" />
+      <canvas
+        ref="canvasEl"
+        class="max-w-full"
+      />
     </div>
 </template>
 

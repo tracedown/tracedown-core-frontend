@@ -20,21 +20,24 @@
           :class="statusDot"
         />
       </div>
+      <!--  `min-w-0` on the cells and a block label: an inline label wider than
+            its column keeps its intrinsic width, and the three stats ran into
+            each other as soon as the card narrowed.  -->
       <div class="grid grid-cols-3 gap-3 text-xs">
-        <div>
-          <span class="text-text-secondary">{{ t('common.entities.services') }}</span>
+        <div class="min-w-0">
+          <span class="block text-text-secondary break-words">{{ t('common.entities.services') }}</span>
           <p class="text-text-primary font-medium mt-0.5">
             {{ project.serviceCount ?? 0 }}
           </p>
         </div>
-        <div>
-          <span class="text-text-secondary">{{ t('metrics.totalProbes') }}</span>
+        <div class="min-w-0">
+          <span class="block text-text-secondary break-words">{{ t('metrics.totalProbes') }}</span>
           <p class="text-text-primary font-medium mt-0.5">
             {{ totalProbes }}
           </p>
         </div>
-        <div>
-          <span class="text-text-secondary">{{ t('metrics.successRate') }}</span>
+        <div class="min-w-0">
+          <span class="block text-text-secondary break-words">{{ t('metrics.successRate') }}</span>
           <p
             class="font-medium mt-0.5"
             :style="metricsSuccessStyle(project.metrics)"

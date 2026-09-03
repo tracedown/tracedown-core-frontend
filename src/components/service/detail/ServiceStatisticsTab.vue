@@ -1,10 +1,10 @@
 <template>
     <div class="space-y-6">
-      <div class="flex items-center justify-between gap-4">
+      <div class="flex items-center justify-between gap-4 max-md:flex-col max-md:items-stretch max-md:gap-2">
         <h3 class="text-sm font-medium text-text-secondary">
           {{ t('statistics.title') }}
         </h3>
-        <div class="w-40">
+        <div class="w-40 max-md:w-full">
           <AppSelect
             v-model="window"
             :options="windowOptions"
@@ -23,7 +23,9 @@
 
       <template v-else>
         <!-- Headline figures over the selected window. -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <!--  `sm` (640px) is still inside the phone range — four tiles across a
+              390px screen truncate their own numbers, so the split is `md`.  -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div
             v-for="stat in summaryStats"
             :key="stat.label"
@@ -58,44 +60,24 @@
 
         <section v-if="regionRows.length > 0">
           <SectionHeading class="mb-2" :label="t('statistics.byRegion')" />
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b border-text-secondary/50">
-                <th :class="TH">
-                  {{ t('statistics.region') }}
-                </th>
-                <th :class="TH">
-                  {{ t('statistics.uptimePct') }}
-                </th>
-                <th :class="TH">
-                  {{ t('statistics.p95') }}
-                </th>
-                <th :class="TH">
-                  {{ t('statistics.probes') }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="row in regionRows"
-                :key="row.agentId"
-                class="border-b border-text-secondary/25"
-              >
-                <td class="py-2 px-3 text-text-primary">
-                  {{ row.agentLabel }}
-                </td>
-                <td class="py-2 px-3 text-text-secondary">
-                  {{ row.uptime }}
-                </td>
-                <td class="py-2 px-3 text-text-secondary">
-                  {{ row.p95 }}
-                </td>
-                <td class="py-2 px-3 text-text-secondary">
-                  {{ row.probes }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <ResponsiveTable
+            :columns="regionColumns"
+            :rows="regionRows"
+            :row-key="row => String(row.agentId)"
+          >
+            <template #cell:region="{ row }">
+              {{ row.agentLabel }}
+            </template>
+            <template #cell:uptime="{ row }">
+              {{ row.uptime }}
+            </template>
+            <template #cell:p95="{ row }">
+              {{ row.p95 }}
+            </template>
+            <template #cell:probes="{ row }">
+              {{ row.probes }}
+            </template>
+          </ResponsiveTable>
         </section>
       </template>
     </div>
@@ -109,16 +91,16 @@ import AppSelect from '@/components/core/input/AppSelect.vue';
 import SectionHeading from '@/components/core/SectionHeading.vue';
 import LoadingState from '@/components/core/LoadingState.vue';
 import EmptyState from '@/components/core/EmptyState.vue';
+import ResponsiveTable from '@/components/core/ResponsiveTable.vue';
 import StatSeriesChart from '@/components/core/graphs/StatSeriesChart.vue';
 import { useStatisticsStore, type StatWindow } from '@/store/core/statistics';
 import { useNotificationStore } from '@/store/ui/notifications';
 import { formatMs } from '@/lib/metrics-utils';
 import type { ServiceSummary } from '@/data/services/ServiceDto';
 import type { StatBucket } from '@/data/metrics/MetricsDto';
+import type { DataColumn } from '@/types/ui/table';
 import type { SelectOption } from '@/types/ui/common';
 import { storeToRefs } from 'pinia';
-
-const TH = 'text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3';
 
 const props = defineProps<{
   service: ServiceSummary;
@@ -171,6 +153,18 @@ const summaryStats = computed(() => {
     { label: t('statistics.probes'), value: probes.toLocaleString() },
   ];
 });
+
+/**
+ * The old `<td>` carried the row typography (`text-sm` came from the table,
+ * the colours from each cell) — `ResponsiveTable` puts nothing on the cell, so
+ * those classes travel in `cellClass`.
+ */
+const regionColumns = computed<DataColumn[]>(() => [
+  { key: 'region', label: t('statistics.region'), cellClass: 'text-sm text-text-primary', primary: true },
+  { key: 'uptime', label: t('statistics.uptimePct'), cellClass: 'text-sm text-text-secondary' },
+  { key: 'p95', label: t('statistics.p95'), cellClass: 'text-sm text-text-secondary' },
+  { key: 'probes', label: t('statistics.probes'), cellClass: 'text-sm text-text-secondary' },
+]);
 
 const regionRows = computed(() =>
   (stats.value?.regions ?? []).map(r => ({

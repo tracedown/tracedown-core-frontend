@@ -1,10 +1,10 @@
 <template>
     <div class="px-gutter pt-4">
       <!-- Header: name + actions -->
-      <div class="flex items-start justify-between mb-3">
-        <div>
+      <div class="flex items-start justify-between gap-2 mb-3">
+        <div class="min-w-0">
           <div class="flex items-center gap-1.5">
-            <h3 class="text-sm font-semibold text-text-primary">
+            <h3 class="text-sm font-semibold text-text-primary break-all">
               {{ service.name }}
             </h3>
             <SilenceBell
@@ -20,7 +20,7 @@
             {{ service.label }}
           </p>
         </div>
-        <div class="flex items-center gap-1 ml-2">
+        <div class="flex items-center gap-1 ml-2 shrink-0">
           <IconButton
             v-if="canEdit && !editing"
             :fa-icon="faPenToSquare"
@@ -37,7 +37,7 @@
       </div>
 
       <!-- Status row -->
-      <div class="flex items-center justify-between text-xs mb-3">
+      <div class="flex items-center justify-between gap-2 text-xs mb-3 max-md:flex-wrap">
         <span class="text-text-secondary">
           <FontAwesomeIcon :icon="faClock" class="w-3 h-3 mr-1" />
           {{ service.schedule }}

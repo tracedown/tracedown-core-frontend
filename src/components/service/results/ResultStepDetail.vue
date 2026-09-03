@@ -3,7 +3,7 @@
       <!-- Timing breakdown -->
       <div
         v-if="step.dnsMs != null || step.connectMs != null"
-        class="grid grid-cols-5 gap-2 text-xs pt-2"
+        class="grid grid-cols-5 gap-2 text-xs pt-2 max-md:grid-cols-3"
       >
         <div
           v-for="phase in timingPhases"
@@ -47,7 +47,7 @@
         <div
           v-for="(a, i) in assertions"
           :key="i"
-          class="flex items-center gap-2 px-2 py-1"
+          class="flex items-center gap-2 px-2 py-1 max-md:flex-wrap"
           :class="a.outcome === 'passed' ? 'bg-status-success/5' : 'bg-status-failure/5'"
         >
           <span
@@ -56,10 +56,10 @@
           />
           <span class="text-text-primary font-medium">{{ a.scope }}</span>
           <span class="text-text-secondary">{{ a.op }}</span>
-          <span class="text-text-primary font-mono">{{ a.expected }}</span>
+          <span class="text-text-primary font-mono break-all">{{ a.expected }}</span>
           <template v-if="a.outcome === 'failed'">
             <span class="text-text-secondary">→</span>
-            <span class="text-status-failure font-mono">{{ a.actual }}</span>
+            <span class="text-status-failure font-mono break-all">{{ a.actual }}</span>
           </template>
           <span
             class="ml-auto"

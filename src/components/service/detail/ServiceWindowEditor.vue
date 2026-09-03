@@ -12,30 +12,32 @@
           :options="frequencyOptions"
         />
         <template v-if="isRange">
-          <div class="flex items-center gap-1">
+          <!--  Every select goes full width below the breakpoint, so each
+                hour:minute pair claims its own row and splits it.  -->
+          <div class="flex items-center gap-1 max-md:w-full">
             <AppSelect
               v-model="startHour"
-              class="w-18"
+              class="w-18 max-md:flex-1"
               :options="hourOptions"
             />
             <span class="text-xs text-text-secondary">:</span>
             <AppSelect
               v-model="startMinute"
-              class="w-18"
+              class="w-18 max-md:flex-1"
               :options="minuteOptions"
             />
           </div>
           <span class="text-xs text-text-secondary">&ndash;</span>
-          <div class="flex items-center gap-1">
+          <div class="flex items-center gap-1 max-md:w-full">
             <AppSelect
               v-model="endHour"
-              class="w-18"
+              class="w-18 max-md:flex-1"
               :options="hourOptions"
             />
             <span class="text-xs text-text-secondary">:</span>
             <AppSelect
               v-model="endMinute"
-              class="w-18"
+              class="w-18 max-md:flex-1"
               :options="minuteOptions"
             />
           </div>

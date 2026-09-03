@@ -2,7 +2,7 @@
     <div class="mb-6 p-4  border-b border-text-secondary/50">
       <!-- Wrapping row of uniform h-8 controls: in narrow hosts (service panel)
            the type/buttons drop to the next line instead of squeezing the fields. -->
-      <div class="flex flex-wrap items-end gap-3">
+      <div class="flex flex-wrap items-end gap-3 max-md:flex-col max-md:items-stretch">
         <div class="flex-1 min-w-40">
           <label class="block text-xs font-medium text-text-secondary mb-1">{{ t('common.labels.key') }}</label>
           <TextInput
@@ -21,7 +21,7 @@
             :placeholder="t('common.labels.value')"
           />
         </div>
-        <div class="w-36">
+        <div class="w-36 max-md:w-full">
           <div class="flex items-center gap-1.5 mb-1">
             <label class="block text-xs font-medium text-text-secondary">{{ t('common.labels.type') }}</label>
             <HelpTooltip :entries="typeHelp" />

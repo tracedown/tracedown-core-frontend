@@ -6,7 +6,9 @@
         @click="emit('toggle')"
       >
         <span class="text-text-secondary font-medium flex-shrink-0">{{ step.stepNum }}</span>
-        <span class="text-text-primary truncate">{{ step.requestUrl }}</span>
+        <!-- min-w-0: a flex item will not shrink below its content, so without
+             it the URL sets the row's width instead of truncating. -->
+        <span class="text-text-primary truncate min-w-0">{{ step.requestUrl }}</span>
         <span
           v-if="step.statusCode"
           class="flex-shrink-0 font-mono"

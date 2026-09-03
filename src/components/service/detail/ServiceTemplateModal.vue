@@ -12,10 +12,10 @@
       />
       <div
         v-else
-        class="flex gap-4"
+        class="flex gap-4 max-md:flex-col"
       >
         <!-- Preset list -->
-        <div class="w-72 shrink-0 space-y-1 overflow-y-auto max-h-[55vh]">
+        <div class="w-72 shrink-0 space-y-1 overflow-y-auto max-h-[55vh] max-md:w-full max-md:max-h-56">
           <button
             v-for="preset in presetStore.presets"
             :key="preset.id"
@@ -79,20 +79,24 @@
         />
       </div>
 
-      <div class="flex items-center gap-2 mt-4">
-        <PrimaryButton
-          :label-text="t('presets.apply')"
-          :disabled="!selected"
-          :on-click="apply"
-        />
-        <GhostButton
-          :label-text="t('common.actions.cancel')"
-          :on-click="() => emit('close')"
-        />
-        <span class="text-xs text-text-secondary ml-auto">
-          {{ t('presets.replaceHint') }}
-        </span>
-      </div>
+      <!--  Actions in the dialog's footer: on a phone the sheet pins this
+            above the fold instead of leaving Apply below a long preset list.  -->
+      <template #footer>
+        <div class="flex items-center gap-2 max-md:flex-wrap">
+          <PrimaryButton
+            :label-text="t('presets.apply')"
+            :disabled="!selected"
+            :on-click="apply"
+          />
+          <GhostButton
+            :label-text="t('common.actions.cancel')"
+            :on-click="() => emit('close')"
+          />
+          <span class="text-xs text-text-secondary ml-auto max-md:ml-0 max-md:w-full">
+            {{ t('presets.replaceHint') }}
+          </span>
+        </div>
+      </template>
     </ModalDialog>
 </template>
 

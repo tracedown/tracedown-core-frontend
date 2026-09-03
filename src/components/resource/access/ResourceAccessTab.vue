@@ -7,7 +7,7 @@
       <LoadingState v-if="accessStore.loading" />
       <div
         v-else
-        class="grid grid-cols-2 gap-8"
+        class="grid grid-cols-2 gap-8 max-md:grid-cols-1 max-md:gap-6"
       >
         <PillPicker
           :title="t('groups.title')"

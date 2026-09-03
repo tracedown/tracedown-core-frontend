@@ -28,17 +28,6 @@
         >
           {{ t('service.scopedToggle.disableNote') }}
         </p>
-        <div class="flex justify-end gap-2">
-          <SecondaryButton
-            :label-text="t('common.actions.cancel')"
-            :on-click="dismiss"
-          />
-          <PrimaryButton
-            :label-text="t(pending ? 'service.scopedToggle.enableConfirm' : 'service.scopedToggle.disableConfirm')"
-            :loading="submitting"
-            :on-click="submit"
-          />
-        </div>
       </div>
 
       <!-- Phase two, only when something was left behind. A count in a toast
@@ -88,13 +77,35 @@
             {{ t('service.scopedToggle.skippedMore', { count: undisclosed }) }}
           </p>
         </div>
-        <div class="flex justify-end">
+      </div>
+
+      <!--  One action bar for both phases, in the dialog's footer: on a phone
+            that keeps it pinned above a skipped-services list that scrolls.  -->
+      <template #footer>
+        <div
+          v-if="!outcome"
+          class="flex justify-end gap-2"
+        >
+          <SecondaryButton
+            :label-text="t('common.actions.cancel')"
+            :on-click="dismiss"
+          />
+          <PrimaryButton
+            :label-text="t(pending ? 'service.scopedToggle.enableConfirm' : 'service.scopedToggle.disableConfirm')"
+            :loading="submitting"
+            :on-click="submit"
+          />
+        </div>
+        <div
+          v-else
+          class="flex justify-end"
+        >
           <PrimaryButton
             :label-text="t('common.actions.close')"
             :on-click="dismiss"
           />
         </div>
-      </div>
+      </template>
     </ModalDialog>
 </template>
 

@@ -1,6 +1,6 @@
 <template>
     <div class="space-y-8 max-w-3xl">
-      <div class="border-b border-text-secondary/50 p-6">
+      <div class="border-b border-text-secondary/50 p-6 max-md:p-4">
         <h2 class="text-lg font-semibold text-text-primary mb-4">
           {{ t('settings.rename') }}
         </h2>
@@ -16,7 +16,7 @@
 
       <div
         v-if="resourceType && resourceId"
-        class="border-b border-text-secondary/50 p-6"
+        class="border-b border-text-secondary/50 p-6 max-md:p-4"
       >
         <WebhookBindings
           :resource-type="resourceType"
@@ -26,7 +26,7 @@
 
       <div
         v-if="resourceType === 'project' && resourceId"
-        class="border-b border-text-secondary/50 p-6"
+        class="border-b border-text-secondary/50 p-6 max-md:p-4"
       >
         <GrafanaIntegrationCard
           :project-id="resourceId"
@@ -36,7 +36,7 @@
 
       <div
         v-if="canEdit"
-        class="border-y border-status-failure/30 p-6"
+        class="border-y border-status-failure/30 p-6 max-md:p-4"
       >
         <h2 class="text-lg font-semibold text-status-failure mb-2">
           {{ t('settings.dangerZone') }}

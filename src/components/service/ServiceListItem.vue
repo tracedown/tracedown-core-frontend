@@ -30,7 +30,7 @@
           {{ successRate }}
         </span>
       </div>
-      <div class="flex items-center gap-1.5 mt-1 pl-4 text-xs text-text-secondary">
+      <div class="flex items-center gap-1.5 mt-1 pl-4 text-xs text-text-secondary max-md:flex-wrap">
         <FontAwesomeIcon :icon="faClock" class="w-3 h-3" />
         <span>{{ service.schedule }}</span>
         <span

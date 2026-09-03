@@ -1,6 +1,6 @@
 <template>
     <div class="px-gutter py-6">
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center justify-between gap-3 mb-6 max-md:flex-wrap">
         <div class="flex items-center gap-3">
           <h2 class="text-lg font-semibold text-text-primary">
             {{ t('common.entities.projects') }}
@@ -36,7 +36,9 @@
       />
 
       <template v-else>
-        <div class="grid grid-cols-3 md:grid-cols-4 gap-4">
+        <!--  Three across is already tight at 768px; on a phone a third of
+              390px cannot hold a project name, so the grid becomes a stack.  -->
+        <div class="grid grid-cols-3 md:grid-cols-4 max-md:grid-cols-1 gap-4">
           <ProjectCard
             v-for="project in projectStore.projects"
             :key="project.id"

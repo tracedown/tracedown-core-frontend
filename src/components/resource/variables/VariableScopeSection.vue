@@ -3,7 +3,8 @@
       <!-- Collapsible header -->
       <button
         type="button"
-        class="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-background-secondary/50 transition-colors"
+        class="w-full flex items-center gap-2 px-3 py-2.5 text-left transition-colors
+             hover:bg-background-secondary/50 max-md:flex-wrap"
         @click="open = !open"
       >
         <FontAwesomeIcon
@@ -12,14 +13,15 @@
         />
         <span class="text-sm font-medium text-text-primary truncate">{{ scope.resourceName }}</span>
         <BadgePill
+          class="shrink-0"
           color-class="bg-text-secondary/15 text-text-secondary font-mono"
           :label="scope.prefix"
         />
         <span
           v-if="!scope.editable"
-          class="text-xs text-text-secondary"
+          class="text-xs text-text-secondary shrink-0"
         >{{ t('variables.inherited') }}</span>
-        <span class="ml-auto text-xs text-text-secondary">{{ countLabel }}</span>
+        <span class="ml-auto text-xs text-text-secondary shrink-0">{{ countLabel }}</span>
       </button>
 
       <!-- Body -->
@@ -50,51 +52,20 @@
           :message="t('variables.noVariables')"
         />
 
-        <table
+        <VariableTable
           v-else
-          class="w-full table-fixed"
-        >
-          <thead>
-            <tr class="border-b border-text-secondary/50">
-              <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-1/3">
-                {{ t('common.labels.key') }}
-              </th>
-              <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-1/3">
-                {{ t('common.labels.value') }}
-              </th>
-              <th class="text-left text-xs font-medium text-text-secondary uppercase tracking-wider py-2 px-3 w-24">
-                {{ t('common.labels.type') }}
-              </th>
-              <th
-                v-if="actionsColumn"
-                class="w-20"
-              />
-            </tr>
-          </thead>
-          <tbody>
-            <LockedVariableRow
-              v-for="locked in scope.locked"
-              :key="`locked-${locked.key}`"
-              :locked="locked"
-              :resource-prefix="scope.prefix"
-              :show-actions="actionsColumn"
-            />
-            <VariableRow
-              v-for="variable in sortedVariables"
-              :key="variable.id"
-              :variable="variable"
-              :resource-prefix="scope.prefix"
-              :can-edit="scope.editable && canEdit"
-              :readonly="!scope.editable"
-              :revealed-value="revealedValues.get(variable.id)"
-              @save="(id, value) => emit('save', id, value)"
-              @delete="(id) => emit('delete', id)"
-              @toggle="(v) => emit('toggle', v)"
-              @reveal="(id) => emit('reveal', id)"
-              @hide="(id) => emit('hide', id)"
-            />
-          </tbody>
-        </table>
+          :variables="scope.variables"
+          :locked="scope.locked"
+          :resource-prefix="scope.prefix"
+          :can-edit="actionsColumn"
+          :readonly="!scope.editable"
+          :revealed-values="revealedValues"
+          @save="(id, value) => emit('save', id, value)"
+          @delete="(id) => emit('delete', id)"
+          @toggle="(v) => emit('toggle', v)"
+          @reveal="(id) => emit('reveal', id)"
+          @hide="(id) => emit('hide', id)"
+        />
       </div>
     </div>
 </template>
@@ -108,8 +79,7 @@ import BadgePill from '@/components/core/BadgePill.vue';
 import EmptyState from '@/components/core/EmptyState.vue';
 import CreateToggleButton from '@/components/core/buttons/CreateToggleButton.vue';
 import VariableCreateForm from '@/components/resource/variables/VariableCreateForm.vue';
-import VariableRow from '@/components/resource/variables/VariableRow.vue';
-import LockedVariableRow from '@/components/resource/variables/LockedVariableRow.vue';
+import VariableTable from '@/components/resource/variables/VariableTable.vue';
 import type { CreateVariableRequest, VariableScope, VariableSummary } from '@/data/variables/VariableDto';
 
 /**
@@ -151,10 +121,6 @@ function handleCreate(request: CreateVariableRequest) {
 
 /** Actions column present only where rows are editable. */
 const actionsColumn = computed<boolean>(() => props.scope.editable && props.canEdit);
-
-/** System vars sorted to top, then user vars. */
-const sortedVariables = computed<VariableSummary[]>(() =>
-  [...props.scope.variables].sort((a, b) => (a.systemType ? 0 : 1) - (b.systemType ? 0 : 1)));
 
 const isEmpty = computed<boolean>(() =>
   props.scope.variables.length === 0 && props.scope.locked.length === 0);

@@ -1,6 +1,6 @@
 <template>
     <div class="text-xs space-y-3">
-      <div class="grid grid-cols-4 gap-3">
+      <div class="grid grid-cols-4 gap-3 max-md:grid-cols-2">
         <div>
           <span class="text-text-secondary">{{ t('metrics.totalProbes') }}</span>
           <p class="text-text-primary font-medium mt-0.5">

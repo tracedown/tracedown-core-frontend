@@ -1,7 +1,9 @@
 <template>
-    <div class="flex gap-4">
+    <!--  Two columns on desktop; on a phone the list sits above the detail —
+          a third of 390px cannot hold "284ms · 6m ago · us-west-1".  -->
+    <div class="flex gap-4 max-md:flex-col max-md:gap-3">
       <!-- Result list -->
-      <div class="w-1/3 flex flex-col">
+      <div class="w-1/3 flex flex-col max-md:w-full">
         <LoadingState v-if="resultStore.loading" compact />
 
         <EmptyState
@@ -14,7 +16,7 @@
           v-else
           name="result-item"
           tag="div"
-          class="flex-1 overflow-y-auto space-y-1"
+          class="flex-1 overflow-y-auto space-y-1 max-md:max-h-72"
         >
           <ResultListItem
             v-for="result in resultStore.results"
@@ -47,7 +49,7 @@
       </div>
 
       <!-- Result detail -->
-      <div class="w-2/3 flex flex-col min-w-0">
+      <div class="w-2/3 flex flex-col min-w-0 max-md:w-full">
         <ResultDetail />
       </div>
     </div>
