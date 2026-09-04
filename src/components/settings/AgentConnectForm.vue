@@ -58,12 +58,31 @@
         <p class="text-sm text-text-primary pt-1">
           {{ t('agents.startCommand') }}
         </p>
+        <!-- One bootstrap, two ways to hand it to the agent: the container
+             command, or the bare variables for an agent started by systemd, a
+             VM image or a pip install. -->
+        <TabBar
+          v-model="startMode"
+          variant="pills"
+          :tabs="startModeTabs"
+        />
         <CopyField
-          :value="startCommand"
+          :value="startMode === 'docker' ? startCommand : startEnvironment"
           multiline
         />
-        <p class="text-xs text-text-secondary">
-          {{ t('agents.startCommandHint') }}
+        <template v-if="startMode === 'docker'">
+          <p class="text-xs text-text-secondary">
+            {{ t('agents.startCommandHint') }}
+          </p>
+          <p class="text-xs text-text-secondary">
+            {{ t('agents.startCommandImageNote', { image: AGENT_IMAGE }) }}
+          </p>
+        </template>
+        <p
+          v-else
+          class="text-xs text-text-secondary"
+        >
+          {{ t('agents.startEnvironmentHint', { slug: issued.slug }) }}
         </p>
       </div>
     </div>
@@ -73,11 +92,13 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CopyField from '@/components/common/CopyField.vue';
+import TabBar from '@/components/core/TabBar.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import TextInput from '@/components/core/input/TextInput.vue';
 import { useAgentStore } from '@/store/core/agent';
 import { useNotificationStore } from '@/store/ui/notifications';
 import type { BootstrapTokenResponse } from '@/data/agents/AgentDto';
+import type { DisplayTab } from '@/types/ui/tabs';
 
 /**
  * "Connect a new agent" flow: slug/label → one-time bootstrap token →
@@ -112,10 +133,34 @@ const fullSlug = computed(() => {
 const slugValid = computed(() =>
   newSlug.value.trim().length > 0 && SLUG_RE.test(fullSlug.value));
 
+/** The published agent image (`docker pull tracedown/tracedown-probe-agent`). */
+const AGENT_IMAGE = 'tracedown/tracedown-probe-agent';
+
+/** Which rendering of the same bootstrap is on screen. */
+const startMode = ref<string>('docker');
+
+const startModeTabs = computed<DisplayTab[]>(() => [
+  { key: 'docker', label: t('agents.startModeDocker') },
+  { key: 'environment', label: t('agents.startModeEnvironment') },
+]);
+
 /**
- * Full local startup command (locally built image; swaps to the published
- * Docker Hub image once released).
+ * The agent's configuration, as name/value pairs — the one source both
+ * renderings below are generated from, so the container command and the
+ * environment file can never drift apart.
  */
+const environment = computed<[string, string][]>(() => {
+  if (!issued.value) return [];
+  return [
+    ['PROBE_AGENT_BOOTSTRAP_TOKEN', issued.value.token],
+    ['PROBE_AGENT_SCHEDULER_URL', 'http://tracedown-gateway:20714'],
+    ['PROBE_AGENT_PORT', '8443'],
+    ['PROBE_AGENT_STORAGE_BACKEND', 'filesystem'],
+    ['PROBE_AGENT_STORAGE_DIR', '/data/bodies'],
+  ];
+});
+
+/** Full startup command for the published container image. */
 const startCommand = computed(() => {
   if (!issued.value) return '';
   return [
@@ -129,14 +174,19 @@ const startCommand = computed(() => {
     `  --hostname ${issued.value.slug} \\`,
     `  --network tracedown_tracedown-net \\`,
     `  -v tracedown_tracedown-bodies:/data/bodies \\`,
-    `  -e PROBE_AGENT_BOOTSTRAP_TOKEN="${issued.value.token}" \\`,
-    `  -e PROBE_AGENT_SCHEDULER_URL=http://tracedown-gateway:20714 \\`,
-    `  -e PROBE_AGENT_PORT=8443 \\`,
-    `  -e PROBE_AGENT_STORAGE_BACKEND=filesystem \\`,
-    `  -e PROBE_AGENT_STORAGE_DIR=/data/bodies \\`,
-    `  tracedown-agent`,
+    ...environment.value.map(([key, value]) => `  -e ${key}="${value}" \\`),
+    `  ${AGENT_IMAGE}`,
   ].join('\n');
 });
+
+/**
+ * The same settings as plain `KEY=value` lines, for an agent started by
+ * anything other than Docker (systemd `EnvironmentFile`, a VM image, a
+ * `pip install`). The hostname is not a variable — it is the machine's own,
+ * which is why the caveat above rides in `startEnvironmentHint` instead.
+ */
+const startEnvironment = computed(() =>
+  environment.value.map(([key, value]) => `${key}=${value}`).join('\n'));
 
 async function handleGenerate() {
   if (generating.value) return;
