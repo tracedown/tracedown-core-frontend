@@ -16,14 +16,24 @@
           @keydown.tab="trapTab"
         >
           <div class="h-headbar shrink-0 px-gutter flex items-center gap-2 border-b border-b-accent-primary">
-            <img
-              src="/logo.svg"
-              :alt="appConfig.appName"
-              class="h-6 w-6 shrink-0"
+            <!--  Mark and name link home, as they do on the desktop headbar.
+                  The explicit close covers the case where home is already the
+                  current route and the route watch below never fires.  -->
+            <router-link
+              :to="{ name: 'home' }"
+              class="min-w-0 flex-1 flex items-center gap-2 -ml-1 px-1 py-1 rounded-lg
+                     hover:bg-background-primary transition-colors"
+              @click="emit('close')"
             >
-            <span class="flex-1 text-accent-primary font-bold text-sm truncate select-none">
-              {{ appConfig.appName }}
-            </span>
+              <img
+                src="/logo.svg"
+                :alt="appConfig.appName"
+                class="h-6 w-6 shrink-0"
+              >
+              <span class="text-accent-primary font-bold text-sm truncate select-none">
+                {{ appConfig.appName }}
+              </span>
+            </router-link>
             <button
               ref="closeButton"
               type="button"
