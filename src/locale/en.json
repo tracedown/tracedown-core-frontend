@@ -96,6 +96,7 @@
     "connectHint": "Generates a one-time bootstrap token (valid 1 hour). The agent registers itself with it on startup and is issued its mTLS identity.",
     "slug": "Slug",
     "slugPlaceholder": "eu-west-agent",
+    "slugTaken": "An agent is already registered under this slug.",
     "label": "Label (optional)",
     "slugInvalid": "Lowercase letters, digits and dashes only.",
     "generateToken": "Generate token",
@@ -112,11 +113,7 @@
       "label": "Response body storage",
       "filesystem": "Filesystem (volume)",
       "s3": "S3-compatible bucket",
-      "s3Endpoint": "Endpoint URL",
-      "s3Bucket": "Bucket",
-      "s3Region": "Region",
-      "s3Prefix": "Key prefix (optional)",
-      "s3CredentialsNote": "The access key and secret are left as placeholders. Fill them in where the agent starts, never here."
+      "s3Note": "The bucket settings are placeholders to fill in where the agent starts. Region auto suits R2 and is ignored by MinIO; AWS S3 wants the real one. PROBE_AGENT_S3_PREFIX scopes keys within the bucket if you need it."
     },
     "startCommandImageNote": "The image is {image} on Docker Hub. Substitute your own name if you build the agent yourself.",
     "startEnvironmentHint": "The same settings as environment variables, for an agent started any other way — a systemd unit, a VM image, a pip install. Paste them into its environment file. Set the machine's hostname to {slug} as well: the agent registers itself under its own hostname, and the certificate it is issued carries that name — which the scheduler pins. A hostname that is not the slug fails every dispatch.",
@@ -602,6 +599,7 @@
     "invalid_uuid": "Invalid identifier.",
     "not_found": "The requested resource was not found.",
     "already_exists": "This item already exists.",
+    "agent_slug_taken": "An agent is already registered under this slug.",
     "version_conflict": "This was changed by someone else while you were editing. Reload it and reapply your change.",
     "forbidden": "You do not have access to this resource.",
     "not_org_member": "You are not a member of this organization.",

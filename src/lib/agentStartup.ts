@@ -8,20 +8,12 @@
 
 export type AgentStorageBackend = 'filesystem' | 's3';
 
-export interface AgentS3Settings {
-  endpointUrl: string;
-  bucket: string;
-  region: string;
-  prefix: string;
-}
-
 export interface AgentStartupInput {
   slug: string;
   token: string;
   /** Base URL the agent enrols against, or null when the gateway has none configured. */
   schedulerUrl: string | null;
   storage: AgentStorageBackend;
-  s3: AgentS3Settings;
 }
 
 /** The published agent image (`docker pull tracedown/tracedown-probe-agent`). */
@@ -39,11 +31,19 @@ export const COMPOSE_BODIES_VOLUME = 'tracedown_tracedown-bodies';
 /** Container-side body directory; the volume or bind mount lands here. */
 export const BODIES_DIR = '/data/bodies';
 
-/** Credentials are never typed into the dashboard; the operator fills these in. */
-export const S3_ACCESS_KEY_PLACEHOLDER = '<access-key-id>';
-export const S3_SECRET_KEY_PLACEHOLDER = '<secret-access-key>';
-
-export const DEFAULT_S3: AgentS3Settings = { endpointUrl: '', bucket: '', region: 'auto', prefix: '' };
+/**
+ * The bucket settings are the operator's to fill in where the agent starts —
+ * nothing about their storage is typed into the dashboard, so the S3 template
+ * is exactly that: a template with placeholders. `auto` is a real region value
+ * (R2; MinIO ignores it) and the one AWS S3 wants replaced.
+ */
+export const S3_PLACEHOLDERS: [string, string][] = [
+  ['PROBE_AGENT_S3_ENDPOINT_URL', '<endpoint-url>'],
+  ['PROBE_AGENT_S3_ACCESS_KEY_ID', '<access-key-id>'],
+  ['PROBE_AGENT_S3_SECRET_ACCESS_KEY', '<secret-access-key>'],
+  ['PROBE_AGENT_S3_BUCKET', '<bucket>'],
+  ['PROBE_AGENT_S3_REGION', 'auto'],
+];
 
 /** `[name, value]` pairs in the order they are printed. */
 export function agentEnvironment(input: AgentStartupInput): [string, string][] {
@@ -56,15 +56,7 @@ export function agentEnvironment(input: AgentStartupInput): [string, string][] {
   if (input.storage === 'filesystem') {
     vars.push(['PROBE_AGENT_STORAGE_DIR', BODIES_DIR]);
   } else {
-    vars.push(
-      ['PROBE_AGENT_S3_ENDPOINT_URL', input.s3.endpointUrl.trim()],
-      ['PROBE_AGENT_S3_ACCESS_KEY_ID', S3_ACCESS_KEY_PLACEHOLDER],
-      ['PROBE_AGENT_S3_SECRET_ACCESS_KEY', S3_SECRET_KEY_PLACEHOLDER],
-      ['PROBE_AGENT_S3_BUCKET', input.s3.bucket.trim()],
-      ['PROBE_AGENT_S3_REGION', input.s3.region.trim() || 'auto'],
-    );
-    const prefix = input.s3.prefix.trim();
-    if (prefix) vars.push(['PROBE_AGENT_S3_PREFIX', prefix]);
+    vars.push(...S3_PLACEHOLDERS);
   }
   return vars;
 }

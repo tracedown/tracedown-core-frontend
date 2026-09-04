@@ -30,7 +30,7 @@
           <PrimaryButton
             :label-text="t('agents.generateToken')"
             :loading="generating"
-            :disabled="!slugValid"
+            :disabled="!slugValid || slugTaken"
             :on-click="handleGenerate"
           />
         </div>
@@ -39,6 +39,12 @@
           class="text-xs text-status-warning"
         >
           {{ t('agents.slugInvalid') }}
+        </p>
+        <p
+          v-else-if="slugTaken"
+          class="text-xs text-status-warning"
+        >
+          {{ t('agents.slugTaken') }}
         </p>
       </template>
 
@@ -60,7 +66,9 @@
         </p>
 
         <!-- Where the agent keeps response bodies decides which variables the
-             command carries and whether it mounts a volume. -->
+             command carries and whether it mounts a volume. The choice only
+             switches templates: bucket settings are placeholders the operator
+             fills in where the agent starts, never typed here. -->
         <div class="flex items-end gap-2 flex-wrap max-md:flex-col max-md:items-stretch">
           <div>
             <p class="text-xs text-text-secondary mb-1">
@@ -72,52 +80,12 @@
               :options="storageOptions"
             />
           </div>
-          <template v-if="storage === 's3'">
-            <div>
-              <p class="text-xs text-text-secondary mb-1">
-                {{ t('agents.storage.s3Endpoint') }}
-              </p>
-              <TextInput
-                v-model="s3.endpointUrl"
-                class="w-64"
-                placeholder="https://<account>.r2.cloudflarestorage.com"
-              />
-            </div>
-            <div>
-              <p class="text-xs text-text-secondary mb-1">
-                {{ t('agents.storage.s3Bucket') }}
-              </p>
-              <TextInput
-                v-model="s3.bucket"
-                class="w-40"
-              />
-            </div>
-            <div>
-              <p class="text-xs text-text-secondary mb-1">
-                {{ t('agents.storage.s3Region') }}
-              </p>
-              <TextInput
-                v-model="s3.region"
-                class="w-28"
-                placeholder="auto"
-              />
-            </div>
-            <div>
-              <p class="text-xs text-text-secondary mb-1">
-                {{ t('agents.storage.s3Prefix') }}
-              </p>
-              <TextInput
-                v-model="s3.prefix"
-                class="w-40"
-              />
-            </div>
-          </template>
         </div>
         <p
           v-if="storage === 's3'"
           class="text-xs text-text-secondary"
         >
-          {{ t('agents.storage.s3CredentialsNote') }}
+          {{ t('agents.storage.s3Note') }}
         </p>
 
         <!-- One bootstrap, two ways to hand it to the agent: the container
@@ -172,11 +140,10 @@ import type { SelectOption } from '@/types/ui/common';
 import {
   AGENT_IMAGE,
   COMPOSE_SCHEDULER_URL,
-  DEFAULT_S3,
   agentDockerCommand,
   agentEnvFile,
 } from '@/lib/agentStartup';
-import type { AgentS3Settings, AgentStartupInput } from '@/lib/agentStartup';
+import type { AgentStartupInput } from '@/lib/agentStartup';
 
 /**
  * "Connect a new agent" flow: slug/label → one-time bootstrap token →
@@ -211,6 +178,15 @@ const fullSlug = computed(() => {
 const slugValid = computed(() =>
   newSlug.value.trim().length > 0 && SLUG_RE.test(fullSlug.value));
 
+/**
+ * A token for a slug that is already an agent can never be redeemed —
+ * registration refuses it — and the gateway refuses to issue one. Catching it
+ * against the loaded fleet first saves the round trip; the server check still
+ * covers an agent registered since the list was fetched.
+ */
+const slugTaken = computed(() =>
+  agentStore.agents.some(agent => agent.slug === fullSlug.value));
+
 /** Which rendering of the same bootstrap is on screen. */
 const startMode = ref<string>('docker');
 
@@ -219,9 +195,8 @@ const startModeTabs = computed<DisplayTab[]>(() => [
   { key: 'environment', label: t('agents.startModeEnvironment') },
 ]);
 
-/** Where the agent keeps response bodies; the S3 fields only matter for `s3`. */
+/** Where the agent keeps response bodies — picks the template. */
 const storage = ref<string>('filesystem');
-const s3 = ref<AgentS3Settings>({ ...DEFAULT_S3 });
 
 const storageOptions = computed<SelectOption[]>(() => [
   { value: 'filesystem', label: t('agents.storage.filesystem') },
@@ -241,7 +216,6 @@ const startup = computed<AgentStartupInput | null>(() => {
     token: issued.value.token,
     schedulerUrl: issued.value.schedulerUrl ?? null,
     storage: storage.value === 's3' ? 's3' : 'filesystem',
-    s3: s3.value,
   };
 });
 
