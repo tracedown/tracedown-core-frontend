@@ -1,6 +1,6 @@
 # Multi-stage build: compile the Vue SPA, then serve the static output via nginx.
 # Build context is the frontend repo root (see docker-compose.yml: context = ..).
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 
 WORKDIR /app
 

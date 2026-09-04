@@ -1,9 +1,12 @@
 {
   "name": "@tracedown/core-frontend",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./style.css": "./src/styles/style.css",
