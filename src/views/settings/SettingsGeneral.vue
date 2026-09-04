@@ -41,15 +41,18 @@
       <div class="space-y-3">
         <SectionHeading :label="t('settings.securitySection')" />
 
-        <div class="flex items-start gap-3">
+        <!-- Same wrapping switch row as the service form: on a phone the
+             switch and its label share the first line and the hint takes the
+             full width below (`contents` promotes both to flex items). -->
+        <div class="flex items-start gap-3 max-md:flex-wrap max-md:items-center max-md:gap-y-1">
           <ToggleSwitch
             v-model="totpEnforced"
-            class="mt-0.5 shrink-0"
+            class="mt-0.5 shrink-0 max-md:mt-0"
             :disabled="org.totpRequired === null || enforcementBusy || !authStore.canWrite('settings')"
           />
-          <span>
+          <span class="min-w-0 max-md:contents">
             <span class="block text-sm text-text-primary">{{ t('settings.totpEnforcement') }}</span>
-            <span class="block text-xs text-text-secondary">{{ t('settings.totpEnforcementHint') }}</span>
+            <span class="block text-xs text-text-secondary max-md:w-full">{{ t('settings.totpEnforcementHint') }}</span>
           </span>
         </div>
       </div>

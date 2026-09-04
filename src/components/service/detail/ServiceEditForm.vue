@@ -48,11 +48,19 @@
         v-model:valid="windowValid"
       />
 
-      <div class="flex items-start gap-3">
-        <ToggleSwitch v-model="saveResponseBodies" />
-        <div>
+      <!-- The switch keeps its width (`shrink-0`) and, on a phone, the row
+           wraps: switch + label on the first line, the help text full width
+           below. `contents` promotes the label and the paragraph to flex items
+           of the row so the paragraph can claim a whole line of its own
+           instead of being squeezed into the column beside the switch. -->
+      <div class="flex items-start gap-3 max-md:flex-wrap max-md:items-center max-md:gap-y-1">
+        <ToggleSwitch
+          v-model="saveResponseBodies"
+          class="shrink-0"
+        />
+        <div class="min-w-0 max-md:contents">
           <label class="block text-xs font-medium text-text-secondary">{{ t('service.saveResponseBodies') }}</label>
-          <p class="text-xs text-text-secondary/70 mt-0.5">
+          <p class="text-xs text-text-secondary/70 mt-0.5 max-md:mt-0 max-md:w-full">
             {{ t('service.saveResponseBodiesHelp') }}
           </p>
         </div>

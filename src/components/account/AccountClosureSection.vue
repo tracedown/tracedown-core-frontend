@@ -37,6 +37,7 @@
           >
             <ToggleSwitch
               v-model="deleteOwnedOrgs"
+              class="shrink-0"
               :disabled="submitting"
             />
             <span class="text-xs text-text-secondary">
