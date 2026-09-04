@@ -55,6 +55,8 @@ export interface BootstrapTokenResponse {
   slug: string;
   token: string;
   expiresAt: string;
+  /** Base URL the agent enrols against; null when the gateway has none configured. */
+  schedulerUrl?: string | null;
 }
 
 /** Health mapping for a full agent row (same rules as the status feed). */

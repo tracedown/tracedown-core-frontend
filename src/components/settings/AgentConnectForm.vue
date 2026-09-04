@@ -58,6 +58,68 @@
         <p class="text-sm text-text-primary pt-1">
           {{ t('agents.startCommand') }}
         </p>
+
+        <!-- Where the agent keeps response bodies decides which variables the
+             command carries and whether it mounts a volume. -->
+        <div class="flex items-end gap-2 flex-wrap max-md:flex-col max-md:items-stretch">
+          <div>
+            <p class="text-xs text-text-secondary mb-1">
+              {{ t('agents.storage.label') }}
+            </p>
+            <AppSelect
+              v-model="storage"
+              class="w-52"
+              :options="storageOptions"
+            />
+          </div>
+          <template v-if="storage === 's3'">
+            <div>
+              <p class="text-xs text-text-secondary mb-1">
+                {{ t('agents.storage.s3Endpoint') }}
+              </p>
+              <TextInput
+                v-model="s3.endpointUrl"
+                class="w-64"
+                placeholder="https://<account>.r2.cloudflarestorage.com"
+              />
+            </div>
+            <div>
+              <p class="text-xs text-text-secondary mb-1">
+                {{ t('agents.storage.s3Bucket') }}
+              </p>
+              <TextInput
+                v-model="s3.bucket"
+                class="w-40"
+              />
+            </div>
+            <div>
+              <p class="text-xs text-text-secondary mb-1">
+                {{ t('agents.storage.s3Region') }}
+              </p>
+              <TextInput
+                v-model="s3.region"
+                class="w-28"
+                placeholder="auto"
+              />
+            </div>
+            <div>
+              <p class="text-xs text-text-secondary mb-1">
+                {{ t('agents.storage.s3Prefix') }}
+              </p>
+              <TextInput
+                v-model="s3.prefix"
+                class="w-40"
+              />
+            </div>
+          </template>
+        </div>
+        <p
+          v-if="storage === 's3'"
+          class="text-xs text-text-secondary"
+        >
+          {{ t('agents.storage.s3CredentialsNote') }}
+        </p>
+
         <!-- One bootstrap, two ways to hand it to the agent: the container
              command, or the bare variables for an agent started by systemd, a
              VM image or a pip install. -->
@@ -84,6 +146,12 @@
         >
           {{ t('agents.startEnvironmentHint', { slug: issued.slug }) }}
         </p>
+        <p
+          v-if="!issued.schedulerUrl"
+          class="text-xs text-status-warning"
+        >
+          {{ t('agents.schedulerUrlUnset', { url: COMPOSE_SCHEDULER_URL }) }}
+        </p>
       </div>
     </div>
 </template>
@@ -93,12 +161,22 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CopyField from '@/components/common/CopyField.vue';
 import TabBar from '@/components/core/TabBar.vue';
+import AppSelect from '@/components/core/input/AppSelect.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import TextInput from '@/components/core/input/TextInput.vue';
 import { useAgentStore } from '@/store/core/agent';
 import { useNotificationStore } from '@/store/ui/notifications';
 import type { BootstrapTokenResponse } from '@/data/agents/AgentDto';
 import type { DisplayTab } from '@/types/ui/tabs';
+import type { SelectOption } from '@/types/ui/common';
+import {
+  AGENT_IMAGE,
+  COMPOSE_SCHEDULER_URL,
+  DEFAULT_S3,
+  agentDockerCommand,
+  agentEnvFile,
+} from '@/lib/agentStartup';
+import type { AgentS3Settings, AgentStartupInput } from '@/lib/agentStartup';
 
 /**
  * "Connect a new agent" flow: slug/label → one-time bootstrap token →
@@ -133,9 +211,6 @@ const fullSlug = computed(() => {
 const slugValid = computed(() =>
   newSlug.value.trim().length > 0 && SLUG_RE.test(fullSlug.value));
 
-/** The published agent image (`docker pull tracedown/tracedown-probe-agent`). */
-const AGENT_IMAGE = 'tracedown/tracedown-probe-agent';
-
 /** Which rendering of the same bootstrap is on screen. */
 const startMode = ref<string>('docker');
 
@@ -144,49 +219,34 @@ const startModeTabs = computed<DisplayTab[]>(() => [
   { key: 'environment', label: t('agents.startModeEnvironment') },
 ]);
 
-/**
- * The agent's configuration, as name/value pairs — the one source both
- * renderings below are generated from, so the container command and the
- * environment file can never drift apart.
- */
-const environment = computed<[string, string][]>(() => {
-  if (!issued.value) return [];
-  return [
-    ['PROBE_AGENT_BOOTSTRAP_TOKEN', issued.value.token],
-    ['PROBE_AGENT_SCHEDULER_URL', 'http://tracedown-gateway:20714'],
-    ['PROBE_AGENT_PORT', '8443'],
-    ['PROBE_AGENT_STORAGE_BACKEND', 'filesystem'],
-    ['PROBE_AGENT_STORAGE_DIR', '/data/bodies'],
-  ];
-});
+/** Where the agent keeps response bodies; the S3 fields only matter for `s3`. */
+const storage = ref<string>('filesystem');
+const s3 = ref<AgentS3Settings>({ ...DEFAULT_S3 });
 
-/** Full startup command for the published container image. */
-const startCommand = computed(() => {
-  if (!issued.value) return '';
-  return [
-    `docker run -d \\`,
-    `  --name tracedown-agent-${issued.value.slug} \\`,
-    // The hostname MUST be the slug. The agent registers itself as
-    // https://<its own FQDN>:<port>, and the certificate it is issued carries
-    // the slug as its SAN — which the scheduler pins. Without this the
-    // container's FQDN is its container id, and every dispatch fails against a
-    // name the certificate does not carry.
-    `  --hostname ${issued.value.slug} \\`,
-    `  --network tracedown_tracedown-net \\`,
-    `  -v tracedown_tracedown-bodies:/data/bodies \\`,
-    ...environment.value.map(([key, value]) => `  -e ${key}="${value}" \\`),
-    `  ${AGENT_IMAGE}`,
-  ].join('\n');
-});
+const storageOptions = computed<SelectOption[]>(() => [
+  { value: 'filesystem', label: t('agents.storage.filesystem') },
+  { value: 's3', label: t('agents.storage.s3') },
+]);
 
 /**
- * The same settings as plain `KEY=value` lines, for an agent started by
- * anything other than Docker (systemd `EnvironmentFile`, a VM image, a
- * `pip install`). The hostname is not a variable — it is the machine's own,
- * which is why the caveat above rides in `startEnvironmentHint` instead.
+ * Everything the two renderings are generated from. The enrolment address
+ * comes from the gateway with the token — it is the one thing the browser
+ * cannot know, and `null` (nothing configured) is answered with the shipped
+ * stack's internal address plus a warning, not a silent guess.
  */
-const startEnvironment = computed(() =>
-  environment.value.map(([key, value]) => `${key}=${value}`).join('\n'));
+const startup = computed<AgentStartupInput | null>(() => {
+  if (!issued.value) return null;
+  return {
+    slug: issued.value.slug,
+    token: issued.value.token,
+    schedulerUrl: issued.value.schedulerUrl ?? null,
+    storage: storage.value === 's3' ? 's3' : 'filesystem',
+    s3: s3.value,
+  };
+});
+
+const startCommand = computed(() => (startup.value ? agentDockerCommand(startup.value) : ''));
+const startEnvironment = computed(() => (startup.value ? agentEnvFile(startup.value) : ''));
 
 async function handleGenerate() {
   if (generating.value) return;
