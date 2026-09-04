@@ -543,6 +543,7 @@
       },
       "verifyStep": {
         "description": "Scan the QR code with your authenticator app, or enter the setup key manually, then enter the 6-digit code to confirm.",
+        "openApp": "Open in authenticator app",
         "qrPlaceholder": "QR code unavailable",
         "secretLabel": "Setup key",
         "codeLabel": "6-digit code",

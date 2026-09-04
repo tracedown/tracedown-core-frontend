@@ -38,6 +38,22 @@
           {{ t('auth.totpSetup.verifyStep.description') }}
         </p>
 
+        <!-- On a phone the QR code is on the same screen as the app that would
+             scan it. Authenticator apps register the otpauth:// scheme, so a
+             plain link to the same URI hands the account over directly. Not a
+             button component: this has to be a real anchor for the OS to route
+             the scheme, and it is hidden on desktop where nothing handles it. -->
+        <a
+          v-if="otpauthUri"
+          :href="otpauthUri"
+          class="flex h-8 w-full items-center justify-center gap-2 rounded-lg border
+                 border-text-secondary bg-accent-secondary px-3 py-1 text-sm font-bold
+                 text-text-primary active:opacity-70 md:hidden"
+        >
+          <FontAwesomeIcon :icon="faMobileScreen" />
+          {{ t('auth.totpSetup.verifyStep.openApp') }}
+        </a>
+
         <!-- QR rendered from the otpauth URI; override via the #qr slot if needed. -->
         <slot
           name="qr"
@@ -154,7 +170,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { faQrcode, faCopy, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faQrcode, faCopy, faCheck, faMobileScreen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { renderSVG } from 'uqr';
 import CopyField from '@/components/common/CopyField.vue';
