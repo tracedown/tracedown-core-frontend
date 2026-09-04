@@ -1,6 +1,6 @@
 {
   "name": "@tracedown/core-frontend",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
-    "@intlify/unplugin-vue-i18n": "^6.0.0",
+    "@intlify/unplugin-vue-i18n": "^11.2.5",
     "@stylistic/eslint-plugin": "^4.0.0",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^25.9.2",
@@ -60,5 +60,8 @@
     "vite": "^6.0.0",
     "vue-eslint-parser": "^10.0.0",
     "vue-tsc": "^2.2.0"
+  },
+  "overrides": {
+    "@intlify/vue-i18n-extensions": "^9.0.0"
   }
 }
