@@ -34,7 +34,11 @@
         @mousedown.prevent
         @click="toggleShowText()"
       >
-        <FontAwesomeIcon :icon="pwIcon" size="lg" />
+        <FontAwesomeIcon
+          :icon="pwIcon"
+          size="lg"
+          width-auto
+        />
       </div>
     </div>
 </template>

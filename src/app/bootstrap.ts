@@ -18,6 +18,11 @@ import type { BootstrapOptions } from '@/types/bootstrap';
 // install does not matter.
 import '@/config/requests';
 
+// Side-effect import: disables Font Awesome's unlayered CSS injection so the
+// copy imported by `styles/style.css` (into the `fontawesome` layer) is the one
+// that applies. Must run before the first icon renders.
+import '@/config/fontawesome';
+
 import '@fontsource-variable/red-hat-display';
 import '@/styles/style.css';
 import '@/styles/graphs.css';

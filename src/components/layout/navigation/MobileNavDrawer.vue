@@ -70,6 +70,7 @@
             >
               <FontAwesomeIcon
                 :icon="item.icon"
+                width-auto
                 class="shrink-0"
               />
               <span class="truncate">{{ t(item.label) }}</span>

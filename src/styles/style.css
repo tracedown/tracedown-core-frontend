@@ -1,4 +1,12 @@
+/* Cascade order. `fontawesome` sits before `utilities` so a `w-*` class on an
+   icon still beats Font Awesome's own width rule; see `config/fontawesome.ts`,
+   which turns off FA's unlayered auto-injection so this import is the only
+   copy of that stylesheet. Layer order is fixed by first declaration, so this
+   statement must precede the Tailwind import. */
+@layer theme, base, components, fontawesome, utilities;
+
 @import "tailwindcss";
+@import "@fortawesome/fontawesome-svg-core/styles.css" layer(fontawesome);
 
 @theme {
   /* Background */

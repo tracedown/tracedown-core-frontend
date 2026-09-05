@@ -14,7 +14,11 @@
           ? 'bg-accent-primary/20 text-accent-primary'
           : 'text-text-secondary hover:text-text-primary hover:bg-background-primary'"
       >
-        <FontAwesomeIcon :icon="item.icon" class="shrink-0" />
+        <FontAwesomeIcon
+          :icon="item.icon"
+          width-auto
+          class="shrink-0"
+        />
         <span class="truncate">{{ t(item.label) }}</span>
       </router-link>
       <div class="mt-auto">

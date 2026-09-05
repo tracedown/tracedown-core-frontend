@@ -31,6 +31,7 @@
             >
               <FontAwesomeIcon
                 :icon="faXmark"
+                width-auto
                 class="h-5 select-none"
               />
             </div>

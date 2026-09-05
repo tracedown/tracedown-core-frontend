@@ -45,6 +45,7 @@
         <FontAwesomeIcon
           v-else-if="faIcon"
           :icon="faIcon"
+          width-auto
           class="h-5"
         />
         <span v-if="labelText">

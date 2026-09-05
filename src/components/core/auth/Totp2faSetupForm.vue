@@ -50,7 +50,7 @@
                  border-text-secondary bg-accent-secondary px-3 py-1 text-sm font-bold
                  text-text-primary active:opacity-70 md:hidden"
         >
-          <FontAwesomeIcon :icon="faMobileScreen" />
+          <FontAwesomeIcon :icon="faMobileScreen" width-auto />
           {{ t('auth.totpSetup.verifyStep.openApp') }}
         </a>
 
@@ -77,6 +77,7 @@
             <FontAwesomeIcon
               :icon="faQrcode"
               size="2x"
+              width-auto
             />
             <span class="text-xs">{{ t('auth.totpSetup.verifyStep.qrPlaceholder') }}</span>
           </div>

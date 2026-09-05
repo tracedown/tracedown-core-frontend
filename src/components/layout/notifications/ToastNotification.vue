@@ -12,6 +12,7 @@
       </p>
       <FontAwesomeIcon
         :icon="faXmark"
+        width-auto
         class="h-3 cursor-pointer shrink-0"
         @click="emit('close')"
       />
