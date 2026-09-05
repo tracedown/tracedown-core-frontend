@@ -1,6 +1,6 @@
 {
   "name": "@tracedown/core-frontend",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
@@ -41,7 +41,7 @@
     "vue": "^3.5.35",
     "vue-codemirror": "^6.1.1",
     "vue-i18n": "^11.0.0",
-    "vue-router": "^4.5.0"
+    "vue-router": "^5.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
