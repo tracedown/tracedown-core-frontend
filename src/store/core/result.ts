@@ -4,7 +4,7 @@ import { http } from '@/config/requests';
 import { defaultPfsParams, pfsToQueryString } from '@/utils/pfs';
 import type { Page } from '@/types/pfs';
 import type { ProbeResultDetail, ProbeResultSummary, StepBodyResponse } from '@/data/results/ResultDto';
-import type { ActionResult } from '@/types/actions';
+import type { ActionDataResult, ActionResult } from '@/types/actions';
 
 /** Probe results, detail and step bodies of the inspected service. */
 export const useResultStore = defineStore('result', () => {
@@ -32,6 +32,21 @@ export const useResultStore = defineStore('result', () => {
     } finally {
       loading.value = false;
     }
+  }
+
+  /**
+   * The page of the history on which results started at or before `at` (an
+   * ISO instant) begin, for the given page size. Lets the pager jump to a
+   * date while keeping the list unfiltered.
+   */
+  async function pageAt(serviceId: string, at: string, pageSize: number): Promise<ActionDataResult<number>> {
+    const res = await http.get<{ page: number; total: number }>(
+      `/services/${serviceId}/results/page-at?at=${encodeURIComponent(at)}&pageSize=${pageSize}`,
+    );
+    if (!res.success || !res.data) {
+      return { ok: false, message: res.errorInfo?.message };
+    }
+    return { ok: true, data: res.data.page };
   }
 
   /**
@@ -118,7 +133,7 @@ export const useResultStore = defineStore('result', () => {
   return {
     results, totalResults, loading, selectedResult, selectedResultLoading,
     stepBody, stepBodyLoading,
-    fetchResults, prependNewResults, fetchResultDetail, fetchStepBody,
+    fetchResults, pageAt, prependNewResults, fetchResultDetail, fetchStepBody,
     clearStepBody, clearSelection, clearResults, clear,
   };
 });

@@ -46,6 +46,37 @@
             @click="changePage(page + 1)"
           />
         </div>
+
+        <!--  Jump to a moment in the history. It moves the pager, it does not
+              filter: the page that holds that moment comes up whole, so the
+              runs around it stay one click away in either direction.  -->
+        <form
+          v-if="resultStore.results.length > 0"
+          class="flex items-end gap-2 mt-2"
+          @submit.prevent="jumpToDate"
+        >
+          <div class="min-w-0 flex-1">
+            <label
+              for="results-jump-at"
+              class="block text-xs text-text-secondary mb-1"
+            >
+              {{ t('results.jumpToDate') }}
+            </label>
+            <TextInput
+              id="results-jump-at"
+              v-model="jumpAt"
+              type="datetime-local"
+              :disabled="jumping"
+            />
+          </div>
+          <IconButton
+            :fa-icon="faArrowRight"
+            :disabled="!jumpAt || jumping"
+            :title="t('results.jumpGo')"
+            icon-class="w-3 h-3"
+            @click="jumpToDate"
+          />
+        </form>
       </div>
 
       <!-- Result detail -->
@@ -58,8 +89,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import IconButton from '@/components/core/buttons/IconButton.vue';
+import TextInput from '@/components/core/input/TextInput.vue';
 import ResultListItem from '@/components/service/results/ResultListItem.vue';
 import ResultDetail from '@/components/service/results/ResultDetail.vue';
 import { useResultStore } from '@/store/core/result';
@@ -82,6 +114,9 @@ const notifications = useNotificationStore();
 
 const page = ref<number>(1);
 const selectedResultId = ref<string | null>(null);
+/** The datetime-local value of the jump field; local time, converted on submit. */
+const jumpAt = ref<string>('');
+const jumping = ref<boolean>(false);
 
 const hasNextPage = computed(() => resultStore.totalResults > page.value * PAGE_SIZE);
 
@@ -117,6 +152,23 @@ async function changePage(next: number) {
     // The list still holds the previous page's items — revert the indicator.
     page.value = previous;
     notifications.show(result.message ?? t('common.states.error'), 'error');
+  }
+}
+
+/** Asks the gateway which page holds the chosen moment, then goes there. */
+async function jumpToDate() {
+  const at = new Date(jumpAt.value);
+  if (Number.isNaN(at.getTime()) || jumping.value) return;
+  jumping.value = true;
+  try {
+    const result = await resultStore.pageAt(props.service.id, at.toISOString(), PAGE_SIZE);
+    if (!result.ok || result.data === undefined) {
+      notifications.show(result.message ?? t('common.states.error'), 'error');
+      return;
+    }
+    if (result.data !== page.value) await changePage(result.data);
+  } finally {
+    jumping.value = false;
   }
 }
 

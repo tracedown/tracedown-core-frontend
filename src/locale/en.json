@@ -254,6 +254,8 @@
     "title": "Probe history",
     "notRunYet": "Probe has not run yet",
     "noResults": "No probe results yet",
+    "jumpToDate": "Jump to date",
+    "jumpGo": "Go to the page holding that moment",
     "selectResult": "Select a result to view details",
     "rawResult": "Raw result",
     "calls": "Calls",

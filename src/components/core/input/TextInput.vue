@@ -62,7 +62,7 @@ const inputAttrs = computed(() => {
 
 const props = withDefaults(
   defineProps<{
-    type?: 'text' | 'number' | 'password' | 'email';
+    type?: 'text' | 'number' | 'password' | 'email' | 'date' | 'datetime-local';
     placeholder?: string;
     disabled?: boolean;
     name?: string | undefined;
