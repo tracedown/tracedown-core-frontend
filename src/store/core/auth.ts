@@ -2,6 +2,7 @@ import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { http } from '@/config/requests';
 import { getStoredToken, setStoredToken, clearStoredToken } from '@/utils/tokenStorage';
+import { setDateFormat } from '@/lib/dateFormat';
 import {
   beginForcedTotpEnroll,
   beginTotpEnroll,
@@ -154,6 +155,9 @@ export const useAuthStore = defineStore('auth', () => {
     permissions.value = me.permissions;
     resources.value = me.resources ?? {};
     orgDefaultTimezone.value = me.orgDefaultTimezone ?? 'UTC';
+    // Org-wide, for every member — lives in lib/dateFormat so formatters
+    // outside components (charts, relative time) read it without the store.
+    setDateFormat(me.orgDateFormat);
     trustedDomainMode.value = me.trustedDomainMode ?? false;
   }
 
@@ -163,6 +167,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null;
     permissions.value = null;
     resources.value = {};
+    setDateFormat(null);
     clearStoredToken();
   }
 

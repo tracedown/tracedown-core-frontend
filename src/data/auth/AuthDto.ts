@@ -78,6 +78,8 @@ export interface MeResponse {
   resources?: Record<string, number>;
   /** The selected org's default IANA timezone (null without org context). */
   orgDefaultTimezone?: string | null;
+  /** The selected org's date format (`eu` / `us`; null without org context). */
+  orgDateFormat?: string | null;
   /** Platform flag: when true, domain verification is a no-op (no Domains UI). */
   trustedDomainMode?: boolean;
 }

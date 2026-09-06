@@ -15,6 +15,7 @@ import ChartCanvas from '@/components/core/graphs/ChartCanvas.vue';
 import { cssVar, formatMsTick, withAlpha } from '@/lib/charts';
 import type { ChartData, ChartOptions, Plugin, TooltipItem } from 'chart.js';
 import type { ProbePoint } from '@/data/services/ServiceDto';
+import { formatTime } from '@/lib/dateFormat';
 
 /**
  * Per-probe history of one service: average response time as a line (points
@@ -79,7 +80,7 @@ function statusColor(status: string): string {
 
 function formatTimestamp(epoch: number): string {
   if (epoch === 0) return '';
-  return new Date(epoch * 1000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  return formatTime(epoch * 1000);
 }
 
 const chartData = computed<ChartData>(() => ({

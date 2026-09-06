@@ -44,6 +44,7 @@ import { cssVar, formatMsTick } from '@/lib/charts';
 import type { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import type { AgentHealthCheck } from '@/data/agents/AgentDto';
 import type { SelectOption } from '@/types/ui/common';
+import { formatShortDateTime } from '@/lib/dateFormat';
 
 /**
  * Health-check history of one agent: round-trip latency over time, failed
@@ -76,9 +77,7 @@ const passRate = computed(() => {
 });
 
 function timeLabel(check: AgentHealthCheck): string {
-  return new Date(check.challengedAt).toLocaleString(undefined, {
-    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-  });
+  return formatShortDateTime(check.challengedAt);
 }
 
 const chartData = computed<ChartData>(() => ({

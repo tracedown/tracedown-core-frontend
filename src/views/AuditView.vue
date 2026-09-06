@@ -110,6 +110,7 @@ import { useAuthStore } from '@/store/core/auth';
 import type { AuditLogEntry } from '@/data/audit/AuditDto';
 import type { DataColumn } from '@/types/ui/table';
 import type { SelectOption } from '@/types/ui/common';
+import { formatShortDateTime } from '@/lib/dateFormat';
 
 /**
  * Org audit log: PFS table, newest first, filterable by action substring,
@@ -155,12 +156,8 @@ const actorOptions = computed<SelectOption[]>(() => [
   ...orgUserStore.users.map(u => ({ value: u.userId, label: `${u.displayName} (${u.email})` })),
 ]);
 
-const timeFmt = new Intl.DateTimeFormat(undefined, {
-  month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
-});
-
 function formatTime(iso: string): string {
-  return timeFmt.format(new Date(iso));
+  return formatShortDateTime(iso, { seconds: true });
 }
 
 function actorLabel(entry: AuditLogEntry): string {

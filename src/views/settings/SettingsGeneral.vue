@@ -61,16 +61,29 @@
       <div class="space-y-3">
         <SectionHeading :label="t('settings.defaultsSection')" />
 
-        <div>
-          <span class="block text-sm text-text-primary mb-1">{{ t('settings.defaultTimezone') }}</span>
-          <span class="block text-xs text-text-secondary mb-2">{{ t('settings.defaultTimezoneHint') }}</span>
-          <AppSelect
-            v-model="defaultTimezone"
-            class="w-64"
-            searchable
-            :options="TIMEZONE_OPTIONS"
-            :disabled="org.defaultTimezone === null || timezoneBusy || !authStore.canWrite('settings')"
-          />
+        <div class="flex flex-wrap gap-6">
+          <div>
+            <span class="block text-sm text-text-primary mb-1">{{ t('settings.defaultTimezone') }}</span>
+            <span class="block text-xs text-text-secondary mb-2">{{ t('settings.defaultTimezoneHint') }}</span>
+            <AppSelect
+              v-model="defaultTimezone"
+              class="w-64"
+              searchable
+              :options="TIMEZONE_OPTIONS"
+              :disabled="org.defaultTimezone === null || timezoneBusy || !authStore.canWrite('settings')"
+            />
+          </div>
+
+          <div>
+            <span class="block text-sm text-text-primary mb-1">{{ t('settings.dateFormat') }}</span>
+            <span class="block text-xs text-text-secondary mb-2">{{ t('settings.dateFormatHint') }}</span>
+            <AppSelect
+              v-model="dateFormat"
+              class="w-64"
+              :options="dateFormatOptions"
+              :disabled="org.dateFormat === null || dateFormatBusy || !authStore.canWrite('settings')"
+            />
+          </div>
         </div>
       </div>
 
@@ -147,6 +160,7 @@ import { useOrgStore } from '@/store/core/org';
 import { useOrgUserStore } from '@/store/core/orgUser';
 import { useNotificationStore } from '@/store/ui/notifications';
 import { TIMEZONE_OPTIONS } from '@/lib/timezones';
+import { dateFormatOptions as buildDateFormatOptions, type DateFormat } from '@/lib/dateFormat';
 
 /**
  * Org-level general settings: name, 2FA enforcement, defaults, and the
@@ -218,6 +232,26 @@ async function onChangeTimezone(value: string) {
     if (!result.ok && result.message) notifications.show(result.message, 'error');
   } finally {
     timezoneBusy.value = false;
+  }
+}
+
+// ── Date format ──
+const dateFormatBusy = ref<boolean>(false);
+const dateFormatOptions = computed(() => buildDateFormatOptions(t));
+const dateFormat = computed({
+  get: () => org.dateFormat ?? 'eu',
+  set: (value: string) => {
+    void onChangeDateFormat(value === 'us' ? 'us' : 'eu');
+  },
+});
+
+async function onChangeDateFormat(value: DateFormat) {
+  dateFormatBusy.value = true;
+  try {
+    const result = await org.setDateFormat(value);
+    if (!result.ok && result.message) notifications.show(result.message, 'error');
+  } finally {
+    dateFormatBusy.value = false;
   }
 }
 

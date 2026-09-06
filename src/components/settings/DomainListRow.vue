@@ -99,6 +99,7 @@ import { slotIsFilled } from '@/config/extensions';
 import { useDomainStore } from '@/store/core/domain';
 import { useNotificationStore } from '@/store/ui/notifications';
 import type { DomainSummary } from '@/data/domains/DomainDto';
+import { formatDateTime } from '@/lib/dateFormat';
 
 /**
  * One domain list row + its expandable verification block. Owns its own
@@ -135,9 +136,8 @@ const statusPill = computed<string>(() => {
   return 'bg-status-warning/10 text-status-warning';
 });
 
-const dateFmt = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 function formatDate(iso: string): string {
-  return dateFmt.format(new Date(iso));
+  return formatDateTime(iso);
 }
 
 async function handleVerify() {

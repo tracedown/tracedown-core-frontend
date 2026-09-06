@@ -1,5 +1,6 @@
 import type { ServiceMetricsDto } from '@/data/metrics/MetricsDto';
 import { successRateStyle } from '@/config/successRateColors';
+import { formatShortDate, formatTime } from '@/lib/dateFormat';
 
 /** Computes success rate (0–100) from metrics counters. Returns null if no data. */
 export function computeSuccessRate(m: ServiceMetricsDto | null): number | null {
@@ -19,14 +20,12 @@ export function formatMs(ms: number): string {
 
 /**
  * Formats a `probe_aggregates` bucket start (ISO-8601 UTC) for a chart x-axis:
- * local time-of-day for hourly buckets, local date for daily.
+ * local time-of-day for hourly buckets, local date (org format) for daily.
  */
 export function formatBucketLabel(iso: string, bucketType: string): string {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return iso;
-  return bucketType === 'daily'
-    ? d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-    : d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  return bucketType === 'daily' ? formatShortDate(d) : formatTime(d);
 }
 
 /** Formats a byte count in binary units: `842 B` / `1.2 KB` / `3.45 MB` / `1.02 GB`. */

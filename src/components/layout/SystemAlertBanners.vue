@@ -38,6 +38,7 @@ import IconButton from '@/components/core/buttons/IconButton.vue';
 import { useSystemAlertStore } from '@/store/core/systemAlert';
 import { useNotificationStore } from '@/store/ui/notifications';
 import type { SystemAlertSummary } from '@/data/alerts/SystemAlertDto';
+import { formatDateTime } from '@/lib/dateFormat';
 
 /**
  * Dismissable platform-alert banners (dispatch capacity, agent health).
@@ -49,10 +50,8 @@ const { t } = useI18n();
 const systemAlertStore = useSystemAlertStore();
 const notifications = useNotificationStore();
 
-const timeFmt = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-
 function messageOf(alert: SystemAlertSummary): string {
-  const since = timeFmt.format(new Date(alert.createdAt));
+  const since = formatDateTime(alert.createdAt);
   switch (alert.alertType) {
     case 'dispatch_capacity':
       return t('systemAlerts.dispatchCapacity', { since });

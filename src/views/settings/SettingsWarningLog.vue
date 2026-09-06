@@ -62,6 +62,7 @@ import { useSystemAlertStore } from '@/store/core/systemAlert';
 import { useNotificationStore } from '@/store/ui/notifications';
 import type { DataColumn } from '@/types/ui/table';
 import type { SystemAlertSummary } from '@/data/alerts/SystemAlertDto';
+import { formatDateTime } from '@/lib/dateFormat';
 
 /**
  * Warning log: full history of platform-alert episodes (capacity, agent
@@ -89,9 +90,8 @@ const page = ref<number>(1);
 const total = ref<number>(0);
 const loading = ref<boolean>(true);
 
-const timeFmt = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 function formatTime(iso: string): string {
-  return timeFmt.format(new Date(iso));
+  return formatDateTime(iso);
 }
 
 function typeLabel(alertType: string): string {

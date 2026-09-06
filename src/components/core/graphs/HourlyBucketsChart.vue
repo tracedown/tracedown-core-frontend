@@ -14,6 +14,7 @@ import ChartCanvas from '@/components/core/graphs/ChartCanvas.vue';
 import { cssVar, formatMsTick, withAlpha } from '@/lib/charts';
 import type { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import type { HourlyBucket } from '@/data/metrics/MetricsDto';
+import { formatTime } from '@/lib/dateFormat';
 
 /**
  * Hourly probe activity: stacked success/failure bars with the average
@@ -49,7 +50,7 @@ function formatBucketHour(hour: string): string {
     Number(hour.slice(6, 8)),
     Number(hour.slice(8, 10)),
   ));
-  return utc.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  return formatTime(utc);
 }
 
 const chartData = computed<ChartData>(() => ({

@@ -126,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { faBan, faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
 import SectionHeading from '@/components/core/SectionHeading.vue';
@@ -143,6 +143,7 @@ import { useApiKeyStore } from '@/store/core/apiKey';
 import { useNotificationStore } from '@/store/ui/notifications';
 import type { ApiKeySummary } from '@/data/apikeys/ApiKeyDto';
 import type { SelectOption } from '@/types/ui/common';
+import { formatDate } from '@/lib/dateFormat';
 
 /** Org API keys tab: list / show-once create / revoke / delete. */
 const { t } = useI18n();
@@ -162,18 +163,16 @@ const newExpiry = ref<string>('');
 const creating = ref<boolean>(false);
 const issued = ref<ApiKeySummary | null>(null);
 
-const dateFmt = computed(() => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }));
-
 function isExpired(key: ApiKeySummary): boolean {
   return key.expiresAt != null && new Date(key.expiresAt).getTime() < Date.now();
 }
 
 function metaLine(key: ApiKeySummary): string {
-  const parts = [`${t('apiKeys.created')} ${dateFmt.value.format(new Date(key.createdAt))}`];
+  const parts = [`${t('apiKeys.created')} ${formatDate(new Date(key.createdAt))}`];
   parts.push(key.lastUsedAt
-    ? `${t('apiKeys.lastUsed')} ${dateFmt.value.format(new Date(key.lastUsedAt))}`
+    ? `${t('apiKeys.lastUsed')} ${formatDate(new Date(key.lastUsedAt))}`
     : t('apiKeys.neverUsed'));
-  if (key.expiresAt) parts.push(`${t('apiKeys.expires')} ${dateFmt.value.format(new Date(key.expiresAt))}`);
+  if (key.expiresAt) parts.push(`${t('apiKeys.expires')} ${formatDate(new Date(key.expiresAt))}`);
   return parts.join(' · ');
 }
 

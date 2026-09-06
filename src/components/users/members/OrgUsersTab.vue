@@ -149,6 +149,7 @@ import { useGroupStore } from '@/store/core/group';
 import { useNotificationStore } from '@/store/ui/notifications';
 import LoadingState from '@/components/core/LoadingState.vue';
 import SectionHeading from '@/components/core/SectionHeading.vue';
+import { formatDate as formatOrgDate } from '@/lib/dateFormat';
 
 /** Members tab: pending invites, member list, per-user permission editing. */
 const { t } = useI18n();
@@ -173,8 +174,7 @@ function toggleExpanded(userId: string) {
 }
 
 function formatDate(iso: string): string {
-  const date = new Date(iso);
-  return isNaN(date.getTime()) ? iso : date.toLocaleDateString();
+  return formatOrgDate(iso);
 }
 
 async function handleInvite(email: string) {

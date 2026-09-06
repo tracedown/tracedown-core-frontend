@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/core/auth';
 import type { LoginResponse } from '@/data/auth/AuthDto';
 import type { OrgMembership, SwitchOrgRequest } from '@/data/orgs/OrgDto';
 import type { OrgSettings, UpdateOrgSettingsRequest } from '@/data/orgs/OrgSettingsDto';
+import { setDateFormat as applyDateFormat, type DateFormat } from '@/lib/dateFormat';
 import type { ActionResult, FetchOptions } from '@/types/actions';
 
 /** Org memberships of the session user plus the active org's settings. */
@@ -14,6 +15,7 @@ export const useOrgStore = defineStore('org', () => {
   const selectedOrgId = ref<string | null>(null);
   const totpRequired = ref<boolean | null>(null);
   const defaultTimezone = ref<string | null>(null);
+  const dateFormat = ref<DateFormat | null>(null);
   const orgName = ref<string | null>(null);
   const orgId = ref<string | null>(null);
 
@@ -60,6 +62,9 @@ export const useOrgStore = defineStore('org', () => {
     }
     totpRequired.value = res.data.totpRequired;
     defaultTimezone.value = res.data.defaultTimezone;
+    dateFormat.value = res.data.dateFormat;
+    // Another admin may have changed it (this runs on `settings.updated`).
+    applyDateFormat(res.data.dateFormat);
     orgName.value = res.data.name;
     orgId.value = res.data.id;
     return { ok: true };
@@ -104,6 +109,19 @@ export const useOrgStore = defineStore('org', () => {
     return { ok: true };
   }
 
+  /** Sets the org-wide date format every member sees. */
+  async function setDateFormat(value: DateFormat): Promise<ActionResult> {
+    const res = await http.patch<OrgSettings, UpdateOrgSettingsRequest>('/org/settings', {
+      dateFormat: value,
+    });
+    if (!res.success || !res.data) {
+      return { ok: false, message: res.errorInfo?.message };
+    }
+    dateFormat.value = res.data.dateFormat;
+    applyDateFormat(res.data.dateFormat);
+    return { ok: true };
+  }
+
   /** Deletes the org outright (owner-only; password + TOTP verified). */
   async function deleteOrg(password: string, code?: string): Promise<ActionResult> {
     const res = await http.delete<{ ok: boolean }, { password: string; code?: string }>('/org', { password, code });
@@ -118,6 +136,7 @@ export const useOrgStore = defineStore('org', () => {
     selectedOrgId.value = null;
     totpRequired.value = null;
     defaultTimezone.value = null;
+    dateFormat.value = null;
     orgName.value = null;
     orgId.value = null;
   }
@@ -125,7 +144,8 @@ export const useOrgStore = defineStore('org', () => {
   return {
     orgs, selectedOrgId, totpRequired, currentOrg, hasOrgs,
     fetchOrgs, setOrgs, setSelectedOrg, switchOrg,
-    fetchSettings, setTotpEnforced, setDefaultTimezone, updateName, deleteOrg, defaultTimezone, orgName, orgId, clear,
+    fetchSettings, setTotpEnforced, setDefaultTimezone, setDateFormat, updateName, deleteOrg,
+    defaultTimezone, dateFormat, orgName, orgId, clear,
   };
 }, {
   persist: {

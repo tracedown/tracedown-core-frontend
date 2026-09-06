@@ -1,5 +1,6 @@
 import { useI18n } from 'vue-i18n';
 import { tickSlow } from '@/lib/timeTick';
+import { formatDate, formatDateTime } from '@/lib/dateFormat';
 
 /**
  * Relative-time formatters for templates. Each function reads `tickSlow`
@@ -9,7 +10,7 @@ import { tickSlow } from '@/lib/timeTick';
 export function useRelativeTime() {
   const { t } = useI18n();
 
-  /** "Just now" / "5m ago" / "3h ago", falling back to a locale date. */
+  /** "Just now" / "5m ago" / "3h ago", falling back to the org-format date. */
   function formatAgo(iso: string): string {
     void tickSlow.value;
     const date = new Date(iso);
@@ -18,7 +19,7 @@ export function useRelativeTime() {
     if (diffMin < 60) return t('common.time.minutesAgo', { n: diffMin });
     const diffHours = Math.floor(diffMin / 60);
     if (diffHours < 24) return t('common.time.hoursAgo', { n: diffHours });
-    return date.toLocaleDateString();
+    return formatDate(date);
   }
 
   /** Compact elapsed duration since `iso`: "<1m", "5m", "2h 10m", "3d 4h". */
@@ -35,14 +36,14 @@ export function useRelativeTime() {
     return remainHours > 0 ? `${diffDays}d ${remainHours}h` : `${diffDays}d`;
   }
 
-  /** "Just now" / "Nm ago" within an hour, absolute locale timestamp after. */
+  /** "Just now" / "Nm ago" within an hour, absolute org-format timestamp after. */
   function formatLastOnline(iso: string): string {
     void tickSlow.value;
     const date = new Date(iso);
     const diffMin = Math.floor((Date.now() - date.getTime()) / 60000);
     if (diffMin < 1) return t('common.time.justNow');
     if (diffMin <= 60) return t('common.time.minutesAgo', { n: diffMin });
-    return date.toLocaleString();
+    return formatDateTime(date);
   }
 
   return { formatAgo, formatDuration, formatLastOnline };

@@ -520,6 +520,12 @@
     "deleted": "Deleted successfully.",
     "defaultTimezone": "Default timezone",
     "defaultTimezoneHint": "Used wherever a timezone is optional — service maintenance windows evaluate in this zone unless they set their own.",
+    "dateFormat": "Date format",
+    "dateFormatHint": "How dates are shown to every member of this organization.",
+    "dateFormats": {
+      "eu": "EU — dd.mm.yyyy",
+      "us": "US — mm/dd/yyyy"
+    },
     "orgSection": "Organization",
     "orgName": "Name",
     "orgId": "Organization ID",
