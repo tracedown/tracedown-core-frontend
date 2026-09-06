@@ -62,7 +62,7 @@ export const useOrgStore = defineStore('org', () => {
     }
     totpRequired.value = res.data.totpRequired;
     defaultTimezone.value = res.data.defaultTimezone;
-    dateFormat.value = res.data.dateFormat;
+    dateFormat.value = res.data.dateFormat ?? null;
     // Another admin may have changed it (this runs on `settings.updated`).
     applyDateFormat(res.data.dateFormat);
     orgName.value = res.data.name;
