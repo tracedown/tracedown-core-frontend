@@ -35,7 +35,9 @@ const sections = getPermissionSections();
 
 function sectionLevel(key: AccessSection) {
   return computed<number>({
-    get: () => model.value[key],
+    // A section the host registered after this row was stored has no key on
+    // the wire from an older server; "no level" is level 0, not NaN.
+    get: () => model.value[key] ?? 0,
     set: (value) => {
       model.value = { ...model.value, [key]: value };
     },
