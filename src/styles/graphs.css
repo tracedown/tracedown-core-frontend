@@ -7,6 +7,11 @@
   --chart-success: var(--color-status-success);
   --chart-failure: var(--color-status-failure);
   --chart-warning: var(--color-status-warning);
+  /* Average response time. Its own token because it is not a verdict: the app's
+     accent is red, and an average drawn in it reads as "these probes failed"
+     next to the failure bars it shares a chart with. Amber says "read this"
+     without saying "this is broken", and red is left to mean failure alone. */
+  --chart-avg: var(--color-status-warning);
   /* Skipped probes: visible but deliberately muted. */
   --chart-dimmed: color-mix(in srgb, var(--color-text-secondary) 55%, transparent);
   --chart-grid: color-mix(in srgb, var(--color-text-secondary) 30%, transparent);

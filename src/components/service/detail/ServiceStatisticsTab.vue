@@ -80,6 +80,20 @@
           </ResponsiveTable>
         </section>
       </template>
+
+      <!--  Host panels, after everything built in. Rendered whatever the
+            built-in series found: a panel brings its own data, and hiding it
+            behind Core's empty state would hide it for exactly the services a
+            host most likely has something to say about.  -->
+      <component
+        :is="panel.component"
+        v-for="panel in statisticsPanels"
+        :key="panel.key"
+        :service-id="service.id"
+        :project-id="service.projectId"
+        :workspace-id="workspaceId"
+        :range="window"
+      />
     </div>
 </template>
 
@@ -94,6 +108,8 @@ import EmptyState from '@/components/core/EmptyState.vue';
 import ResponsiveTable from '@/components/core/ResponsiveTable.vue';
 import StatSeriesChart from '@/components/core/graphs/StatSeriesChart.vue';
 import { useStatisticsStore, type StatWindow } from '@/store/core/statistics';
+import { getServiceStatisticsPanels } from '@/config/extensions';
+import { useProjectStore } from '@/store/core/project';
 import { useNotificationStore } from '@/store/ui/notifications';
 import { formatMs } from '@/lib/metrics-utils';
 import type { ServiceSummary } from '@/data/services/ServiceDto';
@@ -108,10 +124,18 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const store = useStatisticsStore();
+const projectStore = useProjectStore();
 const notifications = useNotificationStore();
 const { stats, loading } = storeToRefs(store);
 
 const window = ref<StatWindow>('24h');
+
+/** Registered once at startup, so a plain non-reactive read. */
+const statisticsPanels = getServiceStatisticsPanels();
+
+/** The owning workspace, when the project it belongs to is loaded. */
+const workspaceId = computed(() =>
+  projectStore.projects.find(p => p.id === props.service.projectId)?.workspaceId ?? null);
 
 const windowOptions = computed<SelectOption[]>(() => [
   { value: '24h', label: t('statistics.window24h') },

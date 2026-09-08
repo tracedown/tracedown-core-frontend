@@ -63,7 +63,7 @@ const avgLabelPlugin: Plugin = {
     const { ctx, chartArea } = chart;
     ctx.save();
     ctx.font = '9px sans-serif';
-    ctx.fillStyle = cssVar('--chart-warning');
+    ctx.fillStyle = cssVar('--chart-avg');
     ctx.textAlign = 'right';
     ctx.textBaseline = 'bottom';
     ctx.fillText(`${t('metrics.avgShort')} ${formatMsTick(avgBaseline.value)}`, chartArea.right - 2, y - 2);
@@ -90,8 +90,8 @@ const chartData = computed<ChartData>(() => ({
       type: 'line',
       label: t('metrics.avgResponseMs'),
       data: points.value.map(p => p.avgResponseMs),
-      borderColor: cssVar('--chart-line'),
-      backgroundColor: cssVar('--chart-line'),
+      borderColor: cssVar('--chart-avg'),
+      backgroundColor: cssVar('--chart-avg'),
       pointBackgroundColor: points.value.map(p => statusColor(p.status)),
       pointBorderColor: points.value.map(p => statusColor(p.status)),
       pointRadius: isPlaceholder.value ? 0 : 4,
@@ -113,7 +113,7 @@ const chartData = computed<ChartData>(() => ({
       type: 'line' as const,
       label: AVG_DATASET_LABEL,
       data: points.value.map(() => avgBaseline.value),
-      borderColor: cssVar('--chart-warning'),
+      borderColor: cssVar('--chart-avg'),
       borderWidth: 1,
       borderDash: [4, 2],
       pointRadius: 0,

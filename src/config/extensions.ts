@@ -1,6 +1,7 @@
 import { defineAsyncComponent, type Component } from 'vue';
 import LoadingSpinner from '@/components/core/LoadingSpinner.vue';
 import type { ActionDataResult, ActionResult } from '@/types/actions';
+import type { StatWindow } from '@/store/core/statistics';
 
 /**
  * In-memory extension registry. A host application can register additional
@@ -169,4 +170,54 @@ export function registerDeleteOrgHandler(fn: DeleteOrgHandler): void {
 /** The registered handler, or null to use the built-in deletion path. */
 export function getDeleteOrgHandler(): DeleteOrgHandler | null {
   return deleteOrgHandler;
+}
+
+// ── Service statistics panels ────────────────────────────────────────────────
+
+/**
+ * Props every registered statistics panel receives.
+ *
+ * The same identifiers and the same time window the built-in charts are drawn
+ * from, so a host panel is answering the question the user is currently asking
+ * rather than one of its own choosing. `workspaceId` is null while the owning
+ * project has not been loaded into the project store — a panel that needs it
+ * should render nothing until it arrives rather than guess.
+ */
+export interface ServiceStatisticsPanelProps {
+  serviceId: string;
+  projectId: string;
+  workspaceId: string | null;
+  /** The selected window: `24h`, `7d`, `30d` or `90d`. */
+  range: StatWindow;
+}
+
+/** An extra chart or data panel appended to the service statistics view. */
+export interface ServiceStatisticsPanel {
+  /** Unique key. Registering the same key again replaces the earlier panel. */
+  key: string;
+  /**
+   * Position among the registered panels (lower first, default 0). The
+   * built-in charts always come first — this orders the additions, not the
+   * whole view.
+   */
+  order?: number;
+  /** Rendered with [ServiceStatisticsPanelProps]. */
+  component: Component;
+}
+
+const serviceStatisticsPanels: ServiceStatisticsPanel[] = [];
+
+/** Register a panel to render below the built-in service statistics charts. */
+export function registerServiceStatisticsPanel(panel: ServiceStatisticsPanel): void {
+  const existing = serviceStatisticsPanels.findIndex(p => p.key === panel.key);
+  if (existing !== -1) {
+    serviceStatisticsPanels.splice(existing, 1, panel);
+  } else {
+    serviceStatisticsPanels.push(panel);
+  }
+}
+
+/** Registered statistics panels, ordered (empty if none). */
+export function getServiceStatisticsPanels(): ServiceStatisticsPanel[] {
+  return [...serviceStatisticsPanels].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }

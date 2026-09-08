@@ -17,13 +17,18 @@ export {
   isFeatureEnabled,
   registerDeleteOrgHandler,
   registerDataExportContributor,
+  registerServiceStatisticsPanel,
+  getServiceStatisticsPanels,
 } from '@/config/extensions';
 export type {
   FeatureContext,
   DeleteOrgCredentials,
   DeleteOrgHandler,
   DataExportContributor,
+  ServiceStatisticsPanel,
+  ServiceStatisticsPanelProps,
 } from '@/config/extensions';
+export type { StatWindow } from '@/store/core/statistics';
 
 // Mobile shell: the single breakpoint the app switches layouts on. A host that
 // renders chrome of its own reads the same source of truth rather than picking

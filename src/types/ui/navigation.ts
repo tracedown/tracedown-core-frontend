@@ -24,4 +24,13 @@ export interface NavItem {
   feature?: string;
   /** Sort order (lower = higher). Default 0. */
   order?: number;
+  /**
+   * Draws a divider above this item, splitting the ribbon into groups.
+   *
+   * `order` can put an item at the bottom but cannot say that it belongs
+   * somewhere else — a trailing entry a host appends otherwise reads as one
+   * more of the app's own destinations. Ignored on the first visible item,
+   * where a rule would separate the list from nothing.
+   */
+  separatorBefore?: boolean;
 }

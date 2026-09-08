@@ -59,22 +59,30 @@
                 navigation store. Rendered whatever `showRibbon` says: on a
                 phone this drawer is the only route out of the current page.  -->
           <nav class="flex-1 min-h-0 overflow-y-auto p-2 space-y-1">
-            <router-link
-              v-for="item in navigationStore.visibleNavItems"
+            <template
+              v-for="(item, index) in navigationStore.visibleNavItems"
               :key="item.key"
-              :to="item.route"
-              class="flex items-center gap-3 p-3 rounded text-sm transition-colors"
-              :class="item.key === navigationStore.activeItemKey
-                ? 'bg-accent-primary/20 text-accent-primary'
-                : 'text-text-secondary hover:text-text-primary hover:bg-background-primary'"
             >
-              <FontAwesomeIcon
-                :icon="item.icon"
-                width-auto
-                class="shrink-0"
+              <!-- Never above the first item: a rule there separates nothing. -->
+              <div
+                v-if="item.separatorBefore && index > 0"
+                class="mx-2 my-2 border-t border-text-secondary/25"
               />
-              <span class="truncate">{{ t(item.label) }}</span>
-            </router-link>
+              <router-link
+                :to="item.route"
+                class="flex items-center gap-3 p-3 rounded text-sm transition-colors"
+                :class="item.key === navigationStore.activeItemKey
+                  ? 'bg-accent-primary/20 text-accent-primary'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-background-primary'"
+              >
+                <FontAwesomeIcon
+                  :icon="item.icon"
+                  width-auto
+                  class="shrink-0"
+                />
+                <span class="truncate">{{ t(item.label) }}</span>
+              </router-link>
+            </template>
             <div class="pt-2">
               <SlotOutlet name="nav-bottom" />
             </div>
