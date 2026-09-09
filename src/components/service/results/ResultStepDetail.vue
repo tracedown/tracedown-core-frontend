@@ -145,7 +145,7 @@ const JsonViewer = defineAsyncComponent({
   loadingComponent: LoadingSpinner,
 });
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 const resultStore = useResultStore();
 
 const bodyVisible = ref<boolean>(false);
@@ -160,10 +160,17 @@ const timingPhases = computed(() => [
   { label: t('metrics.transfer'), ms: props.step.transferMs },
 ]);
 
-const bodyUnavailableText = computed(() =>
-  props.step.bodyNotStoredReason
-    ? `${t('results.bodyNotStored')}: ${props.step.bodyNotStoredReason}`
-    : t('results.bodySavingDisabled'));
+/**
+ * The reason a body is missing, in words. Known codes get a sentence (the raw
+ * `notRequested` read as a fault when the real cause was an unverified
+ * target); an unknown code is shown as-is rather than hidden.
+ */
+const bodyUnavailableText = computed(() => {
+  const reason = props.step.bodyNotStoredReason;
+  if (!reason) return t('results.bodySavingDisabled');
+  const key = `results.bodyReasons.${reason}`;
+  return `${t('results.bodyNotStored')}: ${te(key) ? t(key) : reason}`;
+});
 
 function showBody() {
   bodyVisible.value = true;

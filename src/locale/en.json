@@ -265,6 +265,13 @@
     "viewBody": "View response body",
     "responseBody": "Response body",
     "bodyNotStored": "Body not stored",
+    "bodyReasons": {
+      "notRequested": "body saving is off for this service",
+      "unverifiedTarget": "the target domain is not verified, so bodies are not kept",
+      "bodyTooLarge": "the body exceeded the size limit",
+      "timeout": "no body arrived before the timeout",
+      "storageUnavailable": "body storage was unavailable when the result came in"
+    },
     "bodySavingDisabled": "Body saving not enabled",
     "timingOverlapNote": "Phases may overlap; sum may exceed total response time.",
     "expected": "expected",
