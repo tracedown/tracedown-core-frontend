@@ -54,14 +54,22 @@
            of the row so the paragraph can claim a whole line of its own
            instead of being squeezed into the column beside the switch. -->
       <div class="flex items-start gap-3 max-md:flex-wrap max-md:items-center max-md:gap-y-1">
+        <!-- Locked off while a target is unverified: the scheduler withholds
+             bodies regardless (unverified-domain rule), so offering the switch
+             would promise something that cannot happen. The stored value is
+             left alone so it applies the moment the domain is verified. -->
         <ToggleSwitch
-          v-model="saveResponseBodies"
+          :model-value="bodiesLocked ? false : saveResponseBodies"
+          :disabled="bodiesLocked"
           class="shrink-0"
+          @update:model-value="saveResponseBodies = $event"
         />
         <div class="min-w-0 max-md:contents">
           <label class="block text-xs font-medium text-text-secondary">{{ t('service.saveResponseBodies') }}</label>
           <p class="text-xs text-text-secondary/70 mt-0.5 max-md:mt-0 max-md:w-full">
-            {{ t('service.saveResponseBodiesHelp') }}
+            {{ bodiesLocked
+              ? t('service.saveResponseBodiesLocked', { hosts: props.service.unverifiedTargets.join(', ') })
+              : t('service.saveResponseBodiesHelp') }}
           </p>
         </div>
       </div>
@@ -202,6 +210,8 @@ const probeMode = ref<string>(props.service.probeMode);
 const queuePolicy = ref<string>(props.service.queuePolicy);
 const script = ref<string>(props.service.script);
 const saveResponseBodies = ref<boolean>(props.service.saveResponseBodies);
+/** Bodies are never saved while a target is unverified; the switch is shown off and disabled. */
+const bodiesLocked = computed(() => props.service.unverifiedTargets.length > 0);
 
 // Maintenance-window rule ('' = none); the editor owns the field logic.
 const serviceWindowRule = ref<string>(props.service.serviceWindow ?? '');

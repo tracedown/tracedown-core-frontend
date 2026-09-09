@@ -23,7 +23,15 @@
         <div>
           <span class="text-text-secondary">{{ t('service.saveResponseBodies') }}</span>
           <p class="text-text-primary mt-0.5">
-            {{ service.saveResponseBodies ? t('service.saveResponseBodiesOn') : t('service.saveResponseBodiesOff') }}
+            {{ bodiesLocked || !service.saveResponseBodies ? t('service.saveResponseBodiesOff') : t('service.saveResponseBodiesOn') }}
+          </p>
+          <!-- The rule for unverified targets overrides the setting; say so
+               here rather than let "Not saved" look like a choice. -->
+          <p
+            v-if="bodiesLocked"
+            class="text-xs text-text-secondary/70 mt-0.5"
+          >
+            {{ t('service.saveResponseBodiesLocked', { hosts: service.unverifiedTargets.join(', ') }) }}
           </p>
         </div>
         <div>
@@ -111,6 +119,9 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+/** Bodies are never saved while a target is unverified (unverified-domain rule). */
+const bodiesLocked = computed(() => props.service.unverifiedTargets.length > 0);
 const authStore = useAuthStore();
 
 const { probeModeHelp, queuePolicyHelp } = useServiceHelp();

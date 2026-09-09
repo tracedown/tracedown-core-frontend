@@ -190,6 +190,7 @@
     "saveResponseBodiesHelp": "Keep the response body of each call so a failed run can be opened and read. With this off, runs record only status, timings and assertions — when this service fails there will be no stored body to inspect.",
     "saveResponseBodiesOn": "Saved",
     "saveResponseBodiesOff": "Not saved",
+    "saveResponseBodiesLocked": "Not saved while {hosts} is unverified: probes against unverified domains never keep bodies. Verify the domain under Settings → Domains and this setting applies again.",
     "config": "Config",
     "deleteButton": "Delete service",
     "deleted": "Service deleted.",

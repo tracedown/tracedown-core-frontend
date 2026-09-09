@@ -31,6 +31,12 @@ export interface ServiceSummary {
   serviceWindow: string | null;
   /** When false, runs are dispatched with body saving off — no stored body to inspect. */
   saveResponseBodies: boolean;
+  /**
+   * Target hosts no verified domain covers. Non-empty means bodies are never
+   * saved for this service whatever `saveResponseBodies` says; filled on the
+   * single-service read, empty on list rows.
+   */
+  unverifiedTargets: string[];
   isActive: boolean;
   lastStatus: string | null;
   lastStatusSince: string | null;

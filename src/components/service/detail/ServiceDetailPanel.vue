@@ -1,9 +1,11 @@
 <template>
     <!-- Surface color comes from the shared tab-content background. -->
     <div class="h-full">
+      <!-- The pencil edits the configuration, so it is offered only while
+           the configuration is what is on screen. -->
       <ServiceDetailHeader
         :service="service"
-        :can-edit="canEdit"
+        :can-edit="canEdit && activeTab === 'config'"
         :editing="editing"
         @edit="editing = true"
         @close="emit('close')"
