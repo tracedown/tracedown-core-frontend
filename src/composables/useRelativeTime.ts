@@ -36,15 +36,23 @@ export function useRelativeTime() {
     return remainHours > 0 ? `${diffDays}d ${remainHours}h` : `${diffDays}d`;
   }
 
-  /** "Just now" / "Nm ago" within an hour, absolute org-format timestamp after. */
-  function formatLastOnline(iso: string): string {
+  /**
+   * "Just now" / "Nm ago" for the first 59 minutes, the full org-format
+   * date-time from an hour on. Where the reader has to place an event, "3h
+   * ago" is not a time: it has to be worked out, and it drifts while the page
+   * is open. Used for result rows and last-seen stamps.
+   */
+  function formatRecentOrDateTime(iso: string): string {
     void tickSlow.value;
     const date = new Date(iso);
     const diffMin = Math.floor((Date.now() - date.getTime()) / 60000);
     if (diffMin < 1) return t('common.time.justNow');
-    if (diffMin <= 60) return t('common.time.minutesAgo', { n: diffMin });
+    if (diffMin < 60) return t('common.time.minutesAgo', { n: diffMin });
     return formatDateTime(date);
   }
 
-  return { formatAgo, formatDuration, formatLastOnline };
+  /** Alias kept for the agent and service list callers. */
+  const formatLastOnline = formatRecentOrDateTime;
+
+  return { formatAgo, formatDuration, formatLastOnline, formatRecentOrDateTime };
 }

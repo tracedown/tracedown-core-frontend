@@ -15,7 +15,9 @@
         <span class="text-text-secondary ml-auto flex-shrink-0">{{ result.totalResponseMs }}ms</span>
       </div>
       <div class="flex items-center gap-2 text-text-secondary mt-0.5 pl-4">
-        <span>{{ formatAgo(result.startedAt) }}</span>
+        <!-- Full date-time from an hour on: a result row is something the
+             reader correlates with an incident, and "3h ago" is not a time. -->
+        <span>{{ formatRecentOrDateTime(result.startedAt) }}</span>
         <span
           v-if="result.agentSlug"
           class="text-text-secondary/60"
@@ -38,5 +40,5 @@ const emit = defineEmits<{
   select: [];
 }>();
 
-const { formatAgo } = useRelativeTime();
+const { formatRecentOrDateTime } = useRelativeTime();
 </script>
