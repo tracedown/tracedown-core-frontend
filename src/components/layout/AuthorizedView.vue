@@ -15,6 +15,10 @@
           class="sticky top-0 z-40"
         />
         <!--   Platform alert banners (admins only; per-user dismissable)   -->
+        <!--   Host-mounted banners, in the same column as the platform alerts so
+               a host's own notices sit where the user already looks for
+               warnings rather than floating over the chrome.   -->
+        <SlotOutlet name="app-banners" />
         <SystemAlertBanners />
         <!--    Main content    -->
         <div class="full flex">
