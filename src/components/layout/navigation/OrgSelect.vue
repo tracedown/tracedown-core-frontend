@@ -1,13 +1,15 @@
 <template>
     <!-- Single org: plain label, no dropdown -->
     <span
-      v-if="orgStore.orgs.length === 1"
+      v-if="orgStore.orgs.length === 1 && !footerFilled"
       class="block px-1.5 py-0.5 text-sm text-text-primary font-medium truncate"
     >
       {{ orgStore.orgs[0].name }}
     </span>
 
-    <DropdownPanel v-else-if="orgStore.orgs.length > 1">
+    <!-- A host that fills the footer slot turns the single-org label into a
+         dropdown too: its item is the reason to open it. -->
+    <DropdownPanel v-else-if="orgStore.orgs.length > 1 || footerFilled">
       <template #trigger="{ open, toggle }">
         <button
           class="w-full flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg text-sm text-text-secondary
@@ -34,6 +36,17 @@
         >
           {{ org.name }}
         </button>
+        <!-- Host-mounted items under the org list (a host application may
+             offer actions here, e.g. creating another organization). -->
+        <div
+          v-if="footerFilled"
+          class="border-t border-text-secondary/15 mt-1 pt-1"
+        >
+          <SlotOutlet
+            name="org-select-footer"
+            :slot-props="{ close }"
+          />
+        </div>
       </template>
     </DropdownPanel>
 </template>
@@ -43,12 +56,16 @@ import { useI18n } from 'vue-i18n';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import DropdownPanel from '@/components/core/DropdownPanel.vue';
+import SlotOutlet from '@/components/core/SlotOutlet.vue';
+import { slotIsFilled } from '@/config/extensions';
 import { useOrgStore } from '@/store/core/org';
 import { useNotificationStore } from '@/store/ui/notifications';
 
 const { t } = useI18n();
 const orgStore = useOrgStore();
 const notifications = useNotificationStore();
+// Registry is populated before mount, so a plain read is enough.
+const footerFilled = slotIsFilled('org-select-footer');
 
 async function selectOrg(orgId: string, close: () => void) {
   close();
