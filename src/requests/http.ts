@@ -10,6 +10,7 @@
 import axios, { type AxiosInstance, type AxiosResponse, AxiosError } from 'axios';
 import type {
   ApiResponse,
+  ErrorInfo,
   HttpMethod,
   RequestHost,
   RequestOptions,
@@ -17,6 +18,7 @@ import type {
 
 interface BackendErrorBody {
   error: string;
+  details?: unknown;
 }
 
 export interface Http<Code extends string> {
@@ -40,7 +42,7 @@ export function createHttp<Code extends string>(host: RequestHost<Code>): Http<C
     return config;
   });
 
-  function resolve(code: Code): { code: Code; message: string } {
+  function resolve(code: Code): ErrorInfo<Code> {
     return { code, message: host.resolveMessage(code) };
   }
 
@@ -76,8 +78,11 @@ export function createHttp<Code extends string>(host: RequestHost<Code>): Http<C
         host.onNotFound?.();
       }
 
-      const backendCode = (error.response?.data as BackendErrorBody | undefined)?.error;
-      const errorInfo = resolve((backendCode ?? 'unknown_error') as Code);
+      const body = error.response?.data as BackendErrorBody | undefined;
+      const errorInfo: ErrorInfo<Code> = resolve((body?.error ?? 'unknown_error') as Code);
+      if (body?.details && typeof body.details === 'object' && !Array.isArray(body.details)) {
+        errorInfo.details = body.details as Record<string, unknown>;
+      }
       if (status != null && status >= 500) {
         host.onServerError?.(errorInfo);
       }

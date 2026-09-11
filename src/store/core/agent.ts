@@ -57,6 +57,16 @@ export const useAgentStore = defineStore('agent', () => {
     return { ok: true };
   }
 
+  /** Assigns the agent's body store (`null` = the default store). */
+  async function setBodyStore(slug: string, storeId: string | null): Promise<ActionResult> {
+    const res = await http.put<unknown, { storeId: string | null }>(`/agents/${slug}/body-store`, { storeId });
+    if (!res.success) {
+      return { ok: false, message: res.errorInfo?.message };
+    }
+    agents.value = agents.value.map(a => (a.slug === slug ? { ...a, bodyStoreId: storeId } : a));
+    return { ok: true };
+  }
+
   /** Health-check history for one agent over the trailing window. */
   async function fetchChecks(slug: string, hours: number): Promise<ActionDataResult<AgentHealthCheck[]>> {
     const res = await http.get<AgentHealthCheck[]>(`/agents/${slug}/checks?hours=${hours}`, { disableLoading: true });
@@ -93,6 +103,6 @@ export const useAgentStore = defineStore('agent', () => {
 
   return {
     agents, loading, fetchAgents, fetchChecks, createBootstrapToken,
-    setActive, setEncryptPayload, deleteAgent, applyHealth,
+    setActive, setEncryptPayload, setBodyStore, deleteAgent, applyHealth,
   };
 });

@@ -19,6 +19,8 @@ export type TransportErrorCode = 'internet_down' | 'unknown_error';
 export interface ErrorInfo<Code extends string> {
   code: Code;
   message: string;
+  /** Structured context the backend sent with the code (`details`), if any. */
+  details?: Record<string, unknown>;
 }
 
 export interface ApiResponse<T, Code extends string> {

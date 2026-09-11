@@ -113,7 +113,11 @@
       "label": "Response body storage",
       "filesystem": "Filesystem (volume)",
       "s3": "S3-compatible bucket",
-      "s3Note": "The bucket settings are placeholders to fill in where the agent starts. Region auto suits R2 and is ignored by MinIO; AWS S3 wants the real one. PROBE_AGENT_S3_PREFIX scopes keys within the bucket if you need it."
+      "s3Note": "The bucket settings are placeholders to fill in where the agent starts. Region auto suits R2 and is ignored by MinIO; AWS S3 wants the real one. PROBE_AGENT_S3_PREFIX scopes keys within the bucket if you need it.",
+      "store": "Body store",
+      "defaultStore": "Default store",
+      "storeS3Note": "Bucket, endpoint, region and prefix come from the store. Fill in an access key that can write to that bucket and prefix where the agent starts — the store’s own key is never printed.",
+      "storeFilesystemNote": "The agent writes into {path}, mounted at the same path the gateway, the ingestor and the worker see it at. On another host, mount the directory they share at that path."
     },
     "startCommandImageNote": "The image is {image} on Docker Hub. Substitute your own name if you build the agent yourself.",
     "startEnvironmentHint": "The same settings as environment variables, for an agent started any other way — a systemd unit, a VM image, a pip install. Paste them into its environment file. Set the machine's hostname to {slug} as well: the agent registers itself under its own hostname, and the certificate it is issued carries that name — which the scheduler pins. A hostname that is not the slug fails every dispatch.",
@@ -130,7 +134,13 @@
     "encryptPayloadUnsupported": "This agent reports it cannot open a sealed dispatch. Upgrade the agent — the setting unlocks after its next health check.",
     "delete": "Delete agent",
     "deleteHint": "Revokes the agent’s certificates and removes it from dispatch. Probe history is kept.",
-    "deleted": "Agent deleted."
+    "deleted": "Agent deleted.",
+    "bodyStore": {
+      "column": "Body store",
+      "label": "Response body store",
+      "hint": "Where this agent writes response bodies. A change applies from its next run; bodies already stored stay where they are.",
+      "updated": "Body store updated."
+    }
   },
   "workspace": {
     "title": "Workspace",
@@ -265,6 +275,7 @@
     "size": "Size",
     "viewBody": "View response body",
     "responseBody": "Response body",
+    "bodyLoadFailed": "The response body could not be loaded.",
     "bodyNotStored": "Body not stored",
     "bodyReasons": {
       "notRequested": "body saving is off for this service",
@@ -596,6 +607,7 @@
     }
   },
   "errors": {
+    "body_gone": "The response body is no longer where it was kept.",
     "invalid_credentials": "Invalid email or password.",
     "account_deactivated": "This account has been deactivated.",
     "session_expired": "Your session has expired. Please sign in again.",
@@ -638,7 +650,13 @@
     "unverified_domain_includes": "includes() can only be used against domains you've verified. Verify the domain in Infrastructure → Domains, or remove includes() from the script.",
     "variable_limit_reached": "This resource already has the maximum number of variables. Remove one to add another.",
     "blocked_probe_target": "This script points at an address probes are not allowed to reach — a private, loopback, link-local or otherwise internal address, or a scheme other than http/https. Point it at a publicly reachable http(s) URL. Nothing else is affected: your other services keep running as they are.",
-    "request_body_too_large": "That request is too large. The API accepts up to 1 MiB at a time — shorten what you are sending, or save it in smaller pieces, and try again."
+    "request_body_too_large": "That request is too large. The API accepts up to 1 MiB at a time — shorten what you are sending, or save it in smaller pieces, and try again.",
+    "body_store_not_found": "That body store no longer exists.",
+    "body_store_in_use": "This store is still in use by an agent, a bootstrap token or stored bodies. Move them to another store first.",
+    "body_store_name_taken": "A body store with this name already exists.",
+    "invalid_store_kind": "Choose a bucket or a filesystem directory.",
+    "invalid_store_mode": "Choose import or in place.",
+    "store_field_required": "A required field for this kind of store is missing."
   },
   "meta": {
     "description": "API monitoring and uptime tracking"
@@ -881,5 +899,55 @@
     "handoffAction": "Open DNS in {provider}",
     "handoffWaiting": "Add the record in the {provider} tab, then come back — this checks again every few seconds.",
     "handoffCheckNow": "Check now"
+  },
+  "bodyStores": {
+    "tab": "Body storage",
+    "title": "Body stores",
+    "hint": "Response bodies an agent saves go to the store it is assigned. Agents without a store use the default store.",
+    "defaultTitle": "Default store",
+    "defaultHint": "Configured by the platform’s environment. Bodies imported from other stores land here, and its retention applies.",
+    "defaultUnavailable": "The default store could not be loaded.",
+    "none": "No stores yet. Every agent uses the default store.",
+    "add": "Add store",
+    "addTitle": "Add body store",
+    "editTitle": "Edit {name}",
+    "kind": "Kind",
+    "mode": "Mode",
+    "kinds": {
+      "s3": "S3-compatible bucket",
+      "filesystem": "Filesystem directory"
+    },
+    "modes": {
+      "import": "Import",
+      "in_place": "In place"
+    },
+    "modeHints": {
+      "import": "The agent writes here; each body is copied into the default store at ingest and kept by the platform’s retention.",
+      "in_place": "Bodies stay here and are read on demand with this store’s credentials. The platform never deletes from it."
+    },
+    "fields": {
+      "name": "Name",
+      "endpoint": "Endpoint URL",
+      "region": "Region",
+      "bucket": "Bucket",
+      "prefix": "Prefix (optional)",
+      "rootPath": "Root path",
+      "accessKeyId": "Access key ID",
+      "secretAccessKey": "Secret access key"
+    },
+    "regionPlaceholder": "auto",
+    "rootPathHint": "A directory mounted into the gateway, the ingestor and the worker at this same path.",
+    "secretKeep": "Leave blank to keep the saved secret.",
+    "secretWriteOnly": "Stored encrypted and never shown again.",
+    "fieldRequired": "{field} is required.",
+    "agentsCount": "no agents | 1 agent | {n} agents",
+    "test": "Test",
+    "testOk": "Reachable.",
+    "testFailed": "Not reachable: {error}",
+    "testFailedGeneric": "Not reachable.",
+    "created": "Store added.",
+    "saved": "Store saved.",
+    "delete": "Delete store",
+    "deleted": "Store deleted."
   }
 }

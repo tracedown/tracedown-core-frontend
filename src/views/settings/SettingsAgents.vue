@@ -59,6 +59,13 @@
                   {{ agent.agentUri }}
                 </p>
               </div>
+              <span
+                v-if="storesEnabled"
+                class="text-xs text-text-secondary shrink-0 w-28 truncate max-md:w-auto"
+                :title="t('agents.bodyStore.column')"
+              >
+                {{ storeName(agent) }}
+              </span>
               <BadgePill
                 class="shrink-0"
                 :color-class="HEALTH_PILL[agentEffectiveHealth(agent)]"
@@ -79,6 +86,10 @@
             <template v-if="expandedSlug === agent.slug">
               <AgentHistoryPanel :slug="agent.slug" />
               <AgentEncryptionToggle :agent="agent" />
+              <AgentBodyStorePicker
+                v-if="storesEnabled"
+                :agent="agent"
+              />
               <div
                 v-if="authStore.canWrite('settings')"
                 class="pl-5 pb-4"
@@ -100,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { isFeatureEnabled } from '@/config/extensions';
 import SlotOutlet from '@/components/core/SlotOutlet.vue';
@@ -110,12 +121,15 @@ import EmptyState from '@/components/core/EmptyState.vue';
 import BadgePill from '@/components/core/BadgePill.vue';
 import AgentHistoryPanel from '@/components/settings/AgentHistoryPanel.vue';
 import AgentEncryptionToggle from '@/components/settings/AgentEncryptionToggle.vue';
+import AgentBodyStorePicker from '@/components/settings/AgentBodyStorePicker.vue';
 import DangerButton from '@/components/core/buttons/DangerButton.vue';
 import AgentConnectForm from '@/components/settings/AgentConnectForm.vue';
 import CreateToggleButton from '@/components/core/buttons/CreateToggleButton.vue';
 import ToggleSwitch from '@/components/core/input/ToggleSwitch.vue';
 import { useAgentStore } from '@/store/core/agent';
 import { useAuthStore } from '@/store/core/auth';
+import { useBodyStoreStore } from '@/store/core/bodyStore';
+import { useOrgStore } from '@/store/core/org';
 import { useNotificationStore } from '@/store/ui/notifications';
 import { agentEffectiveHealth } from '@/data/agents/AgentDto';
 import { useRelativeTime } from '@/composables/useRelativeTime';
@@ -131,6 +145,8 @@ import type { AgentSummary, EffectiveHealth } from '@/data/agents/AgentDto';
 const { t } = useI18n();
 const agentStore = useAgentStore();
 const authStore = useAuthStore();
+const bodyStoreStore = useBodyStoreStore();
+const orgStore = useOrgStore();
 const notifications = useNotificationStore();
 const { formatLastOnline } = useRelativeTime();
 
@@ -140,6 +156,14 @@ const HEALTH_PILL: Record<EffectiveHealth, string> = {
   down: 'bg-status-failure/10 text-status-failure',
   unknown: 'bg-text-secondary/10 text-text-secondary',
 };
+
+const storesEnabled = computed(() => isFeatureEnabled('bodyStores', { orgId: orgStore.selectedOrgId }));
+
+/** The agent's body store by name; an id the list does not know yet shows as the id. */
+function storeName(agent: AgentSummary): string {
+  if (!agent.bodyStoreId) return t('agents.storage.defaultStore');
+  return bodyStoreStore.stores.find(store => store.id === agent.bodyStoreId)?.name ?? agent.bodyStoreId;
+}
 
 const expandedSlug = ref<string | null>(null);
 const connectOpen = ref<boolean>(false);
@@ -174,6 +198,7 @@ async function handleDelete(agent: AgentSummary) {
 
 onMounted(() => {
   void agentStore.fetchAgents();
+  if (storesEnabled.value) void bodyStoreStore.fetchStores();
 });
 
 // Live health feed (same channel as the headbar indicator): known agents get

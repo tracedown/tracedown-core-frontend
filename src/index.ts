@@ -49,6 +49,9 @@ export { useOrgStore } from '@/store/core/org';
 export { useDomainStore } from '@/store/core/domain';
 
 export type { DomainSummary } from '@/data/domains/DomainDto';
+export type {
+  BodyStoreKind, BodyStoreMode, BodyStoreRef, BodyStoreSummary, DefaultBodyStore,
+} from '@/data/bodyStores/BodyStoreDto';
 export type { NavItem } from '@/types/ui/navigation';
 export type { PermissionSectionDef, AccessSection } from '@/types/access';
 export type { ActionResult, ActionDataResult } from '@/types/actions';
