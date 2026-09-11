@@ -108,6 +108,12 @@
             >
               {{ t('common.states.loading') }}
             </p>
+            <p
+              v-else-if="resultStore.stepBodyFailed"
+              class="text-status-failure"
+            >
+              {{ resultStore.stepBodyError ?? t('results.bodyLoadFailed') }}
+            </p>
             <pre
               v-else
               class="bg-background-primary p-2 overflow-x-auto max-h-64 text-text-primary font-mono text-xs"

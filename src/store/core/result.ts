@@ -15,6 +15,9 @@ export const useResultStore = defineStore('result', () => {
   const selectedResultLoading = ref<boolean>(false);
   const stepBody = ref<string | null>(null);
   const stepBodyLoading = ref<boolean>(false);
+  /** The last body fetch failed; the message is the server's (already resolved) when it gave one. */
+  const stepBodyFailed = ref<boolean>(false);
+  const stepBodyError = ref<string | null>(null);
 
   async function fetchResults(serviceId: string, page = 1, pageSize = 50): Promise<ActionResult> {
     loading.value = true;
@@ -88,10 +91,19 @@ export const useResultStore = defineStore('result', () => {
   async function fetchStepBody(serviceId: string, resultId: string, stepId: string) {
     stepBodyLoading.value = true;
     stepBody.value = null;
+    stepBodyFailed.value = false;
+    stepBodyError.value = null;
     try {
       const res = await http.get<StepBodyResponse>(
         `/services/${serviceId}/results/${resultId}/steps/${stepId}/body`,
       );
+      // A refusal (the body is gone from where it was kept, storage is
+      // unreachable) is said out loud rather than rendered as an empty body.
+      if (!res.success) {
+        stepBodyFailed.value = true;
+        stepBodyError.value = res.errorInfo?.message ?? null;
+        return;
+      }
       // Object-storage bodies arrive as a presigned URL fetched directly —
       // plain fetch, deliberately: the page's own origin must reach the
       // bucket (its CORS policy is scoped to it), and the session token must
@@ -99,9 +111,13 @@ export const useResultStore = defineStore('result', () => {
       if (res.data?.url) {
         try {
           const remote = await fetch(res.data.url);
-          stepBody.value = remote.ok ? await remote.text() : null;
+          if (remote.ok) {
+            stepBody.value = await remote.text();
+          } else {
+            stepBodyFailed.value = true;
+          }
         } catch {
-          stepBody.value = null;
+          stepBodyFailed.value = true;
         }
       } else {
         stepBody.value = res.data?.content ?? null;
@@ -113,6 +129,8 @@ export const useResultStore = defineStore('result', () => {
 
   function clearStepBody() {
     stepBody.value = null;
+    stepBodyFailed.value = false;
+    stepBodyError.value = null;
   }
 
   function clearSelection() {
@@ -132,7 +150,7 @@ export const useResultStore = defineStore('result', () => {
 
   return {
     results, totalResults, loading, selectedResult, selectedResultLoading,
-    stepBody, stepBodyLoading,
+    stepBody, stepBodyLoading, stepBodyFailed, stepBodyError,
     fetchResults, pageAt, prependNewResults, fetchResultDetail, fetchStepBody,
     clearStepBody, clearSelection, clearResults, clear,
   };

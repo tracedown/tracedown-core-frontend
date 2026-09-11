@@ -265,6 +265,7 @@
     "size": "Size",
     "viewBody": "View response body",
     "responseBody": "Response body",
+    "bodyLoadFailed": "The response body could not be loaded.",
     "bodyNotStored": "Body not stored",
     "bodyReasons": {
       "notRequested": "body saving is off for this service",
@@ -596,6 +597,7 @@
     }
   },
   "errors": {
+    "body_gone": "The response body is no longer where it was kept.",
     "invalid_credentials": "Invalid email or password.",
     "account_deactivated": "This account has been deactivated.",
     "session_expired": "Your session has expired. Please sign in again.",
