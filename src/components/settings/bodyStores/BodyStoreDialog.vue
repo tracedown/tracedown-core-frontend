@@ -79,13 +79,16 @@
             <p class="text-xs text-text-secondary mt-1">
               {{ store?.hasSecret ? t('bodyStores.secretKeep') : t('bodyStores.secretWriteOnly') }}
             </p>
+            <p class="text-xs text-text-secondary mt-1">
+              {{ t(`bodyStores.keyPermissions.${form.mode}`) }}
+            </p>
           </div>
         </template>
         <div v-else>
           <LabeledInput
             v-model="form.rootPath"
             :label="t('bodyStores.fields.rootPath')"
-            placeholder="/data/bodies"
+            :placeholder="rootPathPlaceholder"
           />
           <p class="text-xs text-text-secondary mt-1">
             {{ t('bodyStores.rootPathHint') }}
@@ -129,7 +132,7 @@ import { useBodyStoreStore } from '@/store/core/bodyStore';
 import { useNotificationStore } from '@/store/ui/notifications';
 import { BODY_STORE_KINDS, BODY_STORE_MODES } from '@/data/bodyStores/BodyStoreDto';
 import type {
-  BodyStoreKind, BodyStoreMode, BodyStoreRequest, BodyStoreSummary,
+  BodyStoreKind, BodyStoreMode, BodyStoreRequest, BodyStoreSaveResult, BodyStoreView,
 } from '@/data/bodyStores/BodyStoreDto';
 import type { SelectOption } from '@/types/ui/common';
 
@@ -139,11 +142,11 @@ import type { SelectOption } from '@/types/ui/common';
  */
 const props = defineProps<{
   /** The store being edited, or null to add one. */
-  store: BodyStoreSummary | null;
+  store: BodyStoreView | null;
 }>();
 const emit = defineEmits<{ close: []; saved: [] }>();
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 const bodyStoreStore = useBodyStoreStore();
 const notifications = useNotificationStore();
 
@@ -162,6 +165,15 @@ const form = reactive({
 
 const saving = ref<boolean>(false);
 const error = ref<string | null>(null);
+
+/**
+ * A directory of this store's own, under the platform's store root — never
+ * the default store's own directory, which is not a store and not editable here.
+ */
+const rootPathPlaceholder = computed<string>(() => {
+  const name = form.name.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+  return name ? `/data/stores/${name}` : t('bodyStores.rootPathPlaceholder');
+});
 
 const kindOptions = computed<SelectOption[]>(() =>
   BODY_STORE_KINDS.map(kind => ({ value: kind, label: t(`bodyStores.kinds.${kind}`) })));
@@ -200,9 +212,7 @@ async function handleSave() {
       ? await bodyStoreStore.updateStore(props.store.id, request)
       : await bodyStoreStore.createStore(request);
     if (!result.ok) {
-      error.value = result.code === 'store_field_required' && result.field
-        ? t('bodyStores.fieldRequired', { field: fieldLabel(result.field) })
-        : (result.message ?? t('common.states.error'));
+      error.value = saveErrorText(result);
       return;
     }
     notifications.show(props.store ? t('bodyStores.saved') : t('bodyStores.created'), 'success');
@@ -216,5 +226,35 @@ const FIELD_KEYS = ['name', 'endpoint', 'region', 'bucket', 'prefix', 'rootPath'
 
 function fieldLabel(field: string): string {
   return FIELD_KEYS.includes(field) ? t(`bodyStores.fields.${field}`) : field;
+}
+
+/** Why a value was refused, in words; an unknown reason is left to the generic line. */
+function reasonLabel(reason: string): string | null {
+  const key = `bodyStores.reasons.${reason}`;
+  return te(key) ? t(key) : null;
+}
+
+/**
+ * A refusal in words. Every code that names a field says which one — a form
+ * this size has no other way of pointing at the offending input — and
+ * `field_invalid` adds the reason the backend gave.
+ */
+function saveErrorText(result: BodyStoreSaveResult): string {
+  const field = result.field ? fieldLabel(result.field) : null;
+  // A changed endpoint, bucket or key id invalidates the stored secret: the
+  // backend asks for it again rather than keep signing with the old one.
+  if (result.code === 'store_field_required' && result.field === 'secretAccessKey') {
+    return t('bodyStores.secretRequiredAgain');
+  }
+  if (result.code === 'store_field_required' && field) return t('bodyStores.fieldRequired', { field });
+  if (result.code === 'field_too_long' && field) return t('bodyStores.fieldTooLong', { field });
+  if (result.code === 'body_store_name_taken' && field) return t('bodyStores.fieldTaken', { field });
+  if (result.code === 'field_invalid' && field) {
+    const reason = result.reason ? reasonLabel(result.reason) : null;
+    return reason
+      ? t('bodyStores.fieldInvalidReason', { field, reason })
+      : t('bodyStores.fieldInvalid', { field });
+  }
+  return result.message ?? t('common.states.error');
 }
 </script>

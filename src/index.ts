@@ -50,7 +50,8 @@ export { useDomainStore } from '@/store/core/domain';
 
 export type { DomainSummary } from '@/data/domains/DomainDto';
 export type {
-  BodyStoreKind, BodyStoreMode, BodyStoreRef, BodyStoreSummary, DefaultBodyStore,
+  BodyStoreFailure, BodyStoreKind, BodyStoreLocation, BodyStoreMode, BodyStoreSummary,
+  BodyStoreView, DefaultBodyStore,
 } from '@/data/bodyStores/BodyStoreDto';
 export type { NavItem } from '@/types/ui/navigation';
 export type { PermissionSectionDef, AccessSection } from '@/types/access';

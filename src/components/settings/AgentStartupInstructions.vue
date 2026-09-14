@@ -39,38 +39,50 @@
         </div>
       </div>
       <p
-        v-if="storageNote"
+        v-if="storageReady && storageNote"
         class="text-xs text-text-secondary"
       >
         {{ storageNote }}
       </p>
 
+      <!-- Nothing storage-related is printed until the default store is
+           known: a command that says "filesystem" and then changes to a
+           bucket a moment later is worse than a line saying it is loading. -->
+      <p
+        v-if="!storageReady"
+        class="text-xs text-text-secondary"
+      >
+        {{ t('common.states.loading') }}
+      </p>
+
       <!-- One bootstrap, two ways to hand it to the agent: the container
            command, or the bare variables for an agent started by systemd, a
            VM image or a pip install. -->
-      <TabBar
-        v-model="startMode"
-        variant="pills"
-        :tabs="startModeTabs"
-      />
-      <CopyField
-        :value="startMode === 'docker' ? startCommand : startEnvironment"
-        multiline
-      />
-      <template v-if="startMode === 'docker'">
-        <p class="text-xs text-text-secondary">
-          {{ t('agents.startCommandHint') }}
-        </p>
-        <p class="text-xs text-text-secondary">
-          {{ t('agents.startCommandImageNote', { image: AGENT_IMAGE }) }}
+      <template v-else>
+        <TabBar
+          v-model="startMode"
+          variant="pills"
+          :tabs="startModeTabs"
+        />
+        <CopyField
+          :value="startMode === 'docker' ? startCommand : startEnvironment"
+          multiline
+        />
+        <template v-if="startMode === 'docker'">
+          <p class="text-xs text-text-secondary">
+            {{ t('agents.startCommandHint') }}
+          </p>
+          <p class="text-xs text-text-secondary">
+            {{ t('agents.startCommandImageNote', { image: AGENT_IMAGE }) }}
+          </p>
+        </template>
+        <p
+          v-else
+          class="text-xs text-text-secondary"
+        >
+          {{ t('agents.startEnvironmentHint', { slug: issued.slug }) }}
         </p>
       </template>
-      <p
-        v-else
-        class="text-xs text-text-secondary"
-      >
-        {{ t('agents.startEnvironmentHint', { slug: issued.slug }) }}
-      </p>
       <p
         v-if="!issued.schedulerUrl"
         class="text-xs text-status-warning"
@@ -96,7 +108,7 @@ import {
 } from '@/lib/agentStartup';
 import type { AgentStartupInput } from '@/lib/agentStartup';
 import type { BootstrapTokenResponse } from '@/data/agents/AgentDto';
-import type { BodyStoreRef } from '@/data/bodyStores/BodyStoreDto';
+import type { BodyStoreSummary } from '@/data/bodyStores/BodyStoreDto';
 import type { DisplayTab } from '@/types/ui/tabs';
 import type { SelectOption } from '@/types/ui/common';
 
@@ -107,7 +119,7 @@ import type { SelectOption } from '@/types/ui/common';
 const props = defineProps<{
   issued: BootstrapTokenResponse;
   /** The store picked in the form when the token was requested (null = default). */
-  chosenStore: BodyStoreRef | null;
+  chosenStore: BodyStoreSummary | null;
   /** Whether body stores are available; off, the old filesystem / S3 choice is offered. */
   storesEnabled: boolean;
 }>();
@@ -121,7 +133,7 @@ const defaultLabel = computed(() => t('agents.storage.defaultStore'));
  * The store the agent was enrolled onto. The token response says so
  * authoritatively; the form's own pick covers a gateway that does not echo it.
  */
-const store = computed<BodyStoreRef | null>(() =>
+const store = computed<BodyStoreSummary | null>(() =>
   (props.issued.bodyStore !== undefined ? props.issued.bodyStore : props.chosenStore));
 
 /** Which rendering of the same bootstrap is on screen. */
@@ -140,15 +152,26 @@ const storageOptions = computed<SelectOption[]>(() => [
   { value: 's3', label: t('agents.storage.s3') },
 ]);
 
+/**
+ * With stores off the operator picks the template; with stores on the chosen
+ * store decides, and the default store's kind is only known once
+ * `/body-stores/default` has answered.
+ */
+const storageReady = computed<boolean>(() =>
+  !props.storesEnabled || store.value !== null || bodyStoreStore.defaultLoaded);
+
 const bodies = computed(() => {
-  if (!props.storesEnabled) return agentBodyTarget(null, storage.value === 's3' ? 's3' : 'filesystem');
-  return agentBodyTarget(store.value, bodyStoreStore.defaultStore?.kind === 's3' ? 's3' : 'filesystem');
+  const slug = props.issued.slug;
+  if (!props.storesEnabled) return agentBodyTarget(null, storage.value === 's3' ? 's3' : 'filesystem', slug);
+  return agentBodyTarget(store.value, bodyStoreStore.defaultStore?.kind === 's3' ? 's3' : 'filesystem', slug);
 });
 
 const storageNote = computed<string | null>(() => {
   const target = bodies.value;
   if (target.backend === 's3') return target.store ? t('agents.storage.storeS3Note') : t('agents.storage.s3Note');
-  if (props.storesEnabled && store.value) return t('agents.storage.storeFilesystemNote', { path: target.dir });
+  if (props.storesEnabled && store.value) {
+    return t('agents.storage.storeFilesystemNote', { path: target.dir, root: target.mountPath });
+  }
   return null;
 });
 

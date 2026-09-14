@@ -82,7 +82,7 @@ import { useBodyStoreStore } from '@/store/core/bodyStore';
 import { useOrgStore } from '@/store/core/org';
 import { useNotificationStore } from '@/store/ui/notifications';
 import type { BootstrapTokenResponse } from '@/data/agents/AgentDto';
-import type { BodyStoreRef } from '@/data/bodyStores/BodyStoreDto';
+import type { BodyStoreSummary } from '@/data/bodyStores/BodyStoreDto';
 
 /**
  * "Connect a new agent" flow: slug/label (and, with body stores, the store the
@@ -116,7 +116,7 @@ const storesEnabled = computed(() => isFeatureEnabled('bodyStores', { orgId: org
 /** The store the next token enrols its agent onto; `DEFAULT_OPTION` = the default store. */
 const storeChoice = ref<string>(DEFAULT_OPTION);
 /** The store the issued token was requested with, frozen at issue time. */
-const issuedStore = ref<BodyStoreRef | null>(null);
+const issuedStore = ref<BodyStoreSummary | null>(null);
 
 const storeOptions = computed(() => bodyStoreOptions(bodyStoreStore.stores, t('agents.storage.defaultStore')));
 
@@ -168,6 +168,6 @@ async function handleGenerate() {
 onMounted(() => {
   if (!storesEnabled.value) return;
   if (bodyStoreStore.stores.length === 0 && !bodyStoreStore.loading) void bodyStoreStore.fetchStores();
-  if (!bodyStoreStore.defaultStore) void bodyStoreStore.fetchDefault();
+  if (!bodyStoreStore.defaultLoaded) void bodyStoreStore.fetchDefault();
 });
 </script>

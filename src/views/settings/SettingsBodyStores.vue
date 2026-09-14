@@ -20,7 +20,7 @@
           </span>
         </div>
         <p
-          v-else-if="defaultFailed"
+          v-else-if="bodyStoreStore.defaultFailed"
           class="text-xs text-status-warning"
         >
           {{ t('bodyStores.defaultUnavailable') }}
@@ -85,7 +85,7 @@ import { useBodyStoreStore } from '@/store/core/bodyStore';
 import { useAuthStore } from '@/store/core/auth';
 import { useNotificationStore } from '@/store/ui/notifications';
 import { BODY_STORE_KINDS, bodyStoreLocationLabel } from '@/data/bodyStores/BodyStoreDto';
-import type { BodyStoreSummary } from '@/data/bodyStores/BodyStoreDto';
+import type { BodyStoreView } from '@/data/bodyStores/BodyStoreDto';
 
 /**
  * Settings → Body storage: the default store (read-only) and the stores agents
@@ -100,16 +100,14 @@ const notifications = useNotificationStore();
 const canManage = computed(() => authStore.canWrite('settings'));
 
 /** The store in the dialog: a row, `'new'` for the add dialog, or null when closed. */
-const editing = ref<BodyStoreSummary | 'new' | null>(null);
-const defaultFailed = ref<boolean>(false);
+const editing = ref<BodyStoreView | 'new' | null>(null);
 
 function kindLabel(kind: string): string {
   return (BODY_STORE_KINDS as string[]).includes(kind) ? t(`bodyStores.kinds.${kind}`) : kind;
 }
 
 onMounted(async () => {
-  const [list, fallback] = await Promise.all([bodyStoreStore.fetchStores(), bodyStoreStore.fetchDefault()]);
-  defaultFailed.value = !fallback.ok;
+  const [list] = await Promise.all([bodyStoreStore.fetchStores(), bodyStoreStore.fetchDefault()]);
   if (!list.ok && list.message) notifications.show(list.message, 'error');
 });
 </script>

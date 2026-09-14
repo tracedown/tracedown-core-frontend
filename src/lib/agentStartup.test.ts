@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   AGENT_IMAGE, BODIES_DIR, COMPOSE_BODIES_VOLUME, COMPOSE_NETWORK, COMPOSE_SCHEDULER_URL,
-  agentBodyTarget, agentDockerCommand, agentEnvFile, agentEnvironment,
+  agentBodyTarget, agentDockerCommand, agentEnvFile, agentEnvironment, agentStorageVariables,
 } from '@/lib/agentStartup';
 import type { AgentStartupInput } from '@/lib/agentStartup';
 import type { BodyStoreLocation } from '@/data/bodyStores/BodyStoreDto';
@@ -25,11 +25,12 @@ const FS_STORE: BodyStoreLocation = {
 };
 
 function input(store: BodyStoreLocation | null, defaultKind: 's3' | 'filesystem' = 'filesystem'): AgentStartupInput {
+  const slug = 'eu-west-1';
   return {
-    slug: 'eu-west-1',
+    slug,
     token: 'tok_123',
     schedulerUrl: 'https://gw.example.com',
-    bodies: agentBodyTarget(store, defaultKind),
+    bodies: agentBodyTarget(store, defaultKind, slug),
   };
 }
 
@@ -83,29 +84,47 @@ describe('s3 store', () => {
       PROBE_AGENT_S3_SECRET_ACCESS_KEY: '<secret with write access>',
       PROBE_AGENT_S3_BUCKET: 'probe-bodies',
       PROBE_AGENT_S3_REGION: 'eu-central-1',
-      PROBE_AGENT_S3_PREFIX: 'eu/agents',
+      PROBE_AGENT_S3_PREFIX: 'eu/agents/eu-west-1',
     });
     expect(agentDockerCommand(i)).not.toContain(' -v ');
   });
 
-  it('defaults the region to auto and omits an empty prefix', () => {
-    const vars = env(input({ ...S3_STORE, region: null, prefix: '' }));
-    expect(vars.PROBE_AGENT_S3_REGION).toBe('auto');
-    expect(vars).not.toHaveProperty('PROBE_AGENT_S3_PREFIX');
+  it('gives the agent its own sub-prefix, even when the store has none', () => {
+    expect(env(input({ ...S3_STORE, prefix: null })).PROBE_AGENT_S3_PREFIX).toBe('eu-west-1');
+    expect(env(input({ ...S3_STORE, prefix: 'eu/agents/' })).PROBE_AGENT_S3_PREFIX).toBe('eu/agents/eu-west-1');
+  });
+
+  it('defaults the region to auto', () => {
+    expect(env(input({ ...S3_STORE, region: null })).PROBE_AGENT_S3_REGION).toBe('auto');
   });
 });
 
 describe('filesystem store', () => {
-  it('mounts the root path at the same path and writes into it', () => {
+  it('mounts the root path at the same path and writes into the agent directory', () => {
     const i = input(FS_STORE);
     expect(env(i)).toMatchObject({
       PROBE_AGENT_STORAGE_BACKEND: 'filesystem',
-      PROBE_AGENT_STORAGE_DIR: '/srv/tracedown/bodies',
+      PROBE_AGENT_STORAGE_DIR: '/srv/tracedown/bodies/eu-west-1',
     });
     const command = agentDockerCommand(i);
     expect(command).toContain('-v /srv/tracedown/bodies:/srv/tracedown/bodies \\');
     expect(command).not.toContain(COMPOSE_BODIES_VOLUME);
     expect(Object.keys(env(i)).some(key => key.startsWith('PROBE_AGENT_S3_'))).toBe(false);
+  });
+
+  it('does not double a trailing slash on the root', () => {
+    expect(env(input({ ...FS_STORE, rootPath: '/srv/tracedown/bodies/' })).PROBE_AGENT_STORAGE_DIR)
+      .toBe('/srv/tracedown/bodies/eu-west-1');
+  });
+});
+
+describe('storage settings on their own', () => {
+  it('are the startup variables without the bootstrap', () => {
+    const i = input(S3_STORE);
+    const storage = agentStorageVariables(i.bodies);
+    const full = env(i);
+    for (const [key, value] of storage) expect(full[key]).toBe(value);
+    expect(storage.map(([key]) => key)).not.toContain('PROBE_AGENT_BOOTSTRAP_TOKEN');
   });
 });
 

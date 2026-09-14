@@ -12,13 +12,16 @@ import type { BodyStoreKind, BodyStoreLocation } from '@/data/bodyStores/BodySto
  * Where the agent writes response bodies, and so which variables the command
  * carries and what it mounts.
  *
- * - `filesystem`: the agent writes under `dir`; the Docker command mounts
- *   `source` (a volume name or host path) there.
- * - `s3`: `store` is the configured store the bucket settings come from, or
- *   null for the default store, whose settings stay placeholders.
+ * - `filesystem`: the agent writes into `dir`; the Docker command mounts
+ *   `source` (a volume name or host path) at `mountPath`. `dir` sits at or
+ *   under `mountPath` — a store gives each agent its own directory inside the
+ *   shared root, and the mount stays the root.
+ * - `s3`: `store` is the configured store the bucket settings come from (with
+ *   `prefix` already narrowed to the agent), or null for the default store,
+ *   whose settings stay placeholders.
  */
 export type AgentBodyTarget =
-  | { backend: 'filesystem'; source: string; dir: string }
+  | { backend: 'filesystem'; source: string; mountPath: string; dir: string }
   | { backend: 's3'; store: BodyStoreLocation | null };
 
 export interface AgentStartupInput {
@@ -67,29 +70,45 @@ export const STORE_KEY_PLACEHOLDERS: [string, string][] = [
   ['PROBE_AGENT_S3_SECRET_ACCESS_KEY', '<secret with write access>'],
 ];
 
+/** `path` with a trailing slash removed, so joining never doubles one. */
+function trimTrailing(path: string): string {
+  return path.replace(/\/+$/, '');
+}
+
 /**
  * The body target for an agent enrolled onto `store` (null = the default
  * store, described only by its kind).
  *
+ * Every agent gets its own sub-prefix inside the store — `<prefix>/<slug>` in
+ * a bucket, `<root>/<slug>` on disk — because the platform accepts a body only
+ * from under the writing agent's own sub-prefix. The agent itself namespaces
+ * only per run (a random key per probe), so the agent-level separation has to
+ * come from the settings printed here.
+ *
  * A directory store is mounted at its own root path: the agent reports
  * `file://` paths as it sees them, and the platform accepts only paths under
  * the store's root, so the agent must see the directory where the platform
- * does.
+ * does. The mount is the root; the agent writes into its own directory inside it.
+ *
+ * The default store is left exactly as it was: its bodies are relocated at
+ * ingest from wherever the agent put them, so they need no per-agent prefix.
  */
 export function agentBodyTarget(
   store: BodyStoreLocation | null,
   defaultKind: BodyStoreKind,
+  slug: string,
 ): AgentBodyTarget {
   if (store === null) {
     return defaultKind === 's3'
       ? { backend: 's3', store: null }
-      : { backend: 'filesystem', source: COMPOSE_BODIES_VOLUME, dir: BODIES_DIR };
+      : { backend: 'filesystem', source: COMPOSE_BODIES_VOLUME, mountPath: BODIES_DIR, dir: BODIES_DIR };
   }
   if (store.kind === 'filesystem') {
-    const root = store.rootPath ?? BODIES_DIR;
-    return { backend: 'filesystem', source: root, dir: root };
+    const root = trimTrailing(store.rootPath ?? BODIES_DIR);
+    return { backend: 'filesystem', source: root, mountPath: root, dir: `${root}/${slug}` };
   }
-  return { backend: 's3', store };
+  const prefix = trimTrailing(store.prefix?.trim() ?? '');
+  return { backend: 's3', store: { ...store, prefix: prefix ? `${prefix}/${slug}` : slug } };
 }
 
 function s3Variables(store: BodyStoreLocation | null): [string, string][] {
@@ -104,20 +123,28 @@ function s3Variables(store: BodyStoreLocation | null): [string, string][] {
   return vars;
 }
 
+/**
+ * Just the storage settings of a target — what has to change on an agent that
+ * is moved to another store, without the bootstrap it was enrolled with.
+ */
+export function agentStorageVariables(bodies: AgentBodyTarget): [string, string][] {
+  const vars: [string, string][] = [['PROBE_AGENT_STORAGE_BACKEND', bodies.backend]];
+  if (bodies.backend === 'filesystem') {
+    vars.push(['PROBE_AGENT_STORAGE_DIR', bodies.dir]);
+  } else {
+    vars.push(...s3Variables(bodies.store));
+  }
+  return vars;
+}
+
 /** `[name, value]` pairs in the order they are printed. */
 export function agentEnvironment(input: AgentStartupInput): [string, string][] {
-  const vars: [string, string][] = [
+  return [
     ['PROBE_AGENT_BOOTSTRAP_TOKEN', input.token],
     ['PROBE_AGENT_SCHEDULER_URL', input.schedulerUrl ?? COMPOSE_SCHEDULER_URL],
     ['PROBE_AGENT_PORT', '8443'],
-    ['PROBE_AGENT_STORAGE_BACKEND', input.bodies.backend],
+    ...agentStorageVariables(input.bodies),
   ];
-  if (input.bodies.backend === 'filesystem') {
-    vars.push(['PROBE_AGENT_STORAGE_DIR', input.bodies.dir]);
-  } else {
-    vars.push(...s3Variables(input.bodies.store));
-  }
-  return vars;
 }
 
 /** Full startup command for the published container image. */
@@ -137,7 +164,7 @@ export function agentDockerCommand(input: AgentStartupInput): string {
   // `docker run` fail on a network that does not exist.
   if (input.schedulerUrl === null) lines.push(`  --network ${COMPOSE_NETWORK} \\`);
   if (input.bodies.backend === 'filesystem') {
-    lines.push(`  -v ${input.bodies.source}:${input.bodies.dir} \\`);
+    lines.push(`  -v ${input.bodies.source}:${input.bodies.mountPath} \\`);
   }
   lines.push(
     ...agentEnvironment(input).map(([key, value]) => `  -e ${key}="${value}" \\`),

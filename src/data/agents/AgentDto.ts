@@ -1,4 +1,4 @@
-import type { BodyStoreRef } from '@/data/bodyStores/BodyStoreDto';
+import type { BodyStoreSummary } from '@/data/bodyStores/BodyStoreDto';
 
 export interface AgentStatus {
   agentSlug: string;
@@ -43,8 +43,8 @@ export interface AgentSummary {
   encryptPayload: boolean;
   /** Read-only — what the agent reported at its last health challenge. */
   supportsEncryptedPayload: boolean;
-  /** Body store the agent writes response bodies to; null (or absent) = the default store. */
-  bodyStoreId?: string | null;
+  /** Body store the agent writes response bodies to; null = the default store. */
+  bodyStoreId: string | null;
   createdAt: string;
 }
 
@@ -64,7 +64,7 @@ export interface BootstrapTokenResponse {
   /** Base URL the agent enrols against; null when the gateway has none configured. */
   schedulerUrl?: string | null;
   /** The store the agent is enrolled onto, so its storage settings can be printed; null = default. */
-  bodyStore?: BodyStoreRef | null;
+  bodyStore?: BodyStoreSummary | null;
 }
 
 /** Health mapping for a full agent row (same rules as the status feed). */

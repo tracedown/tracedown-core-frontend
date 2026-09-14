@@ -44,7 +44,10 @@ export type ErrorCode =
   | 'invalid_store_kind'
   | 'invalid_store_mode'
   | 'store_field_required'
+  | 'body_store_location_locked'
+  | 'body_store_unavailable'
   | 'body_gone'
+  | 'body_too_large'
   // Permissions
   | 'forbidden'
   | 'not_org_member'

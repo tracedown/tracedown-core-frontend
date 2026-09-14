@@ -116,8 +116,8 @@
       "s3Note": "The bucket settings are placeholders to fill in where the agent starts. Region auto suits R2 and is ignored by MinIO; AWS S3 wants the real one. PROBE_AGENT_S3_PREFIX scopes keys within the bucket if you need it.",
       "store": "Body store",
       "defaultStore": "Default store",
-      "storeS3Note": "Bucket, endpoint, region and prefix come from the store. Fill in an access key that can write to that bucket and prefix where the agent starts — the store’s own key is never printed.",
-      "storeFilesystemNote": "The agent writes into {path}, mounted at the same path the gateway, the ingestor and the worker see it at. On another host, mount the directory they share at that path."
+      "storeS3Note": "Bucket, endpoint and region come from the store; the prefix is this agent’s own directory inside it, and bodies saved anywhere else are refused. Fill in an access key that can write to that bucket and prefix where the agent starts — the store’s own key is never printed.",
+      "storeFilesystemNote": "The agent writes into {path}, its own directory inside the store root. Mount {root} at that same path here and where the gateway and the ingestor run; bodies saved outside this agent’s directory are refused."
     },
     "startCommandImageNote": "The image is {image} on Docker Hub. Substitute your own name if you build the agent yourself.",
     "startEnvironmentHint": "The same settings as environment variables, for an agent started any other way — a systemd unit, a VM image, a pip install. Paste them into its environment file. Set the machine's hostname to {slug} as well: the agent registers itself under its own hostname, and the certificate it is issued carries that name — which the scheduler pins. A hostname that is not the slug fails every dispatch.",
@@ -138,7 +138,8 @@
     "bodyStore": {
       "column": "Body store",
       "label": "Response body store",
-      "hint": "Where this agent writes response bodies. A change applies from its next run; bodies already stored stay where they are.",
+      "hint": "Where this agent writes response bodies. This records the assignment only — the agent goes on writing where its own settings point until it is redeployed with the storage settings below. Bodies already stored stay where they are.",
+    "showSettings": "Show the storage settings to redeploy with",
       "updated": "Body store updated."
     }
   },
@@ -276,13 +277,19 @@
     "viewBody": "View response body",
     "responseBody": "Response body",
     "bodyLoadFailed": "The response body could not be loaded.",
+    "bodyBinary": "Binary body, {bytes} bytes. The first bytes are shown as hex.",
+    "bodyBinaryTyped": "Binary body, {bytes} bytes of {type}. The first bytes are shown as hex.",
+    "bodyBinaryUnreadable": "Binary body that could not be decoded.",
     "bodyNotStored": "Body not stored",
     "bodyReasons": {
       "notRequested": "body saving is off for this service",
       "unverifiedTarget": "the target domain is not verified, so bodies are not kept",
       "bodyTooLarge": "the body exceeded the size limit",
       "timeout": "no body arrived before the timeout",
-      "storageUnavailable": "body storage was unavailable when the result came in"
+      "storageUnavailable": "body storage was unavailable when the result came in",
+      "outsideAssignedStore": "the agent saved it outside the store it is assigned to",
+      "storeOrgMismatch": "the agent’s store belongs to another organization",
+      "storeRemoved": "the store that held it was removed"
     },
     "bodySavingDisabled": "Body saving not enabled",
     "timingOverlapNote": "Phases may overlap; sum may exceed total response time.",
@@ -656,7 +663,10 @@
     "body_store_name_taken": "A body store with this name already exists.",
     "invalid_store_kind": "Choose a bucket or a filesystem directory.",
     "invalid_store_mode": "Choose import or in place.",
-    "store_field_required": "A required field for this kind of store is missing."
+    "store_field_required": "A required field for this kind of store is missing.",
+    "body_store_location_locked": "Stored bodies still point at where this store keeps them, so its kind, bucket, prefix and root path can no longer change. The endpoint, region, name and credentials still can.",
+    "body_store_unavailable": "The body store could not be reached. Try again in a moment.",
+    "body_too_large": "This response body is too large to show here."
   },
   "meta": {
     "description": "API monitoring and uptime tracking"
@@ -923,7 +933,11 @@
     },
     "modeHints": {
       "import": "The agent writes here; each body is copied into the default store at ingest and kept by the platform’s retention.",
-      "in_place": "Bodies stay here and are read on demand with this store’s credentials. The platform never deletes from it."
+      "in_place": "Bodies stay here and are read on demand with this store’s credentials. The platform never deletes from this store."
+    },
+    "keyPermissions": {
+      "import": "The key saved here needs read and delete on this bucket: each body is read, copied into the default store, and the original removed.",
+      "in_place": "The key saved here needs read on this bucket. The platform never deletes from this store."
     },
     "fields": {
       "name": "Name",
@@ -936,15 +950,64 @@
       "secretAccessKey": "Secret access key"
     },
     "regionPlaceholder": "auto",
-    "rootPathHint": "A directory mounted into the gateway, the ingestor and the worker at this same path.",
+    "rootPathPlaceholder": "/data/stores/store-name",
+    "rootPathHint": "A directory mounted into the gateway and the ingestor at this same path. Agents write into a directory of their own inside it.",
     "secretKeep": "Leave blank to keep the saved secret.",
     "secretWriteOnly": "Stored encrypted and never shown again.",
+    "secretRequiredAgain": "The endpoint, bucket or access key ID changed, so the saved secret no longer belongs to them — enter the secret again.",
     "fieldRequired": "{field} is required.",
+    "fieldTooLong": "{field} is too long.",
+    "fieldTaken": "{field} is already used by another store.",
+    "fieldInvalid": "{field} is not a value this store can use.",
+    "fieldInvalidReason": "{field}: {reason}.",
+    "reasons": {
+      "scheme_not_https": "the endpoint must use https",
+      "private_address": "the endpoint resolves to a private address, which this platform is not allowed to reach",
+      "internal_host": "the endpoint is an internal host name, which this platform is not allowed to reach",
+      "single_label_host": "the endpoint needs a full host name, not a single label",
+      "has_path": "the endpoint must be a host, without a path",
+      "root_not_absolute": "the root path must be absolute",
+      "root_outside_bases": "the root path is outside the directories this platform may keep stores in",
+      "overlaps_default": "it overlaps the default store, and a body would belong to both",
+      "overlaps_store": "it overlaps another store, and a body would belong to both",
+      "invalid_bucket": "that is not a valid bucket name",
+      "invalid_prefix": "that is not a valid prefix"
+    },
     "agentsCount": "no agents | 1 agent | {n} agents",
     "test": "Test",
     "testOk": "Reachable.",
-    "testFailed": "Not reachable: {error}",
     "testFailedGeneric": "Not reachable.",
+    "testCodes": {
+      "blocked_endpoint": "This platform is not allowed to reach that endpoint. Private, internal and plain-http addresses are refused unless the operator allows them.",
+      "bucket_not_found": "There is no such bucket at that endpoint.",
+      "access_denied": "The credentials are accepted but not allowed to do this. Check what the key may do with this bucket and prefix.",
+      "invalid_credentials": "The access key ID or the secret is wrong.",
+      "secret_undecryptable": "The saved secret cannot be decrypted — the platform’s store key has changed since it was saved. Enter the secret again.",
+      "unreachable": "The store did not answer.",
+      "unexpected_response": "The endpoint answered with something that is not an S3 API.",
+      "not_a_directory": "The root path is not a directory.",
+      "not_readable": "The root path cannot be read where this platform runs.",
+      "not_configured": "This store is missing settings it needs. Edit it and fill them in.",
+      "root_not_permitted": "The root path is outside the directories this platform may keep stores in."
+    },
+    "lastFailure": "Last failure {when}: {reason}",
+    "inUse": {
+      "intro": "This store is still used by {what}.",
+      "agents": "1 agent | {n} agents",
+      "tokens": "1 outstanding bootstrap token | {n} outstanding bootstrap tokens",
+      "bodies": "stored response bodies",
+      "and": "and",
+      "next": "Move them to another store first.",
+      "nextBodies": "Move any agents and tokens to another store; stored bodies can only be released by forgetting them."
+    },
+    "forget": {
+      "action": "Delete and forget the stored bodies",
+      "title": "Delete {name} and forget its bodies",
+      "explain": "The store and everything pointing at it go: its agents and outstanding tokens fall back to the default store, and the bodies kept in it are forgotten.",
+      "warning": "Those results will say their body is gone because the store was removed. This cannot be undone.",
+      "objectsKept": "Nothing is deleted from the store itself — its objects stay where they are, for whoever owns it to keep or remove.",
+      "confirm": "Delete and forget"
+    },
     "created": "Store added.",
     "saved": "Store saved.",
     "delete": "Delete store",
