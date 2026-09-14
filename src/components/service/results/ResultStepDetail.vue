@@ -114,6 +114,16 @@
             >
               {{ resultStore.stepBodyError ?? t('results.bodyLoadFailed') }}
             </p>
+            <!-- A binary body is not text and is not pretended to be: it
+                 arrives as bytes, so it is described and shown as bytes. -->
+            <template v-else-if="binaryBody">
+              <p class="text-text-secondary">
+                {{ binaryBody.notice }}
+              </p>
+              <pre
+                class="bg-background-primary p-2 overflow-x-auto max-h-64 text-text-primary font-mono text-xs"
+              >{{ binaryBody.preview }}</pre>
+            </template>
             <pre
               v-else
               class="bg-background-primary p-2 overflow-x-auto max-h-64 text-text-primary font-mono text-xs"
@@ -176,6 +186,34 @@ const bodyUnavailableText = computed(() => {
   if (!reason) return t('results.bodySavingDisabled');
   const key = `results.bodyReasons.${reason}`;
   return `${t('results.bodyNotStored')}: ${te(key) ? t(key) : reason}`;
+});
+
+/** How many bytes of a binary body are shown as hex — enough to recognise a format. */
+const HEX_PREVIEW_BYTES = 96;
+
+/**
+ * A base64 body described rather than rendered: its size, its media type when
+ * the store knew one, and the first bytes as hex so a PNG or a gzip stream is
+ * recognisable without downloading anything.
+ */
+const binaryBody = computed<{ notice: string; preview: string } | null>(() => {
+  const content = resultStore.stepBody;
+  if (resultStore.stepBodyEncoding !== 'base64' || !content) return null;
+  let bytes: Uint8Array;
+  try {
+    const binary = atob(content);
+    bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+  } catch {
+    return { notice: t('results.bodyBinaryUnreadable'), preview: '' };
+  }
+  const type = resultStore.stepBodyContentType;
+  const notice = type
+    ? t('results.bodyBinaryTyped', { bytes: bytes.length, type })
+    : t('results.bodyBinary', { bytes: bytes.length });
+  const preview = Array.from(bytes.slice(0, HEX_PREVIEW_BYTES))
+    .map(byte => byte.toString(16).padStart(2, '0'))
+    .join(' ');
+  return { notice, preview: bytes.length > HEX_PREVIEW_BYTES ? `${preview} …` : preview };
 });
 
 function showBody() {

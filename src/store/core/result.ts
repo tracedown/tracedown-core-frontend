@@ -18,6 +18,9 @@ export const useResultStore = defineStore('result', () => {
   /** The last body fetch failed; the message is the server's (already resolved) when it gave one. */
   const stepBodyFailed = ref<boolean>(false);
   const stepBodyError = ref<string | null>(null);
+  /** `base64` when the body is bytes, not text — the view says so instead of rendering it. */
+  const stepBodyEncoding = ref<'base64' | null>(null);
+  const stepBodyContentType = ref<string | null>(null);
 
   async function fetchResults(serviceId: string, page = 1, pageSize = 50): Promise<ActionResult> {
     loading.value = true;
@@ -93,6 +96,8 @@ export const useResultStore = defineStore('result', () => {
     stepBody.value = null;
     stepBodyFailed.value = false;
     stepBodyError.value = null;
+    stepBodyEncoding.value = null;
+    stepBodyContentType.value = null;
     try {
       const res = await http.get<StepBodyResponse>(
         `/services/${serviceId}/results/${resultId}/steps/${stepId}/body`,
@@ -121,6 +126,8 @@ export const useResultStore = defineStore('result', () => {
         }
       } else {
         stepBody.value = res.data?.content ?? null;
+        stepBodyEncoding.value = res.data?.encoding ?? null;
+        stepBodyContentType.value = res.data?.contentType ?? null;
       }
     } finally {
       stepBodyLoading.value = false;
@@ -131,6 +138,8 @@ export const useResultStore = defineStore('result', () => {
     stepBody.value = null;
     stepBodyFailed.value = false;
     stepBodyError.value = null;
+    stepBodyEncoding.value = null;
+    stepBodyContentType.value = null;
   }
 
   function clearSelection() {
@@ -150,7 +159,7 @@ export const useResultStore = defineStore('result', () => {
 
   return {
     results, totalResults, loading, selectedResult, selectedResultLoading,
-    stepBody, stepBodyLoading, stepBodyFailed, stepBodyError,
+    stepBody, stepBodyLoading, stepBodyFailed, stepBodyError, stepBodyEncoding, stepBodyContentType,
     fetchResults, pageAt, prependNewResults, fetchResultDetail, fetchStepBody,
     clearStepBody, clearSelection, clearResults, clear,
   };

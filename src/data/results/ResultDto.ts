@@ -54,4 +54,11 @@ export interface ParsedAssertion {
 export interface StepBodyResponse {
   content?: string | null;
   url?: string | null;
+  /** Media type as the store reported it, when it knew one. */
+  contentType?: string | null;
+  /**
+   * `base64` when `content` carries bytes rather than text — a binary body is
+   * never mangled into UTF-8 on the way here. Absent or null means text.
+   */
+  encoding?: 'base64' | null;
 }
