@@ -6,10 +6,10 @@
           <TextInput v-model="name" />
         </div>
         <div>
-          <label class="block text-xs font-medium text-text-secondary mb-1">{{ t('service.labelField') }}</label>
+          <label class="block text-xs font-medium text-text-secondary mb-1">{{ t('service.descriptionField') }}</label>
           <TextInput
-            v-model="label"
-            :placeholder="t('service.labelPlaceholder')"
+            v-model="description"
+            :placeholder="t('service.descriptionPlaceholder')"
           />
         </div>
       </div>
@@ -204,7 +204,8 @@ const projectStore = useProjectStore();
 const notifications = useNotificationStore();
 
 const name = ref<string>(props.service.name);
-const label = ref<string>(props.service.label ?? '');
+/** Shown as the service description; the wire field is still `label`. */
+const description = ref<string>(props.service.label ?? '');
 const schedule = ref<string>(props.service.schedule);
 const probeMode = ref<string>(props.service.probeMode);
 const queuePolicy = ref<string>(props.service.queuePolicy);
@@ -277,7 +278,7 @@ function onValidation(errorCount: number) {
 function save() {
   const config: UpdateServiceConfigRequest = {};
   if (name.value.trim() !== props.service.name) config.name = name.value.trim();
-  if (label.value.trim() !== (props.service.label ?? '')) config.label = label.value.trim();
+  if (description.value.trim() !== (props.service.label ?? '')) config.label = description.value.trim();
   if (schedule.value !== props.service.schedule) config.schedule = schedule.value;
   if (probeMode.value !== props.service.probeMode) config.probeMode = probeMode.value;
   if (queuePolicy.value !== props.service.queuePolicy) config.queuePolicy = queuePolicy.value;
