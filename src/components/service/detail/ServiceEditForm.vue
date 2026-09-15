@@ -7,8 +7,11 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-text-secondary mb-1">{{ t('service.descriptionField') }}</label>
+          <!-- The wire field is `label`, a VARCHAR(32); the gateway refuses
+               anything longer with `label_too_long`, so the input stops there. -->
           <TextInput
             v-model="description"
+            maxlength="32"
             :placeholder="t('service.descriptionPlaceholder')"
           />
         </div>

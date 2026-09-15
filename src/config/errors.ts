@@ -29,6 +29,7 @@ export type ErrorCode =
   // Validation
   | 'field_required'
   | 'field_too_long'
+  | 'label_too_long'
   | 'field_invalid'
   | 'invalid_request_body'
   | 'invalid_uuid'

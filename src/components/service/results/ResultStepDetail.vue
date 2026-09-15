@@ -146,6 +146,7 @@ import { useI18n } from 'vue-i18n';
 import LinkButton from '@/components/core/buttons/LinkButton.vue';
 import LoadingSpinner from '@/components/core/LoadingSpinner.vue';
 import { parseAssertions } from '@/utils/assertions';
+import { bodyNotStoredPrefixKey } from '@/utils/resultBodies';
 import { useResultStore } from '@/store/core/result';
 import type { ProbeStepSummary } from '@/data/results/ResultDto';
 
@@ -179,13 +180,15 @@ const timingPhases = computed(() => [
 /**
  * The reason a body is missing, in words. Known codes get a sentence (the raw
  * `notRequested` read as a fault when the real cause was an unverified
- * target); an unknown code is shown as-is rather than hidden.
+ * target); an unknown code is shown as-is rather than hidden. The prefix
+ * follows the reason: a body that was kept and has gone since is "no longer
+ * stored", not "not stored".
  */
 const bodyUnavailableText = computed(() => {
   const reason = props.step.bodyNotStoredReason;
   if (!reason) return t('results.bodySavingDisabled');
   const key = `results.bodyReasons.${reason}`;
-  return `${t('results.bodyNotStored')}: ${te(key) ? t(key) : reason}`;
+  return `${t(bodyNotStoredPrefixKey(reason))}: ${te(key) ? t(key) : reason}`;
 });
 
 /** How many bytes of a binary body are shown as hex — enough to recognise a format. */
