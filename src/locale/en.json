@@ -289,7 +289,8 @@
       "storageUnavailable": "body storage was unavailable when the result came in",
       "outsideAssignedStore": "the agent saved it outside the store it is assigned to",
       "storeOrgMismatch": "the agent’s store belongs to another organization",
-      "storeRemoved": "the store that held it was removed"
+      "storeRemoved": "the store that held it was removed",
+      "bodyExpired": "it expired under the body retention window; the result itself is kept"
     },
     "bodySavingDisabled": "Body saving not enabled",
     "timingOverlapNote": "Phases may overlap; sum may exceed total response time.",
@@ -915,7 +916,7 @@
     "title": "Body stores",
     "hint": "Response bodies an agent saves go to the store it is assigned. Agents without a store use the default store.",
     "defaultTitle": "Default store",
-    "defaultHint": "Configured by the platform’s environment. Bodies imported from other stores land here, and its retention applies.",
+    "defaultHint": "Configured by the platform’s environment. Bodies imported from other stores land here, and the body retention window applies.",
     "defaultUnavailable": "The default store could not be loaded.",
     "none": "No stores yet. Every agent uses the default store.",
     "add": "Add store",
@@ -932,7 +933,7 @@
       "in_place": "In place"
     },
     "modeHints": {
-      "import": "The agent writes here; each body is copied into the default store at ingest and kept by the platform’s retention.",
+      "import": "The agent writes here; each body is copied into the default store at ingest and kept for the body retention window.",
       "in_place": "Bodies stay here and are read on demand with this store’s credentials. The platform never deletes from this store."
     },
     "keyPermissions": {
