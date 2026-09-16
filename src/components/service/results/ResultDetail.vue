@@ -87,6 +87,12 @@ const skippedMessage = computed(() => {
   if (reason === 'dispatch_queue_full' || reason === 'dispatch_backlog') {
     return t('results.skippedQueueFull');
   }
+  // The target asked not to be probed. Nothing is wrong with the service or
+  // the platform, so the generic "never dispatched" line would leave the
+  // reader looking for a fault that is not there.
+  if (reason === 'target_opted_out') {
+    return t('results.skippedTargetOptedOut');
+  }
   return t('results.skippedGeneric');
 });
 
