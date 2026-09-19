@@ -90,7 +90,7 @@
       "down": "Down",
       "unknown": "Unknown"
     },
-    "roundTrip": {
+    "roundTripText": {
       "ms": "{ms} ms",
       "withBaseline": "{last} · typical {typical}",
       "degradedReason": "Slower than usual for this agent — two rounds in a row above {threshold}."

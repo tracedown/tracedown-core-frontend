@@ -14,20 +14,20 @@ import type { AgentStatus } from '@/data/agents/AgentDto';
 export function useAgentHealthText() {
   const { t } = useI18n();
 
-  const ms = (value: number): string => t('agents.roundTrip.ms', { ms: value.toLocaleString() });
+  const ms = (value: number): string => t('agents.roundTripText.ms', { ms: value.toLocaleString() });
 
   /** "1,650 ms", or "1,650 ms · typical 1,500 ms" once the agent has a baseline. */
   function roundTripLabel(agent: AgentStatus): string {
     if (agent.lastResponseMs == null) return '';
     const last = ms(agent.lastResponseMs);
     if (agent.baselineMs == null) return last;
-    return t('agents.roundTrip.withBaseline', { last, typical: ms(agent.baselineMs) });
+    return t('agents.roundTripText.withBaseline', { last, typical: ms(agent.baselineMs) });
   }
 
   /** What the agent is called degraded against; empty when it is not degraded. */
   function degradedReason(agent: AgentStatus): string | undefined {
     if (!agent.degraded || agent.degradedThresholdMs == null) return undefined;
-    return t('agents.roundTrip.degradedReason', { threshold: ms(agent.degradedThresholdMs) });
+    return t('agents.roundTripText.degradedReason', { threshold: ms(agent.degradedThresholdMs) });
   }
 
   return { roundTripLabel, degradedReason };
