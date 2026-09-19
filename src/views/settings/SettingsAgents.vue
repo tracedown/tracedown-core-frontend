@@ -70,7 +70,15 @@
                 class="shrink-0"
                 :color-class="HEALTH_PILL[agentEffectiveHealth(agent)]"
                 :label="t(`agents.health.${agentEffectiveHealth(agent)}`)"
+                :title="degradedReason(agentStatusOf(agent))"
               />
+              <span
+                v-if="agent.lastPongDeltaMs != null && agentEffectiveHealth(agent) !== 'down'"
+                class="text-xs text-text-secondary shrink-0 max-md:hidden"
+                :title="degradedReason(agentStatusOf(agent))"
+              >
+                {{ roundTripLabel(agentStatusOf(agent)) }}
+              </span>
               <span class="text-xs text-text-secondary ml-auto shrink-0">
                 {{ lastPingLabel(agent) }}
               </span>
@@ -131,7 +139,8 @@ import { useAuthStore } from '@/store/core/auth';
 import { useBodyStoreStore } from '@/store/core/bodyStore';
 import { useOrgStore } from '@/store/core/org';
 import { useNotificationStore } from '@/store/ui/notifications';
-import { agentEffectiveHealth } from '@/data/agents/AgentDto';
+import { agentEffectiveHealth, agentStatusOf } from '@/data/agents/AgentDto';
+import { useAgentHealthText } from '@/composables/useAgentHealthText';
 import { useRelativeTime } from '@/composables/useRelativeTime';
 import { useLiveChannel } from '@/requests';
 import { agentHealthChannel, onAgentHealthEvent } from '@/data/agents/agentHealthChannel';
@@ -149,6 +158,7 @@ const bodyStoreStore = useBodyStoreStore();
 const orgStore = useOrgStore();
 const notifications = useNotificationStore();
 const { formatLastOnline } = useRelativeTime();
+const { roundTripLabel, degradedReason } = useAgentHealthText();
 
 const HEALTH_PILL: Record<EffectiveHealth, string> = {
   healthy: 'bg-status-success/10 text-status-success',

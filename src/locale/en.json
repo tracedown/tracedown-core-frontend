@@ -90,6 +90,11 @@
       "down": "Down",
       "unknown": "Unknown"
     },
+    "roundTrip": {
+      "ms": "{ms} ms",
+      "withBaseline": "{last} · typical {typical}",
+      "degradedReason": "Slower than usual for this agent — two rounds in a row above {threshold}."
+    },
     "fleet": "Registered agents",
     "none": "No agents registered yet. Generate a bootstrap token below to connect one.",
     "connect": "Connect a new agent",

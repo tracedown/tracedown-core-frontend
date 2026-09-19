@@ -42,6 +42,7 @@
             <span
               class="text-xs font-medium px-1.5 py-0.5 rounded"
               :class="HEALTH_BADGE[effectiveHealth(agent)]"
+              :title="degradedReason(agent)"
             >
               {{ t(`agents.health.${effectiveHealth(agent)}`) }}
             </span>
@@ -56,8 +57,9 @@
               <p
                 v-if="effectiveHealth(agent) !== 'down' && agent.lastResponseMs != null"
                 class="text-xs text-text-secondary mt-0.5"
+                :title="degradedReason(agent)"
               >
-                {{ agent.lastResponseMs }}ms
+                {{ roundTripLabel(agent) }}
               </p>
             </div>
           </div>
@@ -75,9 +77,11 @@ import DropdownPanel from '@/components/core/DropdownPanel.vue';
 import { useLiveChannel } from '@/requests';
 import { agentHealthChannel, onAgentHealthEvent } from '@/data/agents/agentHealthChannel';
 import { effectiveHealth, type AgentStatus, type EffectiveHealth } from '@/data/agents/AgentDto';
+import { useAgentHealthText } from '@/composables/useAgentHealthText';
 import { tickFast } from '@/lib/timeTick';
 
 const { t } = useI18n();
+const { roundTripLabel, degradedReason } = useAgentHealthText();
 
 const { state } = useLiveChannel(agentHealthChannel, undefined, { onEvent: onAgentHealthEvent });
 
