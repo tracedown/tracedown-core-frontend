@@ -7,6 +7,8 @@
           <CreateToggleButton
             v-model="createOpen"
             :label-text="t('apiKeys.create')"
+            :disabled="!createGate.enabled"
+            :hint="createGate.hint"
           />
         </div>
 
@@ -141,6 +143,7 @@ import TextInput from '@/components/core/input/TextInput.vue';
 import AppSelect from '@/components/core/input/AppSelect.vue';
 import { useApiKeyStore } from '@/store/core/apiKey';
 import { useNotificationStore } from '@/store/ui/notifications';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import type { ApiKeySummary } from '@/data/apikeys/ApiKeyDto';
 import type { SelectOption } from '@/types/ui/common';
 import { formatDate } from '@/lib/dateFormat';
@@ -156,6 +159,8 @@ const EXPIRY_OPTIONS: SelectOption[] = [
   { value: '90', label: t('apiKeys.days', { n: 90 }) },
   { value: '365', label: t('apiKeys.days', { n: 365 }) },
 ];
+
+const createGate = useFeatureGate('apiKey.create');
 
 const createOpen = ref<boolean>(false);
 const newName = ref<string>('');

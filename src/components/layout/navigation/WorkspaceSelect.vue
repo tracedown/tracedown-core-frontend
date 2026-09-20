@@ -38,19 +38,19 @@
               />
             </div>
 
+            <!--  The title rides the wrapper, not the button: a disabled
+                  button is inert and a native tooltip on it never opens.  -->
             <div
               v-if="authStore.canWrite('workspaces')"
               class="w-5"
+              :title="createGate.hint || undefined"
             >
               <PrimaryButton
                 label-text=""
                 class="scale-75"
                 full-width
                 :fa-icon="faPlus"
-                :disabled="!isFeatureEnabled('workspace.create')"
-                :title="isFeatureEnabled('workspace.create') ?
-                  undefined :
-                  t('common.actionUnavailable')"
+                :disabled="!createGate.enabled"
                 @click="createMode = true"
               />
             </div>
@@ -103,7 +103,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { isFeatureEnabled } from '@/config/extensions';
 import { useRouter } from 'vue-router';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
@@ -118,6 +117,7 @@ import SlotOutlet from '@/components/core/SlotOutlet.vue';
 import { useAuthStore } from '@/store/core/auth';
 import { useWorkspaceStore } from '@/store/core/workspace';
 import { useNotificationStore } from '@/store/ui/notifications';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import PrimaryButton from "@/components/core/buttons/PrimaryButton.vue";
 import TextInput from "@/components/core/input/TextInput.vue";
 import SecondaryButton from "@/components/core/buttons/SecondaryButton.vue";
@@ -127,6 +127,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 const workspaceStore = useWorkspaceStore();
 const notifications = useNotificationStore();
+const createGate = useFeatureGate('workspace.create');
 
 const createMode = ref<boolean>(false);
 const newName = ref<string>('');

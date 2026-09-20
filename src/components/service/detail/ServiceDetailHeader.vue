@@ -53,14 +53,26 @@
             />
             {{ service.isActive ? t('common.states.active') : t('common.states.inactive') }}
           </span>
-          <IconButton
-            v-if="canEdit"
-            :fa-icon="faBolt"
-            :disabled="!canRunNow"
-            :title="canRunNow ? t('service.runNow') : t('service.runNowUnavailable')"
-            icon-class="w-3 h-3"
-            @click="handleRunNow"
+          <!-- Extension point: a host may qualify a status it knows is no
+               longer being kept up to date. -->
+          <SlotOutlet
+            name="status-decoration"
+            :slot-props="{ resource: 'service', service }"
           />
+          <!--  The title rides the wrapper, not the button: a disabled button
+                is inert and a native tooltip on it never opens.  -->
+          <span
+            v-if="canEdit"
+            class="inline-block"
+            :title="runTitle"
+          >
+            <IconButton
+              :fa-icon="faBolt"
+              :disabled="!canRunNow"
+              icon-class="w-3 h-3"
+              @click="handleRunNow"
+            />
+          </span>
           <!-- Disabling stops monitoring (outward-facing) — hold to confirm;
                enabling is a plain click. -->
           <IconButton
@@ -87,10 +99,12 @@ import { useI18n } from 'vue-i18n';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faBolt, faClock, faPause, faPenToSquare, faPlay, faXmark } from '@fortawesome/free-solid-svg-icons';
 import IconButton from '@/components/core/buttons/IconButton.vue';
+import SlotOutlet from '@/components/core/SlotOutlet.vue';
 import SilenceBell from '@/components/core/notifications/SilenceBell.vue';
 import { useProjectStore } from '@/store/core/project';
 import { useServiceStore } from '@/store/core/service';
 import { useNotificationStore } from '@/store/ui/notifications';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import type { ServiceSummary } from '@/data/services/ServiceDto';
 
 /**
@@ -126,8 +140,20 @@ const serviceParentKeys = computed(() => {
 /** Disabling is always allowed; enabling needs a script to run. */
 const canToggle = computed(() => props.service.isActive || !!props.service.script);
 
-/** A run-now only reaches dispatch when the service is active with a script. */
-const canRunNow = computed(() => props.service.isActive && !!props.service.script);
+const runGate = useFeatureGate('service.run');
+
+/**
+ * A run-now only reaches dispatch when the service is active with a script —
+ * and when no host has closed the action.
+ */
+const canRunNow = computed(() =>
+  props.service.isActive && !!props.service.script && runGate.value.enabled);
+
+/** A closed gate explains itself; the built-in conditions keep their wording. */
+const runTitle = computed<string>(() => {
+  if (!runGate.value.enabled) return runGate.value.hint;
+  return canRunNow.value ? t('service.runNow') : t('service.runNowUnavailable');
+});
 
 async function handleRunNow() {
   const result = await serviceStore.runService(props.service.id);

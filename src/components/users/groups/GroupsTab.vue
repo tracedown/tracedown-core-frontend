@@ -14,8 +14,8 @@
           v-if="canEdit"
           v-model="createOpen"
           :label-text="t('groups.createNew')"
-          :disabled="!isFeatureEnabled('group.create')"
-          :hint="t('common.actionUnavailable')"
+          :disabled="!createGate.enabled"
+          :hint="createGate.hint"
         />
       </div>
 
@@ -71,7 +71,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { isFeatureEnabled } from '@/config/extensions';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faChevronRight, faUserGroup } from '@fortawesome/free-solid-svg-icons';
 import CreateToggleButton from '@/components/core/buttons/CreateToggleButton.vue';
@@ -82,6 +81,7 @@ import GroupDetail from '@/components/users/groups/GroupDetail.vue';
 import { useAuthStore } from '@/store/core/auth';
 import { useGroupStore } from '@/store/core/group';
 import { useNotificationStore } from '@/store/ui/notifications';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import LoadingState from '@/components/core/LoadingState.vue';
 import BadgePill from '@/components/core/BadgePill.vue';
 
@@ -90,6 +90,7 @@ const { t } = useI18n();
 const authStore = useAuthStore();
 const groupStore = useGroupStore();
 const notifications = useNotificationStore();
+const createGate = useFeatureGate('group.create');
 
 const createOpen = ref<boolean>(false);
 const expandedGroupId = ref<string | null>(null);

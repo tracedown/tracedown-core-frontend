@@ -7,6 +7,8 @@
             v-if="canManage"
             v-model="createOpen"
             :label-text="t('webhooks.create')"
+            :disabled="!createGate.enabled"
+            :hint="createGate.hint"
           />
         </div>
         <p class="text-sm text-text-secondary max-w-2xl">
@@ -122,6 +124,7 @@ import { useWebhookStore } from '@/store/core/webhook';
 import { useAuthStore } from '@/store/core/auth';
 import { useOrgStore } from '@/store/core/org';
 import { useNotificationStore } from '@/store/ui/notifications';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import type { CreateWebhookRequest, WebhookSummary } from '@/data/webhooks/WebhookDto';
 
 /**
@@ -135,6 +138,7 @@ const orgStore = useOrgStore();
 const notifications = useNotificationStore();
 
 const canManage = computed(() => authStore.canWrite('webhooks'));
+const createGate = useFeatureGate('webhook.create');
 
 const createOpen = ref<boolean>(false);
 const editingId = ref<string | null>(null);

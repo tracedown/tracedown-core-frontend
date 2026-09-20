@@ -11,6 +11,12 @@
           class="w-2 h-2 rounded-full shrink-0"
           :class="statusDotClass(service.lastStatus)"
         />
+        <!-- Extension point: a host may qualify a status it knows is no longer
+             being kept up to date. -->
+        <SlotOutlet
+          name="status-decoration"
+          :slot-props="{ resource: 'service', service }"
+        />
         <span class="text-sm font-medium text-text-primary truncate">{{ service.name }}</span>
         <SilenceBell
           resource-type="service"
@@ -57,6 +63,7 @@ import { useRelativeTime } from '@/composables/useRelativeTime';
 import { useProjectStore } from '@/store/core/project';
 import type { ServiceSummary } from '@/data/services/ServiceDto';
 import BadgePill from '@/components/core/BadgePill.vue';
+import SlotOutlet from '@/components/core/SlotOutlet.vue';
 import SilenceBell from '@/components/core/notifications/SilenceBell.vue';
 
 const props = defineProps<{

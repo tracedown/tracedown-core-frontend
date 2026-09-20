@@ -36,6 +36,8 @@
           <CreateToggleButton
             v-model="showCreate"
             :label-text="t('variables.createNew')"
+            :disabled="!createGate.enabled"
+            :hint="createGate.hint"
           />
         </div>
 
@@ -80,6 +82,8 @@ import EmptyState from '@/components/core/EmptyState.vue';
 import CreateToggleButton from '@/components/core/buttons/CreateToggleButton.vue';
 import VariableCreateForm from '@/components/resource/variables/VariableCreateForm.vue';
 import VariableTable from '@/components/resource/variables/VariableTable.vue';
+import { useFeatureGate } from '@/composables/useFeatureGate';
+import { variableCreateGate } from '@/lib/featureGate';
 import type { CreateVariableRequest, VariableScope, VariableSummary } from '@/data/variables/VariableDto';
 
 /**
@@ -108,6 +112,9 @@ const { t } = useI18n();
 
 const open = ref<boolean>(props.defaultOpen);
 const showCreate = ref<boolean>(false);
+
+/** Each scope carries its own gate — the layers are closed independently. */
+const createGate = useFeatureGate(() => variableCreateGate(props.scope.scope));
 
 /**
  * On success the form unmounts (and thereby resets) so a second submit can't

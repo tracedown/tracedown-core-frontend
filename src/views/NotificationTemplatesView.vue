@@ -7,6 +7,8 @@
             v-if="canManage"
             v-model="createOpen"
             :label-text="t('templates.create')"
+            :disabled="!createGate.enabled"
+            :hint="createGate.hint"
           />
         </div>
         <p class="text-sm text-text-secondary max-w-2xl">
@@ -176,6 +178,7 @@ import { useNotificationTemplateStore } from '@/store/core/notificationTemplate'
 import { useWorkspaceStore } from '@/store/core/workspace';
 import { useAuthStore } from '@/store/core/auth';
 import { useNotificationStore } from '@/store/ui/notifications';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import type { NotificationTemplateSummary } from '@/data/notifications/NotificationTemplateDto';
 import type { ProjectSummary } from '@/data/projects/ProjectDto';
 import type { DataColumn } from '@/types/ui/table';
@@ -193,6 +196,7 @@ const authStore = useAuthStore();
 const notifications = useNotificationStore();
 
 const canManage = computed(() => authStore.canWrite('notifications'));
+const createGate = useFeatureGate('notificationTemplate.create');
 
 const expandedId = ref<string | null>(null);
 const projectFilter = ref<string>('');

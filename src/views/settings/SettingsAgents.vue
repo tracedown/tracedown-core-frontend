@@ -15,6 +15,8 @@
             v-if="authStore.canWrite('settings')"
             v-model="connectOpen"
             :label-text="t('agents.connect')"
+            :disabled="!connectGate.enabled"
+            :hint="connectGate.hint"
           />
         </div>
 
@@ -141,6 +143,7 @@ import { useOrgStore } from '@/store/core/org';
 import { useNotificationStore } from '@/store/ui/notifications';
 import { agentEffectiveHealth, agentStatusOf } from '@/data/agents/AgentDto';
 import { useAgentHealthText } from '@/composables/useAgentHealthText';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import { useRelativeTime } from '@/composables/useRelativeTime';
 import { useLiveChannel } from '@/requests';
 import { agentHealthChannel, onAgentHealthEvent } from '@/data/agents/agentHealthChannel';
@@ -168,6 +171,7 @@ const HEALTH_PILL: Record<EffectiveHealth, string> = {
 };
 
 const storesEnabled = computed(() => isFeatureEnabled('bodyStores', { orgId: orgStore.selectedOrgId }));
+const connectGate = useFeatureGate('agent.create');
 
 /** The agent's body store by name; an id the list does not know yet shows as the id. */
 function storeName(agent: AgentSummary): string {

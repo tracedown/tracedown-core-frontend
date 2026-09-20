@@ -15,6 +15,7 @@ export {
   setScriptEditor,
   registerFeatureGate,
   isFeatureEnabled,
+  checkFeature,
   registerDeleteOrgHandler,
   registerDataExportContributor,
   registerServiceStatisticsPanel,
@@ -22,6 +23,9 @@ export {
 } from '@/config/extensions';
 export type {
   FeatureContext,
+  FeatureDecision,
+  FeatureVerdict,
+  StatusDecorationProps,
   DeleteOrgCredentials,
   DeleteOrgHandler,
   DataExportContributor,
@@ -29,6 +33,13 @@ export type {
   ServiceStatisticsPanelProps,
 } from '@/config/extensions';
 export type { StatWindow } from '@/store/core/statistics';
+
+// Rendering a gated control: a host component that offers a create action of
+// its own reads the same gate, so its button closes with the built-in ones and
+// carries the same explanation.
+export { useFeatureGate } from '@/composables/useFeatureGate';
+export { featureGateState, variableCreateGate } from '@/lib/featureGate';
+export type { FeatureGateState } from '@/lib/featureGate';
 
 // Mobile shell: the single breakpoint the app switches layouts on. A host that
 // renders chrome of its own reads the same source of truth rather than picking

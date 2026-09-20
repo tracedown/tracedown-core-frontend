@@ -8,6 +8,8 @@
           v-if="canEdit"
           v-model="showCreateForm"
           :label-text="t('variables.createNew')"
+          :disabled="!createGate.enabled"
+          :hint="createGate.hint"
         />
       </div>
       <p class="text-xs text-text-secondary mb-3">
@@ -83,6 +85,7 @@ import VariableRow from '@/components/resource/variables/VariableRow.vue';
 import EmptyState from '@/components/core/EmptyState.vue';
 import { useWebhookVariableStore } from '@/store/core/webhookVariable';
 import { useVariableActions } from '@/composables/useVariableActions';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import type { CreateVariableRequest, VariableSummary } from '@/data/variables/VariableDto';
 
 /**
@@ -100,6 +103,7 @@ const { t } = useI18n();
 const store = useWebhookVariableStore();
 
 const PREFIX = '$h.';
+const createGate = useFeatureGate('webhook.variable.create');
 const showCreateForm = ref<boolean>(false);
 
 const variables = computed<VariableSummary[]>(() => store.variablesByWebhook.get(props.webhookId) ?? []);

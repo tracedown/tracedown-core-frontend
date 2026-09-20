@@ -2,15 +2,21 @@
     <!-- Surface color comes from the shared tab-content background. -->
     <div>
       <div class="flex items-center justify-between px-4 py-3 border-b border-text-secondary/50">
-        <h2 class="text-sm font-semibold text-text-primary">
-          {{ t('common.entities.services') }}
-        </h2>
+        <div class="flex items-center gap-3">
+          <h2 class="text-sm font-semibold text-text-primary">
+            {{ t('common.entities.services') }}
+          </h2>
+          <SlotOutlet
+            name="resource-meta"
+            :slot-props="{ resource: 'services' }"
+          />
+        </div>
         <CreateToggleButton
           v-if="canEdit"
           v-model="showCreateForm"
           :label-text="t('service.createNew')"
-          :disabled="!isFeatureEnabled('service.create')"
-          :hint="t('common.actionUnavailable')"
+          :disabled="!createGate.enabled"
+          :hint="createGate.hint"
         />
       </div>
 
@@ -61,15 +67,16 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { isFeatureEnabled } from '@/config/extensions';
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import CreateToggleButton from '@/components/core/buttons/CreateToggleButton.vue';
+import SlotOutlet from '@/components/core/SlotOutlet.vue';
 import EmptyState from '@/components/core/EmptyState.vue';
 import InlineCreateForm from '@/components/resource/InlineCreateForm.vue';
 import ServiceListSection from '@/components/service/ServiceListSection.vue';
 import ServiceListItem from '@/components/service/ServiceListItem.vue';
 import { useServiceStore } from '@/store/core/service';
 import { useNotificationStore } from '@/store/ui/notifications';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import { SERVICE_CATEGORIES } from '@/utils/serviceCategories';
 import type { ServiceCategory } from '@/types/services';
 import LoadingState from '@/components/core/LoadingState.vue';
@@ -88,6 +95,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const serviceStore = useServiceStore();
 const notifications = useNotificationStore();
+const createGate = useFeatureGate('service.create');
 
 const showCreateForm = ref<boolean>(false);
 const collapsed = reactive<Partial<Record<ServiceCategory, boolean>>>({});

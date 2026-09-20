@@ -69,14 +69,22 @@
         <p class="text-xs text-text-secondary mb-1">
           {{ t('presets.saveCurrentHint') }}
         </p>
-        <InputActionRow
-          v-model="presetName"
-          compact
-          class="max-w-md"
-          :placeholder="t('presets.namePlaceholder')"
-          :action-label="t('presets.saveAs')"
-          @submit="handleSavePreset"
-        />
+        <!--  The title rides the wrapper, not the row: a disabled control is
+              inert and a native tooltip on it never opens.  -->
+        <span
+          class="block"
+          :title="saveGate.hint || undefined"
+        >
+          <InputActionRow
+            v-model="presetName"
+            compact
+            class="max-w-md"
+            :placeholder="t('presets.namePlaceholder')"
+            :action-label="t('presets.saveAs')"
+            :disabled="!saveGate.enabled"
+            @submit="handleSavePreset"
+          />
+        </span>
       </div>
 
       <!--  Actions in the dialog's footer: on a phone the sheet pins this
@@ -116,6 +124,7 @@ import GhostButton from '@/components/core/buttons/GhostButton.vue';
 import { useAuthStore } from '@/store/core/auth';
 import { useRulePresetStore } from '@/store/core/rulePreset';
 import { useNotificationStore } from '@/store/ui/notifications';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import type { RulePresetSummary } from '@/data/presets/RulePresetDto';
 
 /**
@@ -146,6 +155,9 @@ const { t } = useI18n();
 const authStore = useAuthStore();
 const presetStore = useRulePresetStore();
 const notifications = useNotificationStore();
+// Only saving a new template is gated — applying and deleting an existing one
+// are untouched.
+const saveGate = useFeatureGate('rulePreset.create');
 
 const selected = ref<RulePresetSummary | null>(null);
 const presetName = ref<string>('');

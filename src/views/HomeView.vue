@@ -19,9 +19,15 @@
 
       <!-- In an org, but it has no (accessible) workspaces yet. -->
       <template v-else>
-        <h1 class="text-xl font-semibold text-text-primary mb-2">
-          {{ t('workspace.noWorkspaces') }}
-        </h1>
+        <div class="flex items-center gap-3 mb-2">
+          <h1 class="text-xl font-semibold text-text-primary">
+            {{ t('workspace.noWorkspaces') }}
+          </h1>
+          <SlotOutlet
+            name="resource-meta"
+            :slot-props="{ resource: 'workspaces' }"
+          />
+        </div>
         <p class="text-sm text-text-secondary mb-6">
           {{ t('workspace.noWorkspacesDescription') }}
         </p>
@@ -30,12 +36,12 @@
           <span
             v-if="!showCreateForm"
             class="inline-block"
-            :title="isFeatureEnabled('workspace.create') ? undefined : t('common.actionUnavailable')"
+            :title="createGate.hint || undefined"
           >
             <PrimaryButton
               :label-text="t('workspace.createNew')"
               :fa-icon="faPlus"
-              :disabled="!isFeatureEnabled('workspace.create')"
+              :disabled="!createGate.enabled"
               :on-click="() => showCreateForm = true"
             />
           </span>
@@ -59,7 +65,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { isFeatureEnabled } from '@/config/extensions';
 import { useRouter } from 'vue-router';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faBoxOpen, faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -71,6 +76,7 @@ import { useWorkspaceStore } from '@/store/core/workspace';
 import { useNotificationStore } from '@/store/ui/notifications';
 import InputActionRow from '@/components/core/input/InputActionRow.vue';
 import SlotOutlet from '@/components/core/SlotOutlet.vue';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 
 /**
  * Landing view of `/` for sessions without any workspace — the router guard
@@ -82,6 +88,7 @@ const authStore = useAuthStore();
 const orgStore = useOrgStore();
 const workspaceStore = useWorkspaceStore();
 const notifications = useNotificationStore();
+const createGate = useFeatureGate('workspace.create');
 
 const showCreateForm = ref<boolean>(false);
 const newName = ref<string>('');

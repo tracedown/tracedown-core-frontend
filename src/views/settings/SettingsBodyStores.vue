@@ -30,12 +30,20 @@
       <div class="space-y-3">
         <div class="flex items-center justify-between">
           <SectionHeading :label="t('bodyStores.title')" />
-          <PrimaryButton
+          <!--  The title rides the wrapper, not the button: a disabled button
+                is inert and a native tooltip on it never opens.  -->
+          <span
             v-if="canManage"
-            :label-text="t('bodyStores.add')"
-            :fa-icon="faPlus"
-            :on-click="() => editing = 'new'"
-          />
+            class="inline-block"
+            :title="createGate.hint || undefined"
+          >
+            <PrimaryButton
+              :label-text="t('bodyStores.add')"
+              :fa-icon="faPlus"
+              :disabled="!createGate.enabled"
+              :on-click="() => editing = 'new'"
+            />
+          </span>
         </div>
         <p class="text-sm text-text-secondary max-w-3xl">
           {{ t('bodyStores.hint') }}
@@ -84,6 +92,7 @@ import BodyStoreDialog from '@/components/settings/bodyStores/BodyStoreDialog.vu
 import { useBodyStoreStore } from '@/store/core/bodyStore';
 import { useAuthStore } from '@/store/core/auth';
 import { useNotificationStore } from '@/store/ui/notifications';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import { BODY_STORE_KINDS, bodyStoreLocationLabel } from '@/data/bodyStores/BodyStoreDto';
 import type { BodyStoreView } from '@/data/bodyStores/BodyStoreDto';
 
@@ -98,6 +107,7 @@ const authStore = useAuthStore();
 const notifications = useNotificationStore();
 
 const canManage = computed(() => authStore.canWrite('settings'));
+const createGate = useFeatureGate('bodyStore.create');
 
 /** The store in the dialog: a row, `'new'` for the add dialog, or null when closed. */
 const editing = ref<BodyStoreView | 'new' | null>(null);

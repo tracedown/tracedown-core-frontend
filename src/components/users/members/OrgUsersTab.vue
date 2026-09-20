@@ -14,8 +14,8 @@
           v-if="canEdit"
           v-model="inviteOpen"
           :label-text="t('users.invite')"
-          :disabled="!isFeatureEnabled('invite.create')"
-          :hint="t('common.actionUnavailable')"
+          :disabled="!inviteGate.enabled"
+          :hint="inviteGate.hint"
         />
       </div>
 
@@ -50,7 +50,7 @@
             type="submit"
             class="shrink-0"
             :label-text="t('users.invite')"
-            :disabled="!inviteEmail.trim() || !isFeatureEnabled('invite.create')"
+            :disabled="!inviteEmail.trim() || !inviteGate.enabled"
           />
         </form>
       </div>
@@ -128,7 +128,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { isFeatureEnabled } from '@/config/extensions';
 import type { SelectOption } from '@/types/ui/common';
 import type { PendingInvite } from '@/data/orgs/InviteDto';
 import { faRotate, faTrash, faUsers } from '@fortawesome/free-solid-svg-icons';
@@ -147,6 +146,7 @@ import { useAuthStore } from '@/store/core/auth';
 import { useOrgUserStore } from '@/store/core/orgUser';
 import { useGroupStore } from '@/store/core/group';
 import { useNotificationStore } from '@/store/ui/notifications';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import LoadingState from '@/components/core/LoadingState.vue';
 import SectionHeading from '@/components/core/SectionHeading.vue';
 import { formatDate as formatOrgDate } from '@/lib/dateFormat';
@@ -157,6 +157,7 @@ const authStore = useAuthStore();
 const orgUserStore = useOrgUserStore();
 const groupStore = useGroupStore();
 const notifications = useNotificationStore();
+const inviteGate = useFeatureGate('invite.create');
 
 const inviteOpen = ref<boolean>(false);
 const inviteEmail = ref<string>('');

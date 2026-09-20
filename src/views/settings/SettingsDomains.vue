@@ -7,6 +7,8 @@
             v-if="canManage"
             v-model="createOpen"
             :label-text="t('domains.add')"
+            :disabled="!createGate.enabled"
+            :hint="createGate.hint"
           />
         </div>
         <p class="text-sm text-text-secondary max-w-2xl">
@@ -125,6 +127,7 @@ import { slotIsFilled } from '@/config/extensions';
 import { useDomainStore } from '@/store/core/domain';
 import { useAuthStore } from '@/store/core/auth';
 import { useNotificationStore } from '@/store/ui/notifications';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import type { DomainSummary } from '@/data/domains/DomainDto';
 import type { SelectOption } from '@/types/ui/common';
 
@@ -148,6 +151,7 @@ const TYPE_OPTIONS: SelectOption[] = [
 const DOMAIN_RE = /^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))+$/;
 
 const canManage = computed(() => authStore.canWrite('domains'));
+const createGate = useFeatureGate('domain.create');
 
 const expandedId = ref<string | null>(null);
 const createOpen = ref<boolean>(false);

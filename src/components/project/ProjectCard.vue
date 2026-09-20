@@ -15,6 +15,12 @@
           @click.prevent
         />
         <span class="ml-auto" />
+        <!-- Extension point: a host may qualify a status it knows is no longer
+             being kept up to date. -->
+        <SlotOutlet
+          name="status-decoration"
+          :slot-props="{ resource: 'project', project }"
+        />
         <span
           class="w-1.5 h-1.5 rounded-full shrink-0"
           :class="statusDot"
@@ -54,6 +60,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { computeSuccessRate, metricsSuccessStyle, statusDotClass } from '@/lib/metrics-utils';
 import type { ProjectSummary } from '@/data/projects/ProjectDto';
+import SlotOutlet from '@/components/core/SlotOutlet.vue';
 import SilenceBell from '@/components/core/notifications/SilenceBell.vue';
 
 const props = defineProps<{

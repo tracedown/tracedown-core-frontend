@@ -8,6 +8,8 @@
           v-if="canEdit"
           v-model="showCreateForm"
           :label-text="t('variables.createNew')"
+          :disabled="!createGate.enabled"
+          :hint="createGate.hint"
         />
       </div>
       <p class="text-sm text-text-secondary mb-4 max-w-2xl">
@@ -56,6 +58,8 @@ import EmptyState from '@/components/core/EmptyState.vue';
 import { useOrgVariableStore } from '@/store/core/orgVariable';
 import { useAuthStore } from '@/store/core/auth';
 import { useVariableActions } from '@/composables/useVariableActions';
+import { useFeatureGate } from '@/composables/useFeatureGate';
+import { variableCreateGate } from '@/lib/featureGate';
 import type { CreateVariableRequest } from '@/data/variables/VariableDto';
 
 /**
@@ -68,6 +72,7 @@ const authStore = useAuthStore();
 
 const PREFIX = '$o.';
 const canEdit = computed(() => authStore.canWrite('settings'));
+const createGate = useFeatureGate(variableCreateGate('org'));
 const showCreateForm = ref<boolean>(false);
 
 const actions = useVariableActions({

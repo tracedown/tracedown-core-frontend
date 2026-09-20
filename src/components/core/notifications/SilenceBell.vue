@@ -1,18 +1,18 @@
 <template>
+    <!--  The title rides the wrapper, not the button: a disabled button is
+          inert and a native tooltip on it never opens.  -->
     <span
       v-if="visible"
+      :title="title"
       @click.stop
     >
       <IconButton
         :fa-icon="silenced || inherited ? faBellSlash : faBell"
-        :title="inherited
-          ? t('silences.inherited')
-          : silenced ? t('silences.muted') : t('silences.mute')"
         :color-class="silenced || inherited
           ? 'text-status-warning hover:text-text-primary'
           : 'text-text-secondary hover:text-accent-primary'"
         icon-class="w-3.5 h-3.5"
-        :disabled="inherited"
+        :disabled="inherited || muteBlocked"
         @click="handleToggle"
       />
     </span>
@@ -26,6 +26,7 @@ import IconButton from '@/components/core/buttons/IconButton.vue';
 import { useAuthStore } from '@/store/core/auth';
 import { useSilenceStore } from '@/store/core/silence';
 import { useNotificationStore } from '@/store/ui/notifications';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import type { GrantResourceType } from '@/data/orgs/PermissionDto';
 
 /**
@@ -53,6 +54,7 @@ const { t } = useI18n();
 const authStore = useAuthStore();
 const silenceStore = useSilenceStore();
 const notifications = useNotificationStore();
+const createGate = useFeatureGate('silence.create');
 
 /** Only grant holders receive notifications — no grant, nothing to silence. */
 const visible = computed(() => authStore.hasResourceGrant([
@@ -74,8 +76,17 @@ const inherited = computed(() => {
   });
 });
 
+/** Only placing a new silence is gated — lifting an existing one is not. */
+const muteBlocked = computed(() => !silenced.value && !createGate.value.enabled);
+
+const title = computed<string>(() => {
+  if (inherited.value) return t('silences.inherited');
+  if (silenced.value) return t('silences.muted');
+  return muteBlocked.value ? createGate.value.hint : t('silences.mute');
+});
+
 async function handleToggle() {
-  if (inherited.value) return;
+  if (inherited.value || muteBlocked.value) return;
   const result = await silenceStore.toggle(props.resourceType, props.resourceId);
   if (!result.ok && result.message) notifications.show(result.message, 'error');
 }

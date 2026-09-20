@@ -2,12 +2,20 @@
     <div class="space-y-3">
       <div class="flex items-center justify-between">
         <SectionHeading :label="t('grafana.title')" />
-        <PrimaryButton
+        <!--  The title rides the wrapper, not the button: a disabled button is
+              inert and a native tooltip on it never opens.  -->
+        <span
           v-if="canEdit && !loading && !integration"
-          :label-text="t('grafana.connect')"
-          :loading="creating"
-          :on-click="handleCreate"
-        />
+          class="inline-block"
+          :title="createGate.hint || undefined"
+        >
+          <PrimaryButton
+            :label-text="t('grafana.connect')"
+            :loading="creating"
+            :disabled="!createGate.enabled"
+            :on-click="handleCreate"
+          />
+        </span>
       </div>
       <p class="text-sm text-text-secondary max-w-2xl">
         {{ t('grafana.hint') }}
@@ -96,6 +104,7 @@ import ToggleSwitch from '@/components/core/input/ToggleSwitch.vue';
 import AppSelect from '@/components/core/input/AppSelect.vue';
 import { useGrafanaIntegrationStore } from '@/store/core/grafanaIntegration';
 import { useNotificationStore } from '@/store/ui/notifications';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import type { GrafanaIntegrationSummary } from '@/data/integrations/GrafanaDto';
 import type { SelectOption } from '@/types/ui/common';
 
@@ -112,6 +121,7 @@ const props = defineProps<{
 const { t } = useI18n();
 const grafanaStore = useGrafanaIntegrationStore();
 const notifications = useNotificationStore();
+const createGate = useFeatureGate('grafanaIntegration.create');
 
 const loading = ref<boolean>(true);
 const creating = ref<boolean>(false);

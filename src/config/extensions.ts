@@ -2,6 +2,8 @@ import { defineAsyncComponent, type Component } from 'vue';
 import LoadingSpinner from '@/components/core/LoadingSpinner.vue';
 import type { ActionDataResult, ActionResult } from '@/types/actions';
 import type { StatWindow } from '@/store/core/statistics';
+import type { ProjectSummary } from '@/data/projects/ProjectDto';
+import type { ServiceSummary } from '@/data/services/ServiceDto';
 
 /**
  * In-memory extension registry. A host application can register additional
@@ -41,6 +43,18 @@ export function slotIsFilled(name: string): boolean {
   return getSlotComponents(name).length > 0;
 }
 
+/**
+ * Props the `status-decoration` outlet is rendered with, beside the status
+ * indicator of a service row, a service detail header and a project card.
+ *
+ * The status Core draws is the last probe result it holds. A host may know
+ * that reading is no longer being kept up to date, and this is where it says
+ * so — the indicator itself stays exactly what Core measured.
+ */
+export type StatusDecorationProps =
+  | { resource: 'service'; service: ServiceSummary }
+  | { resource: 'project'; project: ProjectSummary };
+
 // ── Script editor ────────────────────────────────────────────────────────────
 
 /**
@@ -76,16 +90,36 @@ export interface FeatureContext {
   orgId?: string | null;
 }
 
-type FeatureGatePredicate = (context: FeatureContext) => boolean;
+/**
+ * A veto that explains itself. The app shows `reason` on the control it closed,
+ * so the person reading it learns why from the host that knows — returning a
+ * bare `false` is still allowed and falls back to the app's generic wording.
+ */
+export interface FeatureVerdict {
+  enabled: boolean;
+  /** Already-localized text; the app renders it verbatim. */
+  reason?: string;
+}
+
+type FeatureGatePredicate = (context: FeatureContext) => boolean | FeatureVerdict;
+
+/** The outcome of a check: open or closed, with the reason the veto gave. */
+export interface FeatureDecision {
+  enabled: boolean;
+  /** Null when open, or when the veto gave no wording of its own. */
+  reason: string | null;
+}
 
 const featureGates = new Map<string, FeatureGatePredicate[]>();
 
 /**
  * Register a predicate that decides whether a named feature is available for a
  * given context. A feature is enabled unless at least one registered predicate
- * returns false, so any host module can veto it. The predicate is evaluated on
+ * vetoes it, so any host module can veto it. The predicate is evaluated on
  * every check — read reactive state inside it and callers that run in a
  * computed stay reactive.
+ *
+ * Return `false` to veto, or `{ enabled: false, reason }` to veto and say why.
  */
 export function registerFeatureGate(feature: string, predicate: FeatureGatePredicate): void {
   const existing = featureGates.get(feature);
@@ -97,14 +131,28 @@ export function registerFeatureGate(feature: string, predicate: FeatureGatePredi
 }
 
 /**
+ * Whether a feature is available for the given context, and why not when it is
+ * not. Open when no gate vetoes it (the default). The first veto decides: it is
+ * the one whose reason the app shows, so later gates are not consulted. Pass
+ * the subject (e.g. `{ orgId }`) so the decision is per-tenant, not a single
+ * global toggle.
+ */
+export function checkFeature(feature: string, context: FeatureContext = {}): FeatureDecision {
+  for (const gate of featureGates.get(feature) ?? []) {
+    const verdict = gate(context);
+    if (verdict === true) continue;
+    if (verdict === false) return { enabled: false, reason: null };
+    if (!verdict.enabled) return { enabled: false, reason: verdict.reason ?? null };
+  }
+  return { enabled: true, reason: null };
+}
+
+/**
  * Whether a feature is available for the given context. True when no gate
- * vetoes it (the default). Pass the subject (e.g. `{ orgId }`) so the decision
- * is per-tenant, not a single global toggle.
+ * vetoes it (the default). Use [checkFeature] where the veto's reason is shown.
  */
 export function isFeatureEnabled(feature: string, context: FeatureContext = {}): boolean {
-  const gates = featureGates.get(feature);
-  if (!gates) return true;
-  return gates.every(gate => gate(context));
+  return checkFeature(feature, context).enabled;
 }
 
 // ── Personal data export ─────────────────────────────────────────────────────

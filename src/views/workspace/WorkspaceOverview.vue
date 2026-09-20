@@ -14,8 +14,8 @@
           v-if="canEditWorkspace"
           v-model="showCreateForm"
           :label-text="t('project.createNew')"
-          :disabled="!isFeatureEnabled('project.create')"
-          :hint="t('common.actionUnavailable')"
+          :disabled="!createGate.enabled"
+          :hint="createGate.hint"
         />
       </div>
 
@@ -61,7 +61,6 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { isFeatureEnabled } from '@/config/extensions';
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import CreateToggleButton from '@/components/core/buttons/CreateToggleButton.vue';
 import SlotOutlet from '@/components/core/SlotOutlet.vue';
@@ -74,6 +73,7 @@ import { useProjectStore } from '@/store/core/project';
 import { useNotificationStore } from '@/store/ui/notifications';
 import { useSearchStore } from '@/store/ui/search';
 import { useResourceSearch } from '@/composables/useResourceSearch';
+import { useFeatureGate } from '@/composables/useFeatureGate';
 import LoadingState from '@/components/core/LoadingState.vue';
 
 const { t } = useI18n();
@@ -82,6 +82,7 @@ const authStore = useAuthStore();
 const projectStore = useProjectStore();
 const notifications = useNotificationStore();
 const searchStore = useSearchStore();
+const createGate = useFeatureGate('project.create');
 
 const workspaceId = computed(() => route.params.workspaceId as string);
 const canEditWorkspace = computed(() =>
