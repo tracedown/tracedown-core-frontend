@@ -47,8 +47,11 @@
             :key="key"
           >
             <span class="text-text-secondary">{{ key }}</span>
+            <!--  Through the shared duration formatter: a raw `1120ms` here
+                  sat next to the statistics tab's `1.12s` for the same kind of
+                  number.  -->
             <p class="text-text-primary font-mono mt-0.5">
-              {{ value }}ms
+              {{ formatMs(value) }}
             </p>
           </div>
         </div>

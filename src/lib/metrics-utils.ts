@@ -13,7 +13,14 @@ export function metricsSuccessStyle(m: ServiceMetricsDto | null): Record<string,
   return successRateStyle(computeSuccessRate(m));
 }
 
-/** Formats milliseconds compactly: `840ms` / `1.24s`. */
+/**
+ * The app's duration format: `840ms` under a second, `1.24s` above it.
+ *
+ * One formatter for every duration a viewer reads as a number — summary tiles,
+ * percentiles, chart ticks and tooltips alike. Two of them is how the config
+ * tab came to print `1120ms` where the statistics tab printed `1.12s` for the
+ * same measurement.
+ */
 export function formatMs(ms: number): string {
   return ms >= 1000 ? `${(ms / 1000).toFixed(2)}s` : `${Math.round(ms)}ms`;
 }

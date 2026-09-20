@@ -11,8 +11,8 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ChartCanvas from '@/components/core/graphs/ChartCanvas.vue';
-import { cssVar, formatMsTick, withAlpha } from '@/lib/charts';
-import { formatBucketLabel } from '@/lib/metrics-utils';
+import { cssVar, withAlpha } from '@/lib/charts';
+import { formatBucketLabel, formatMs } from '@/lib/metrics-utils';
 import type { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import type { StatBucket } from '@/data/metrics/MetricsDto';
 import { lowerPercentBounds, upperPercentBounds } from '@/utils/percentAxis';
@@ -129,7 +129,9 @@ const chartOptions = computed<ChartOptions>(() => {
       x: { ticks: { color: textColor, maxTicksLimit: 8 }, grid: { display: false } },
       yMs: {
         beginAtZero: true,
-        ticks: { color: textColor, callback: formatMsTick },
+        // The statistics tab speaks one duration format throughout — the same
+        // one the summary tiles and the per-endpoint panels use.
+        ticks: { color: textColor, callback: value => formatMs(Number(value)) },
         grid: { color: gridColor },
       },
     },
@@ -137,7 +139,7 @@ const chartOptions = computed<ChartOptions>(() => {
       ...base.plugins,
       tooltip: {
         callbacks: {
-          label: (item: TooltipItem<'line'>) => `${item.dataset.label}: ${formatMsTick(item.parsed.y ?? 0)}`,
+          label: (item: TooltipItem<'line'>) => `${item.dataset.label}: ${formatMs(item.parsed.y ?? 0)}`,
         },
       },
     },

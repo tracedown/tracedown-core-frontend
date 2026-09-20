@@ -9,6 +9,7 @@ import {
   BarElement,
   CategoryScale,
   Chart,
+  Filler,
   Legend,
   LineController,
   LineElement,
@@ -30,6 +31,9 @@ export function registerCharts() {
     PointElement,
     CategoryScale, 
     LinearScale,
+    // `fill: true` on a line dataset is a no-op without it, and Chart.js warns
+    // on every render that the Filler plugin is missing.
+    Filler,
     Legend, 
     Tooltip,
   );
