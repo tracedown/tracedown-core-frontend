@@ -124,10 +124,14 @@
                 class="bg-background-primary p-2 overflow-x-auto max-h-64 text-text-primary font-mono text-xs"
               >{{ binaryBody.preview }}</pre>
             </template>
+            <!-- Laid out when the body is JSON small enough to lay out, and
+                 otherwise exactly the text that arrived. Either way the box
+                 scrolls rather than wrapping, so a long line stays one line
+                 and cannot push the panel wider than its column. -->
             <pre
               v-else
               class="bg-background-primary p-2 overflow-x-auto max-h-64 text-text-primary font-mono text-xs"
-            >{{ resultStore.stepBody }}</pre>
+            >{{ shownBody }}</pre>
           </div>
         </template>
         <span
@@ -146,7 +150,7 @@ import { useI18n } from 'vue-i18n';
 import LinkButton from '@/components/core/buttons/LinkButton.vue';
 import LoadingSpinner from '@/components/core/LoadingSpinner.vue';
 import { parseAssertions } from '@/utils/assertions';
-import { bodyNotStoredPrefixKey } from '@/utils/resultBodies';
+import { bodyNotStoredPrefixKey, layOutJsonBody } from '@/utils/resultBodies';
 import { useResultStore } from '@/store/core/result';
 import type { ProbeStepSummary } from '@/data/results/ResultDto';
 
@@ -218,6 +222,14 @@ const binaryBody = computed<{ notice: string; preview: string } | null>(() => {
     .join(' ');
   return { notice, preview: bytes.length > HEX_PREVIEW_BYTES ? `${preview} …` : preview };
 });
+
+/**
+ * The text body as it is shown: JSON gets line breaks and indentation, and
+ * nothing else changes — no value is re-serialised, so what is on screen is
+ * still exactly what the check received. Keyed on the body itself, so the walk
+ * runs once when it arrives rather than on every render of the panel.
+ */
+const shownBody = computed(() => layOutJsonBody(resultStore.stepBody));
 
 function showBody() {
   bodyVisible.value = true;
