@@ -79,6 +79,34 @@
             </template>
           </ResponsiveTable>
         </section>
+
+        <!--  Per-endpoint panels. Both are absent from an older backend's
+              response, and both disappear again for a service whose calls
+              nothing could be grouped by, so neither leaves an empty frame.  -->
+        <section v-if="endpoints.length > 0">
+          <SectionHeading class="mb-2" :label="t('statistics.endpointCodes')" />
+          <p class="text-xs text-text-secondary/70 mb-2">
+            {{ t('statistics.endpointCodesHelp') }}
+          </p>
+          <p
+            v-if="stats?.endpointsTruncated"
+            class="text-xs text-text-secondary/70 mb-2"
+          >
+            {{ t('statistics.endpointsTruncated', { count: endpoints.length }, endpoints.length) }}
+          </p>
+          <EndpointCodesChart :endpoints="endpoints" />
+        </section>
+
+        <section v-if="hasPhaseEndpoints">
+          <SectionHeading class="mb-2" :label="t('statistics.endpointPhases')" />
+          <p class="text-xs text-text-secondary/70 mb-2">
+            {{ t('statistics.endpointPhasesHelp') }}
+          </p>
+          <EndpointPhasesChart
+            :endpoints="endpoints"
+            :window="window"
+          />
+        </section>
       </template>
 
       <!--  Host panels, after everything built in. Rendered whatever the
@@ -107,13 +135,15 @@ import LoadingState from '@/components/core/LoadingState.vue';
 import EmptyState from '@/components/core/EmptyState.vue';
 import ResponsiveTable from '@/components/core/ResponsiveTable.vue';
 import StatSeriesChart from '@/components/core/graphs/StatSeriesChart.vue';
+import EndpointCodesChart from '@/components/core/graphs/EndpointCodesChart.vue';
+import EndpointPhasesChart from '@/components/core/graphs/EndpointPhasesChart.vue';
 import { useStatisticsStore, type StatWindow } from '@/store/core/statistics';
 import { getServiceStatisticsPanels } from '@/config/extensions';
 import { useProjectStore } from '@/store/core/project';
 import { useNotificationStore } from '@/store/ui/notifications';
 import { formatMs } from '@/lib/metrics-utils';
 import type { ServiceSummary } from '@/data/services/ServiceDto';
-import type { StatBucket } from '@/data/metrics/MetricsDto';
+import type { EndpointStat, StatBucket } from '@/data/metrics/MetricsDto';
 import type { DataColumn } from '@/types/ui/table';
 import type { SelectOption } from '@/types/ui/common';
 import { storeToRefs } from 'pinia';
@@ -146,6 +176,10 @@ const windowOptions = computed<SelectOption[]>(() => [
 
 const overall = computed<StatBucket[]>(() => stats.value?.overall ?? []);
 const hasData = computed(() => overall.value.length > 0);
+
+/** Empty for a backend that does not send the per-endpoint breakdown yet. */
+const endpoints = computed<EndpointStat[]>(() => stats.value?.endpoints ?? []);
+const hasPhaseEndpoints = computed(() => endpoints.value.some(e => e.phases !== null));
 
 /** Probe-count-weighted average of a bucket field over a series (null when no runs). */
 function weighted(buckets: StatBucket[], pick: (b: StatBucket) => number | null): number | null {

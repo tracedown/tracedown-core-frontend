@@ -330,7 +330,21 @@
     "probes": "Probes",
     "avgUptime": "Avg uptime",
     "avgErrorRate": "Avg error rate",
-    "avgP95": "Avg p95"
+    "avgP95": "Avg p95",
+    "endpointCodes": "Response codes by endpoint",
+    "endpointCodesHelp": "Every status code the window saw, per call in the script, grouped by method and URL template.",
+    "endpointPhases": "Time per phase by endpoint",
+    "endpointPhasesHelp": "Average time in each connection phase over the window. The marker on a bar is the previous period's total.",
+    "endpointsTruncated": "This service has more endpoints than fit here — showing the first one. | This service has more endpoints than fit here — showing the first {count}.",
+    "hideSuccessCodes": "Hide 2xx",
+    "endpointNoResponse": "No response",
+    "endpointCodeTooltip": "{count} call · {share}% of its calls | {count} calls · {share}% of its calls",
+    "endpointPhaseValue": "{phase} {value}",
+    "endpointPhaseDelta": "{phase} {value} · {delta} vs previous {period}",
+    "previousPeriod24h": "24 hours",
+    "previousPeriod7d": "7 days",
+    "previousPeriod30d": "30 days",
+    "previousPeriod90d": "90 days"
   },
   "metrics": {
     "totalProbes": "Total probes",
