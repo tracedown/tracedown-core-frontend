@@ -51,10 +51,20 @@ export function useServiceLiveSnapshot(serviceId: () => string) {
 
   const recentProbes = computed<ProbePoint[]>(() => snapshot.value?.recentProbes ?? []);
 
-  // Keep the list's copy of the summary in sync with the polled snapshot.
-  watch(snapshot, (updated) => {
-    if (updated && updated.service.id === serviceId()) {
-      serviceStore.updateInPlace(updated.service.id, updated.service);
+  /**
+   * Keep the list's copy of the summary in sync with the snapshot — but only
+   * when the snapshot's summary is itself a fresh read.
+   *
+   * A live event patches part of the snapshot and the rest is carried over by
+   * reference, so watching the whole snapshot fired on every probe result and
+   * wrote the summary captured when the panel opened back over the list. That
+   * is a service reverting to the state it was in before the user's last save.
+   * Watching the summary alone fires on the fetch and the poll, which replace
+   * it, and not on a patch, which does not.
+   */
+  watch(() => snapshot.value?.service, (service) => {
+    if (service && service.id === serviceId()) {
+      serviceStore.updateInPlace(service.id, service, { fromDetail: true });
     }
   });
 

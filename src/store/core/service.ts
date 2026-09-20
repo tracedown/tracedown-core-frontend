@@ -7,6 +7,7 @@ import {
   findService,
   updateServiceInPlace,
 } from '@/lib/serviceBuckets';
+import type { UpdateOrigin } from '@/lib/serviceBuckets';
 import { defaultPfsParams, DEFAULT_PAGE_SIZE, pfsToQueryString } from '@/utils/pfs';
 import { CATEGORY_STATUS_FILTERS, SERVICE_CATEGORIES } from '@/utils/serviceCategories';
 import type { Page, PfsFilter } from '@/types/pfs';
@@ -134,7 +135,7 @@ export const useServiceStore = defineStore('service', () => {
   /** Fetches a single service and updates it in place (used by live updates). */
   async function refreshService(serviceId: string) {
     const updated = await fetchService(serviceId);
-    if (updated) updateInPlace(serviceId, updated);
+    if (updated) updateInPlace(serviceId, updated, { fromDetail: true });
   }
 
   async function createService(request: CreateServiceRequest): Promise<ActionDataResult<ServiceSummary>> {
@@ -258,9 +259,15 @@ export const useServiceStore = defineStore('service', () => {
     return { ok: true, data: updated };
   }
 
-  /** Replaces a service in its category, preserving enriched fields the update may lack. */
-  function updateInPlace(serviceId: string, updated: ServiceSummary) {
-    updateServiceInPlace(categories, serviceId, updated);
+  /**
+   * Replaces a service in its category, preserving enriched fields the update
+   * may lack and refusing to move it back to an older revision.
+   *
+   * Pass `{ fromDetail: true }` for the single-service read — the only payload
+   * that speaks for `unverifiedTargets`.
+   */
+  function updateInPlace(serviceId: string, updated: ServiceSummary, origin: UpdateOrigin = {}) {
+    updateServiceInPlace(categories, serviceId, updated, origin);
   }
 
   /** Applies an incremental metric update from a live probe.completed event. */
