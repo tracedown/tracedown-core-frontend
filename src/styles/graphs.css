@@ -16,5 +16,20 @@
   --chart-dimmed: color-mix(in srgb, var(--color-text-secondary) 55%, transparent);
   --chart-grid: color-mix(in srgb, var(--color-text-secondary) 30%, transparent);
 
+  /* A call that got no HTTP answer at all (DNS, connect, TLS, timeout). Deeper
+     than the failure red it sits next to, so "no response" never reads as just
+     another shade of 5xx. */
+  --chart-no-response: #b91c1c;
+
+  /* Connection phases, in the order they happen. Literal hex (not color-mix):
+     these are stacked bar fills that also need an alpha variant, and
+     `withAlpha` only understands #rrggbb. Muted → cool → warm, so the phase
+     that usually dominates (TTFB, the server thinking) is the one that reads
+     first. */
+  --chart-phase-dns: #64748b;
+  --chart-phase-connect: #0ea5e9;
+  --chart-phase-tls: #a78bfa;
+  --chart-phase-ttfb: #f59e0b;
+  --chart-phase-transfer: #2dd4bf;
 }
 
