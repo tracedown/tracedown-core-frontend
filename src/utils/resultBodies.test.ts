@@ -173,6 +173,12 @@ describe('layOutJsonBody', () => {
     expect(layOutJsonBody(source)).toBe(source);
   });
 
+  it('turns away a body longer than the cap without counting its bytes', () => {
+    const source = generateJson(JSON_BODY_LAYOUT_MAX_BYTES * 8);
+    expect(source.length).toBeGreaterThan(JSON_BODY_LAYOUT_MAX_BYTES);
+    expect(layOutJsonBody(source)).toBe(source);
+  });
+
   it('counts the cap in bytes, not characters', () => {
     // Each 😀 is four UTF-8 bytes but only two UTF-16 units, so this string is
     // half the cap long in characters and just over the cap in bytes.

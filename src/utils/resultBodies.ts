@@ -168,6 +168,11 @@ export function reindentJson(text: string): string {
  */
 export function layOutJsonBody(text: string | null | undefined): string {
   if (!text) return text ?? '';
+  // A character is never fewer bytes than it is UTF-16 units, so a string
+  // longer than the cap is over it whatever it holds. Worth checking first:
+  // that is the case the cap exists for, and it is the one where counting the
+  // bytes one at a time would cost the most.
+  if (text.length > JSON_BODY_LAYOUT_MAX_BYTES) return text;
   if (utf8ByteLength(text) > JSON_BODY_LAYOUT_MAX_BYTES) return text;
   try {
     JSON.parse(text);
