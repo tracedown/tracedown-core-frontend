@@ -39,6 +39,7 @@
           :step="step"
           :service-id="result.serviceId"
           :result-id="result.id"
+          :service-name="serviceName"
           :expanded="expandedStepId === step.id"
           @toggle="toggleStep(step.id)"
         />
@@ -69,6 +70,11 @@ const JsonViewer = defineAsyncComponent({
 });
 
 const { t } = useI18n();
+defineProps<{
+  /** Names a downloaded response body; optional. */
+  serviceName?: string;
+}>();
+
 const resultStore = useResultStore();
 
 const activeTab = ref<string>('calls');

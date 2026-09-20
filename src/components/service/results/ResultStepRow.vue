@@ -40,6 +40,7 @@
         :step="step"
         :service-id="serviceId"
         :result-id="resultId"
+        :service-name="serviceName"
       />
     </div>
 </template>
@@ -55,6 +56,8 @@ defineProps<{
   step: ProbeStepSummary;
   serviceId: string;
   resultId: string;
+  /** Names a downloaded response body; optional. */
+  serviceName?: string;
   expanded: boolean;
 }>();
 

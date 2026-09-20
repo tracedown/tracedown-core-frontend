@@ -81,7 +81,7 @@
 
       <!-- Result detail -->
       <div class="w-2/3 flex flex-col min-w-0 max-md:w-full">
-        <ResultDetail />
+        <ResultDetail :service-name="service.name" />
       </div>
     </div>
 </template>

@@ -2,6 +2,7 @@ import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { http } from '@/config/requests';
 import { defaultPfsParams, pfsToQueryString } from '@/utils/pfs';
+import { bodyToBlob } from '@/utils/resultBodies';
 import type { Page } from '@/types/pfs';
 import type { ProbeResultDetail, ProbeResultSummary, StepBodyResponse } from '@/data/results/ResultDto';
 import type { ActionDataResult, ActionResult } from '@/types/actions';
@@ -134,6 +135,51 @@ export const useResultStore = defineStore('result', () => {
     }
   }
 
+  /**
+   * Fetches a step's body as the exact bytes the check received, for saving to
+   * a file.
+   *
+   * Deliberately separate from [fetchStepBody] and deliberately writes none of
+   * its state. This is the path a body too big to display takes, and putting
+   * tens of megabytes into a reactive ref — where every render would hold it,
+   * and Vue would have it under a proxy — to then hand it straight to a
+   * download is the wrong shape. Object-storage bodies go from the socket into
+   * a Blob without ever becoming a JavaScript string.
+   */
+  async function fetchStepBodyBlob(
+    serviceId: string,
+    resultId: string,
+    stepId: string,
+  ): Promise<ActionDataResult<{ blob: Blob; contentType: string | null; encoding: 'base64' | null }>> {
+    const res = await http.get<StepBodyResponse>(
+      `/services/${serviceId}/results/${resultId}/steps/${stepId}/body`,
+      { disableLoading: true },
+    );
+    if (!res.success) {
+      return { ok: false, message: res.errorInfo?.message };
+    }
+    const contentType = res.data?.contentType ?? null;
+    // Presigned object-storage URL — fetched directly, same reasoning as the
+    // display path: the bucket's CORS is scoped to this origin, and the
+    // session token must never reach the storage host.
+    if (res.data?.url) {
+      try {
+        const remote = await fetch(res.data.url);
+        if (!remote.ok) return { ok: false };
+        return { ok: true, data: { blob: await remote.blob(), contentType, encoding: null } };
+      } catch {
+        return { ok: false };
+      }
+    }
+    const content = res.data?.content;
+    if (content == null) return { ok: false };
+    const encoding = res.data?.encoding ?? null;
+    return {
+      ok: true,
+      data: { blob: bodyToBlob(content, encoding, contentType), contentType, encoding },
+    };
+  }
+
   function clearStepBody() {
     stepBody.value = null;
     stepBodyFailed.value = false;
@@ -160,7 +206,7 @@ export const useResultStore = defineStore('result', () => {
   return {
     results, totalResults, loading, selectedResult, selectedResultLoading,
     stepBody, stepBodyLoading, stepBodyFailed, stepBodyError, stepBodyEncoding, stepBodyContentType,
-    fetchResults, pageAt, prependNewResults, fetchResultDetail, fetchStepBody,
+    fetchResults, pageAt, prependNewResults, fetchResultDetail, fetchStepBody, fetchStepBodyBlob,
     clearStepBody, clearSelection, clearResults, clear,
   };
 });

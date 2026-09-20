@@ -13,6 +13,7 @@ import {
 import { linter, type Diagnostic as CmDiagnostic } from '@codemirror/lint';
 import { keymap, type EditorView } from '@codemirror/view';
 import { tokenize, parse, validate } from '@lacelang/validator';
+import { downloadText } from '@/lib/fileDownload';
 
 type TokenType = 'STRING' | 'INT' | 'FLOAT' | 'BOOL' | 'IDENT' | 'RUN_VAR' | 'SCRIPT_VAR' | 'KEYWORD' | 'LPAREN' | 'RPAREN' | 'LBRACE' | 'RBRACE' | 'LBRACK' | 'RBRACK' | 'COMMA' | 'COLON' | 'DOT' | 'SEMI' | 'PLUS' | 'MINUS' | 'STAR' | 'SLASH' | 'PERCENT' | 'EOF';
 
@@ -195,7 +196,7 @@ export function laceSaveKeymap(getName: () => string | undefined) {
 
 /** Downloads `content` as `<snake_cased_service_name>.lace` (falls back to `script.lace`). */
 export function saveLaceFile(content: string, serviceName?: string): void {
-  downloadLaceScript(content, laceFilename(serviceName));
+  downloadText(content, laceFilename(serviceName));
 }
 
 /** Builds `<snake_case>.lace` from a service name, falling back to `script.lace`. */
@@ -206,15 +207,3 @@ function laceFilename(name: string | undefined): string {
   return `${base || 'script'}.lace`;
 }
 
-/** Triggers a browser download of `content` as `filename`. */
-function downloadLaceScript(content: string, filename: string): void {
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
-}

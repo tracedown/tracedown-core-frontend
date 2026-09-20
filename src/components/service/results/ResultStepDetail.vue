@@ -25,7 +25,7 @@
         class="text-xs"
       >
         <span class="text-text-secondary">{{ t('results.size') }}: </span>
-        <span class="text-text-primary font-mono">{{ (step.responseSizeBytes / 1024).toFixed(1) }} KB</span>
+        <span class="text-text-primary font-mono">{{ formatBytes(step.responseSizeBytes) }}</span>
       </div>
 
       <!-- Error -->
@@ -86,21 +86,47 @@
       <!-- Response body -->
       <div class="text-xs">
         <template v-if="step.hasBody">
-          <LinkButton
-            v-if="!bodyVisible"
-            :label-text="t('results.viewBody')"
-            @click="showBody"
-          />
+          <div
+            v-if="!body.visible.value"
+            class="flex items-center gap-3 max-md:flex-wrap"
+          >
+            <!-- Only offered when there is something to open. A body past the
+                 display limit is never fetched just to be refused, so the
+                 download is the only thing on offer for one. -->
+            <LinkButton
+              v-if="body.recordedDisplay.value !== 'too-large'"
+              :label-text="t('results.viewBody')"
+              @click="body.show"
+            />
+            <span
+              v-else
+              class="text-text-secondary"
+            >{{ t('results.bodyTooLargeToShow') }}</span>
+            <LinkButton
+              :fa-icon="faDownload"
+              :label-text="body.downloading.value ? t('common.states.loading') : t('results.downloadBody')"
+              color-class="text-text-secondary hover:text-accent-primary"
+              @click="body.download"
+            />
+          </div>
           <div v-else>
-            <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center justify-between gap-3 mb-1">
               <p class="text-text-secondary font-medium">
                 {{ t('results.responseBody') }}
               </p>
-              <LinkButton
-                :label-text="t('common.actions.hide')"
-                color-class="text-text-secondary hover:text-text-primary"
-                @click="hideBody"
-              />
+              <div class="flex items-center gap-3">
+                <LinkButton
+                  :fa-icon="faDownload"
+                  :label-text="body.downloading.value ? t('common.states.loading') : t('results.downloadBody')"
+                  color-class="text-text-secondary hover:text-accent-primary"
+                  @click="body.download"
+                />
+                <LinkButton
+                  :label-text="t('common.actions.hide')"
+                  color-class="text-text-secondary hover:text-text-primary"
+                  @click="body.hide"
+                />
+              </div>
             </div>
             <p
               v-if="resultStore.stepBodyLoading"
@@ -114,24 +140,35 @@
             >
               {{ resultStore.stepBodyError ?? t('results.bodyLoadFailed') }}
             </p>
+            <!-- Bigger than the step said it would be. Nothing is drawn: the
+                 download above is the way to read it. -->
+            <p
+              v-else-if="body.display.value === 'too-large'"
+              class="text-text-secondary"
+            >
+              {{ t('results.bodyTooLargeToShow') }}
+            </p>
             <!-- A binary body is not text and is not pretended to be: it
                  arrives as bytes, so it is described and shown as bytes. -->
-            <template v-else-if="binaryBody">
+            <template v-else-if="body.display.value === 'binary' && body.binary.value">
               <p class="text-text-secondary">
-                {{ binaryBody.notice }}
+                {{ body.binary.value!.notice }}
               </p>
               <pre
+                v-if="body.binary.value!.preview"
                 class="bg-background-primary p-2 overflow-x-auto max-h-64 text-text-primary font-mono text-xs"
-              >{{ binaryBody.preview }}</pre>
+              >{{ body.binary.value!.preview }}</pre>
             </template>
-            <!-- Laid out when the body is JSON small enough to lay out, and
-                 otherwise exactly the text that arrived. Either way the box
-                 scrolls rather than wrapping, so a long line stays one line
-                 and cannot push the panel wider than its column. -->
+            <!-- JSON keeps hard line breaks and scrolls sideways: it has been
+                 laid out, so its lines are already short, and wrapping them
+                 would only break the indentation that makes it readable.
+                 Anything else may well be one enormous line — minified markup,
+                 a bundle — so it wraps instead of running off the pane. -->
             <pre
               v-else
               class="bg-background-primary p-2 overflow-x-auto max-h-64 text-text-primary font-mono text-xs"
-            >{{ shownBody }}</pre>
+              :class="body.display.value === 'format' ? 'whitespace-pre' : 'whitespace-pre-wrap break-all'"
+            >{{ body.shown.value }}</pre>
           </div>
         </template>
         <span
@@ -145,12 +182,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, defineAsyncComponent } from 'vue';
+import { computed, defineAsyncComponent } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import LinkButton from '@/components/core/buttons/LinkButton.vue';
 import LoadingSpinner from '@/components/core/LoadingSpinner.vue';
+import { formatBytes } from '@/lib/metrics-utils';
 import { parseAssertions } from '@/utils/assertions';
-import { bodyNotStoredPrefixKey, layOutJsonBody } from '@/utils/resultBodies';
+import { bodyNotStoredPrefixKey } from '@/utils/resultBodies';
+import { useStepBody } from '@/composables/useStepBody';
 import { useResultStore } from '@/store/core/result';
 import type { ProbeStepSummary } from '@/data/results/ResultDto';
 
@@ -158,6 +198,8 @@ const props = defineProps<{
   step: ProbeStepSummary;
   serviceId: string;
   resultId: string;
+  /** Names the downloaded file; optional, so a lone step still saves sensibly. */
+  serviceName?: string;
 }>();
 
 // Shares CodeMirror with the editor chunk — load on demand.
@@ -169,7 +211,11 @@ const JsonViewer = defineAsyncComponent({
 const { t, te } = useI18n();
 const resultStore = useResultStore();
 
-const bodyVisible = ref<boolean>(false);
+/** Everything about the response body: what to draw, and how to save it. */
+const body = useStepBody(
+  () => props.step,
+  () => ({ serviceId: props.serviceId, resultId: props.resultId, serviceName: props.serviceName }),
+);
 
 const assertions = computed(() => parseAssertions(props.step.assertionResults));
 
@@ -194,50 +240,4 @@ const bodyUnavailableText = computed(() => {
   const key = `results.bodyReasons.${reason}`;
   return `${t(bodyNotStoredPrefixKey(reason))}: ${te(key) ? t(key) : reason}`;
 });
-
-/** How many bytes of a binary body are shown as hex — enough to recognise a format. */
-const HEX_PREVIEW_BYTES = 96;
-
-/**
- * A base64 body described rather than rendered: its size, its media type when
- * the store knew one, and the first bytes as hex so a PNG or a gzip stream is
- * recognisable without downloading anything.
- */
-const binaryBody = computed<{ notice: string; preview: string } | null>(() => {
-  const content = resultStore.stepBody;
-  if (resultStore.stepBodyEncoding !== 'base64' || !content) return null;
-  let bytes: Uint8Array;
-  try {
-    const binary = atob(content);
-    bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
-  } catch {
-    return { notice: t('results.bodyBinaryUnreadable'), preview: '' };
-  }
-  const type = resultStore.stepBodyContentType;
-  const notice = type
-    ? t('results.bodyBinaryTyped', { bytes: bytes.length, type })
-    : t('results.bodyBinary', { bytes: bytes.length });
-  const preview = Array.from(bytes.slice(0, HEX_PREVIEW_BYTES))
-    .map(byte => byte.toString(16).padStart(2, '0'))
-    .join(' ');
-  return { notice, preview: bytes.length > HEX_PREVIEW_BYTES ? `${preview} …` : preview };
-});
-
-/**
- * The text body as it is shown: JSON gets line breaks and indentation, and
- * nothing else changes — no value is re-serialised, so what is on screen is
- * still exactly what the check received. Keyed on the body itself, so the walk
- * runs once when it arrives rather than on every render of the panel.
- */
-const shownBody = computed(() => layOutJsonBody(resultStore.stepBody));
-
-function showBody() {
-  bodyVisible.value = true;
-  void resultStore.fetchStepBody(props.serviceId, props.resultId, props.step.id);
-}
-
-function hideBody() {
-  bodyVisible.value = false;
-  resultStore.clearStepBody();
-}
 </script>
