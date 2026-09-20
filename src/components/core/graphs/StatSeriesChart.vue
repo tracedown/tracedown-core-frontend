@@ -15,6 +15,7 @@ import { cssVar, formatMsTick, withAlpha } from '@/lib/charts';
 import { formatBucketLabel } from '@/lib/metrics-utils';
 import type { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import type { StatBucket } from '@/data/metrics/MetricsDto';
+import { lowerPercentBounds, upperPercentBounds } from '@/utils/percentAxis';
 
 /**
  * A statistics time series read from `probe_aggregates`. `uptime` mode plots the
@@ -45,7 +46,7 @@ const chartData = computed<ChartData>(() => {
           fill: true,
           pointRadius: 0,
           borderWidth: 1.5,
-          tension: 0.3,
+          cubicInterpolationMode: 'monotone' as const,
           yAxisID: 'y',
           spanGaps: true,
         },
@@ -56,7 +57,7 @@ const chartData = computed<ChartData>(() => {
           backgroundColor: cssVar('--chart-failure'),
           pointRadius: 0,
           borderWidth: 1.5,
-          tension: 0.3,
+          cubicInterpolationMode: 'monotone' as const,
           yAxisID: 'yErr',
           spanGaps: true,
         },
@@ -99,13 +100,15 @@ const chartOptions = computed<ChartOptions>(() => {
         x: { ticks: { color: textColor, maxTicksLimit: 8 }, grid: { display: false } },
         y: {
           position: 'left',
-          // Auto-scaled (not zero-based) so small uptime dips near 100% are visible.
+          // Auto-scaled (not zero-based) so small uptime dips near 100% are
+          // visible — but never past 100, which a flat series otherwise gets.
+          ...upperPercentBounds(props.buckets.map(b => b.uptimePct)),
           ticks: { color: textColor, callback: (v) => `${v}%` },
           grid: { color: gridColor },
         },
         yErr: {
           position: 'right',
-          beginAtZero: true,
+          ...lowerPercentBounds(props.buckets.map(b => b.errorRatePct)),
           ticks: { color: textColor, callback: (v) => `${v}%` },
           grid: { display: false },
         },
