@@ -75,6 +75,11 @@ function messageOf(alert: SystemAlertSummary): string {
       return t('systemAlerts.resultIngestFailed', { since });
     case 'outbox_consumer_stalled':
       return t('systemAlerts.outboxConsumerStalled', { consumers: alert.subject, since });
+    case 'notification_dropped':
+      return t('systemAlerts.notificationDropped', {
+        error: (alert.data?.lastError as string | undefined) ?? '?',
+        since,
+      });
     default:
       return t('systemAlerts.generic', { type: alert.alertType, since });
   }
