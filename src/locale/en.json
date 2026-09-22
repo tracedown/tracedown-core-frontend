@@ -819,6 +819,7 @@
     "schedulerError": "Probes are being skipped — the scheduler itself is failing to start them (since {since}). Nothing is wrong with your agents or your settings: check the scheduler service and its database connection.",
     "resultIngestFailed": "A finished probe run could not be recorded and has been set aside (since {since}). Its history is missing and will not appear on its own — check the result-ingestor service and its dead-letter queue.",
     "outboxConsumerStalled": "An internal event consumer ({consumers}) has stopped reading and is falling behind (since {since}). Events it never read will age out. Restart it, or remove its cursor if it is retired.",
+    "notificationDropped": "A notification for this service could not be delivered and has been given up on (since {since}, last error: {error}). The probe result itself is recorded; the alert for it was never sent. Check the notification-dispatcher log for the cause.",
     "generic": "System alert: {type} (since {since}).",
     "logTab": "Warning log",
     "logTitle": "Warning log",
@@ -842,7 +843,8 @@
       "health_token_unavailable": "Agent health checks unavailable",
       "scheduler_error": "Scheduler fault",
       "result_ingest_failed": "Probe result not recorded",
-      "outbox_consumer_stalled": "Event consumer stalled"
+      "outbox_consumer_stalled": "Event consumer stalled",
+      "notification_dropped": "Notification not delivered"
     }
   },
   "grafana": {
