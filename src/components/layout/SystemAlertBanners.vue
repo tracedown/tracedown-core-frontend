@@ -69,6 +69,12 @@ function messageOf(alert: SystemAlertSummary): string {
       return t('systemAlerts.agentDispatchFailed', { since });
     case 'health_token_unavailable':
       return t('systemAlerts.healthTokenUnavailable', { endpoint: alert.subject, since });
+    case 'health_round_slow':
+      return t('systemAlerts.healthRoundSlow', {
+        slow: (alert.data?.slowAgents as number | undefined) ?? '?',
+        agents: (alert.data?.agents as number | undefined) ?? '?',
+        since,
+      });
     case 'scheduler_error':
       return t('systemAlerts.schedulerError', { since });
     case 'result_ingest_failed':
