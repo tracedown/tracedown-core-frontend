@@ -305,7 +305,14 @@
     "got": "got",
     "skippedQueueFull": "Probe skipped — the platform is over its probing capacity. Contact your system administrator.",
     "skippedTargetOptedOut": "Probe skipped — the target publishes a do-not-probe record (_tracedown-noprobe TXT), so it was never dispatched.",
-    "skippedGeneric": "Probe skipped — it was never dispatched to an agent."
+    "skippedGeneric": "Probe skipped — it was never dispatched to an agent.",
+    "summary": {
+      "agent": "Agent",
+      "runTime": "Run time",
+      "responseTime": "Response time",
+      "calls": "Calls",
+      "failedCount": "{n} failed"
+    }
   },
   "resource": {
     "notFound": "Resource not found",
