@@ -177,11 +177,14 @@ const responseMs = computed(() => {
   return times.length > 0 ? times.reduce((a, b) => a + b, 0) : null;
 });
 
-/** Calls that errored, answered 4xx/5xx, or failed an assertion. */
+/**
+ * Calls that failed an assertion or never completed (`error`: a timeout, or a
+ * connection, TLS or redirect failure — spec §9). The HTTP status is not a
+ * criterion: a non-2xx answer can be exactly what the script asserts for.
+ */
 const failedCalls = computed(() =>
   (result.value?.steps ?? []).filter((s) =>
     s.error != null ||
-    (s.statusCode != null && s.statusCode >= 400) ||
     parseAssertions(s.assertionResults).some((a) => a.outcome === 'failed'),).length,);
 
 const assertionTotal = computed(() =>
