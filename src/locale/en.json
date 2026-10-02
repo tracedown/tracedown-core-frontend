@@ -442,9 +442,13 @@
     "emailSection": "Email address",
     "newEmail": "New email address",
     "totpCode": "Two-factor code",
-    "emailChangeHint": "Changing your email signs you out everywhere else. You will use the new address to sign in.",
+    "emailChangeHint": "We send a confirmation link to the new address. Nothing changes until you follow it.",
     "changeEmail": "Change email",
-    "emailChanged": "Email address changed.",
+    "emailChangeSent": "We sent a confirmation link to {email}. Nothing changes until you follow it.",
+    "emailChangeExpiry": "The link is good for 60 minutes, until {time}.",
+    "emailChangeNotice": "We also let your current address know about this request. Changing your password cancels it.",
+    "emailChangeSignOut": "Once you confirm, you are signed out everywhere and sign in again with the new address.",
+    "emailChangeAgain": "Request a new link",
     "passwordSection": "Password",
     "currentPassword": "Current password",
     "changePassword": "Change password",
@@ -670,6 +674,15 @@
       "mismatch": "Passwords do not match.",
       "confirmButton": "Set new password",
       "changed": "Your password has been changed. You can sign in with it now."
+    },
+    "confirmEmail": {
+      "title": "Confirm email address",
+      "intro": "Confirm that this is your address and you want it on your Tracedown account. Once you do, every session of the account is signed out and you sign in again with the new address.",
+      "confirm": "Confirm email address",
+      "confirming": "Confirming your new email address…",
+      "done": "Your email address is now {email}. Sign in again to continue.",
+      "invalidToken": "This confirmation link is invalid or has expired. A link works once, for 60 minutes, and only the newest one you asked for counts. If you already confirmed, sign in with the new address; otherwise request a new link from your profile.",
+      "back": "Back to the dashboard"
     }
   },
   "errors": {
@@ -707,6 +720,8 @@
     "account_closure_disabled": "Closing your own account is disabled on this instance. Ask an administrator.",
     "account_owns_organizations": "You still own one or more organizations. Transfer ownership before closing your account.",
     "email_taken": "This email address is already in use.",
+    "email_change_disabled": "Changing your email address is disabled on this instance. Ask an administrator.",
+    "email_change_cooldown": "You asked for a link less than a minute ago, or that address has been sent several already. Wait a while, then try again.",
     "rate_limited": "Too many requests. Please wait and try again.",
     "internal_error": "An unexpected server error occurred.",
     "not_supported": "This operation is not supported.",

@@ -48,6 +48,8 @@ export interface OwnedOrgSummary {
 export interface ProfileCapabilities {
   allowProfileEdit: boolean;
   allowAccountClosure: boolean;
+  /** Off unless the operator enables it; a missing field reads as false. */
+  allowEmailChange: boolean;
   /** Empty unless closure is allowed — only that section reads it. */
   ownedOrgs: OwnedOrgSummary[];
 }
@@ -125,4 +127,23 @@ export interface ChangeEmailRequest {
   newEmail: string;
   currentPassword: string;
   code?: string;
+}
+
+/**
+ * Response of POST /me/email. Nothing has changed yet: a confirmation link
+ * went to `newEmail` (valid until `expiresAt`) and a notice to the current one.
+ */
+export interface ChangeEmailPending {
+  newEmail: string;
+  expiresAt: string;
+}
+
+/** Request of POST /me/email/confirm — the token from the confirmation link. */
+export interface ConfirmEmailChangeRequest {
+  token: string;
+}
+
+/** Response of POST /me/email/confirm — the address the account now signs in with. */
+export interface ConfirmEmailChangeResponse {
+  email: string;
 }
