@@ -1,4 +1,4 @@
-import { setStoredToken } from '@/utils/tokenStorage';
+import { useAuthStore } from '@/store/core/auth';
 import { initSession } from '@/composables/useSessionInit';
 
 /**
@@ -10,6 +10,8 @@ import { initSession } from '@/composables/useSessionInit';
  * Resolves true when the session is live (user/orgs/workspaces hydrated).
  */
 export async function establishSession(token: string): Promise<boolean> {
-  setStoredToken(token);
+  // Through the store, not straight into storage: the store's own copy is what
+  // `isAuthenticated` reads and what `logout` revokes.
+  useAuthStore().adoptToken(token);
   return initSession();
 }

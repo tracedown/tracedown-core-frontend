@@ -83,7 +83,7 @@ export function createHttp<Code extends string>(host: RequestHost<Code>): Http<C
       if (body?.details && typeof body.details === 'object' && !Array.isArray(body.details)) {
         errorInfo.details = body.details as Record<string, unknown>;
       }
-      if (status != null && status >= 500) {
+      if (status != null && status >= 500 && !opts.suppressServerError) {
         host.onServerError?.(errorInfo);
       }
       return { success: false, errorInfo };

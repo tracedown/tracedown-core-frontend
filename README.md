@@ -65,6 +65,18 @@ components may share a name and all render, in registration order. Two collectio
 `status-decoration` is for a host that knows the status shown is no longer being kept up to
 date; the indicator itself stays what Tracedown measured.
 
+Two outlets for sign-in methods a host provides beyond email and password:
+
+| Outlet | Rendered in | Props |
+|--------|-------------|-------|
+| `login-methods` | `LoginView`, ahead of the credentials form (not during the two-factor step) | none |
+| `account-sign-in-methods` | The account profile tab, under the password section | none |
+
+An account that signs in only through such a method has no password (`UserSummary.hasPassword`
+is `false`; read `useAuthStore().hasPassword`, which treats an absent field as `true`). Wherever
+the app would ask for the current password it offers the emailed link that sets one instead.
+A host that signs someone in itself hands the session token to `establishSession(token)`.
+
 **Feature gates** — `registerFeatureGate(feature, predicate)` lets a host veto a named feature
 per subject. A feature is available unless a predicate vetoes it, and the predicate is
 re-evaluated on every check, so it may read reactive state:

@@ -58,6 +58,7 @@ export type ErrorCode =
   | 'password_too_short'
   | 'password_too_weak'
   | 'incorrect_password'
+  | 'password_not_set'
   | 'profile_edit_disabled'
   | 'account_closure_disabled'
   | 'account_owns_organizations'

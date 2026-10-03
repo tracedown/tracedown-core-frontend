@@ -42,6 +42,10 @@
 
       <PasswordChangeForm />
 
+      <!-- Extension point: a host application can list additional sign-in
+           methods for the account here. -->
+      <SlotOutlet name="account-sign-in-methods" />
+
       <TotpSection />
 
       <DataExportSection />
@@ -59,6 +63,7 @@ import { useI18n } from 'vue-i18n';
 import LabeledInput from '@/components/core/input/LabeledInput.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import SectionHeading from '@/components/core/SectionHeading.vue';
+import SlotOutlet from '@/components/core/SlotOutlet.vue';
 import AccountClosureSection from '@/components/account/AccountClosureSection.vue';
 import DataExportSection from '@/components/account/DataExportSection.vue';
 import EmailChangeForm from '@/components/account/EmailChangeForm.vue';

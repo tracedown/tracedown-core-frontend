@@ -26,6 +26,7 @@
         ]"
 
         :type="type"
+        :aria-describedby="describedBy"
         :style="buttonStyle"
         :disabled="disabled || loading || !waitAfterRender"
         @click="handleClick"
@@ -130,6 +131,7 @@ const props = withDefaults(
     type?: 'button' | 'submit';
     loading?: boolean;
     fullWidth?: boolean;
+    describedBy?: string;
   }>(),
   {
     buttonColor: 'accent-secondary',
@@ -144,6 +146,7 @@ const props = withDefaults(
     type: 'button',
     loading: false,
     fullWidth: false,
+    describedBy: undefined,
   }
 );
 

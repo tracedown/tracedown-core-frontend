@@ -38,6 +38,11 @@ export interface RequestOptions {
    * racing an already-expired session must not trigger the global redirect).
    */
   suppressUnauthorized?: boolean;
+  /**
+   * Skip {@link RequestHost.onServerError} on a 5xx — for a caller that shows
+   * the failure itself, or for a read whose failure should pass silently.
+   */
+  suppressServerError?: boolean;
   /** On a 404, invoke {@link RequestHost.onNotFound} (e.g. route to not-found). */
   redirectOnNotFound?: boolean;
   /** Extra headers merged onto the request. */

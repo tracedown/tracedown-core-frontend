@@ -64,6 +64,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => token.value != null);
   const isOwner = computed(() => permissions.value?.isOwner ?? false);
+  /**
+   * Whether the session user has a password to re-verify with. An absent field
+   * (an older server) reads as true — every account had one before.
+   */
+  const hasPassword = computed(() => user.value?.hasPassword !== false);
 
   function levelOf(section: AccessSection): number {
     if (!permissions.value) return 0;
@@ -98,11 +103,19 @@ export const useAuthStore = defineStore('auth', () => {
     return canWrite('workspaces') || grantLevel(keys) >= 2;
   }
 
+  /**
+   * Makes `bearer` this tab's session token — in the store as well as in
+   * storage, so `isAuthenticated` reads true and `logout` revokes it.
+   */
+  function adoptToken(bearer: string) {
+    token.value = bearer;
+    setStoredToken(bearer);
+  }
+
   /** Stores the session carried by a login-shaped response. */
   function adoptSession(data: LoginResponse) {
     if (!data.token) return;
-    token.value = data.token;
-    setStoredToken(data.token);
+    adoptToken(data.token);
     if (data.user) user.value = data.user;
   }
 
@@ -228,10 +241,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!res.success || !res.data) {
       return { ok: false, message: res.errorInfo?.message };
     }
-    if (res.data.token) {
-      token.value = res.data.token;
-      setStoredToken(res.data.token);
-    }
+    if (res.data.token) adoptToken(res.data.token);
     if (user.value) {
       user.value = { ...user.value, totpEnabled: true };
     }
@@ -260,7 +270,7 @@ export const useAuthStore = defineStore('auth', () => {
     // global unauthorized redirect mid-logout.
     const bearer = token.value;
     if (bearer) {
-      void http.delete('/auth/logout', {
+      void http.delete('/auth/logout', undefined, {
         disableLoading: true,
         suppressUnauthorized: true,
         headers: { Authorization: `Bearer ${bearer}` },
@@ -270,9 +280,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    token, user, permissions, isAuthenticated, isOwner,
+    token, user, permissions, isAuthenticated, isOwner, hasPassword,
     canRead, canWrite, hasResourceGrant, canWriteScoped,
-    login, verifyTotpLogin, acceptInvite, fetchMe, setSession, clearSession,
+    login, verifyTotpLogin, acceptInvite, fetchMe, setSession, clearSession, adoptToken,
     orgDefaultTimezone, trustedDomainMode,
     updateProfile, changeEmail, confirmTotpEnroll, disableTotp, logout,
     // Session-stateless account calls (lib/authApi), re-exposed unchanged so
