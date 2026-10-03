@@ -3,6 +3,8 @@ import { defineStore } from 'pinia';
 import { http } from '@/config/requests';
 import { getStoredToken, setStoredToken, clearStoredToken } from '@/utils/tokenStorage';
 import { setDateFormat } from '@/lib/dateFormat';
+import { useApiKeyStore } from '@/store/core/apiKey';
+import { useAuditStore } from '@/store/core/audit';
 import {
   beginForcedTotpEnroll,
   beginTotpEnroll,
@@ -163,6 +165,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   /** Clears all auth state and the stored token. */
   function clearSession() {
+    // Every way out of a session comes through here (logout, account closure,
+    // organization deletion, an expired session), so per-user lists that other
+    // stores hold are dropped here too.
+    useApiKeyStore().clear();
+    useAuditStore().clear();
     user.value = null;
     token.value = null;
     permissions.value = null;
