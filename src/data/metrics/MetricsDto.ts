@@ -36,6 +36,8 @@ export interface MetricsDelta {
   success: number;
   failure: number;
   timeout: number;
+  /** Runs that did not evaluate (agent or executor fault). Absent from older servers. */
+  error?: number;
   sumMs: number;
   callCount: number;
 }
