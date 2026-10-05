@@ -198,7 +198,14 @@ export const useProjectStore = defineStore('project', () => {
     metrics.counters.probesSuccess += delta.success;
     metrics.counters.probesFailure += delta.failure;
     metrics.counters.probesTimeout += delta.timeout;
-    metrics.state.lastStatus = delta.failure > 0 ? 'failure' : delta.timeout > 0 ? 'timeout' : 'success';
+    // Worst status in the delta, in the order the card paints them: error is
+    // failure-red everywhere, timeout the one yellow. A server that does not
+    // send the error count still counts error runs in the total, so derive it.
+    const errors = delta.error ?? delta.total - delta.success - delta.failure - delta.timeout;
+    metrics.state.lastStatus = delta.failure > 0 ? 'failure'
+      : errors > 0 ? 'error'
+        : delta.timeout > 0 ? 'timeout'
+          : 'success';
     metrics.state.lastResponseMs = Math.round(delta.sumMs / Math.max(delta.callCount, 1));
     metrics.state.lastRunAt = Math.floor(Date.now() / 1000);
     project.metrics = metrics;
