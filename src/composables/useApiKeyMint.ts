@@ -35,12 +35,18 @@ export function useApiKeyMint(nameInputId: string) {
   const blockedMessage = ref<string>('');
 
   const totpEnabled = computed(() => authStore.user?.totpEnabled ?? false);
-  const showCode = computed(() => totpEnabled.value || codeAsked.value);
+  /**
+   * An account without a password (it signs in another way) cannot confirm a
+   * mint: the dialog shows how to set one instead of the password and code
+   * fields, and nothing can be submitted.
+   */
+  const hasPassword = computed(() => authStore.hasPassword);
+  const showCode = computed(() => hasPassword.value && (totpEnabled.value || codeAsked.value));
   const expiresInDays = computed(() => expiryDays(expiry.value, customDays.value));
   /** Something was typed in the password field, and it is only whitespace. */
   const passwordIsBlank = computed(() => password.value.length > 0 && passwordBlank(password.value));
 
-  const canSubmit = computed(() => canSubmitMint({
+  const canSubmit = computed(() => hasPassword.value && canSubmitMint({
     name: name.value,
     expiresInDays: expiresInDays.value,
     password: password.value,
@@ -102,7 +108,7 @@ export function useApiKeyMint(nameInputId: string) {
 
   return {
     name, access, expiry, customDays, password, code, submitting, errors,
-    issued, acknowledged, blockedMessage, expiresInDays, showCode, canSubmit, dirty,
+    issued, acknowledged, blockedMessage, expiresInDays, hasPassword, showCode, canSubmit, dirty,
     passwordIsBlank, submit, mustStay,
   };
 }

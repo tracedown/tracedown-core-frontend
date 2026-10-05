@@ -4,6 +4,12 @@ export interface UserSummary {
   email: string;
   displayName: string;
   totpEnabled: boolean;
+  /**
+   * False for an account that signs in only through a method a host application
+   * provides and has never set a password. A server that predates the field
+   * omits it — read the auth store's `hasPassword`, which treats that as true.
+   */
+  hasPassword?: boolean;
   selectedOrgId: string | null;
 }
 

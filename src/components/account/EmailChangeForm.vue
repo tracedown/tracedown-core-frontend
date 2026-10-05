@@ -40,9 +40,18 @@
         type="email"
         autocomplete="email"
         :placeholder="t('account.newEmail')"
+        :disabled="!authStore.hasPassword"
         required
       />
+      <!-- The change is confirmed with the current password; an account
+           without one is offered the link that sets it instead (as a text
+           link: the Password section below carries the main button). -->
+      <PasswordSetupNotice
+        v-if="!authStore.hasPassword"
+        variant="link"
+      />
       <LabeledInput
+        v-else
         id="emailCurrentPassword"
         v-model="currentPassword"
         :label="t('account.currentPassword')"
@@ -53,7 +62,7 @@
         required
       />
       <LabeledInput
-        v-if="authStore.user?.totpEnabled"
+        v-if="authStore.hasPassword && authStore.user?.totpEnabled"
         id="emailTotpCode"
         v-model="code"
         :label="t('account.totpCode')"
@@ -72,7 +81,8 @@
         type="submit"
         :label-text="t('account.changeEmail')"
         :loading="submitting"
-        :disabled="!newEmail.trim() || !currentPassword || (authStore.user?.totpEnabled && !code)"
+        :disabled="!authStore.hasPassword || !newEmail.trim() || !currentPassword
+          || (authStore.user?.totpEnabled && !code)"
       />
     </form>
 </template>
@@ -84,6 +94,7 @@ import LabeledInput from '@/components/core/input/LabeledInput.vue';
 import LinkButton from '@/components/core/buttons/LinkButton.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import SectionHeading from '@/components/core/SectionHeading.vue';
+import PasswordSetupNotice from '@/components/account/PasswordSetupNotice.vue';
 import type { ChangeEmailPending } from '@/data/auth/AuthDto';
 import { formatDateTime } from '@/lib/dateFormat';
 import { useAuthStore } from '@/store/core/auth';
@@ -106,7 +117,7 @@ const submitting = ref<boolean>(false);
 const pending = ref<ChangeEmailPending | null>(null);
 
 async function handleSubmit() {
-  if (submitting.value) return;
+  if (submitting.value || !authStore.hasPassword) return;
   submitting.value = true;
   try {
     const result = await authStore.changeEmail(

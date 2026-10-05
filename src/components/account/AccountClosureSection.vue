@@ -45,14 +45,16 @@
             </span>
           </div>
 
+          <PasswordSetupNotice v-if="!authStore.hasPassword" />
           <TextInput
+            v-else
             v-model="password"
             compact
             type="password"
             autocomplete="current-password"
             :placeholder="t('auth.password')"
           />
-          <div v-if="totpEnabled">
+          <div v-if="authStore.hasPassword && totpEnabled">
             <span class="block text-xs font-medium text-text-secondary mb-1">
               {{ t('auth.totpLabel') }}
             </span>
@@ -90,6 +92,7 @@ import OtpCodeInput from '@/components/core/input/OtpCodeInput.vue';
 import SectionHeading from '@/components/core/SectionHeading.vue';
 import TextInput from '@/components/core/input/TextInput.vue';
 import ToggleSwitch from '@/components/core/input/ToggleSwitch.vue';
+import PasswordSetupNotice from '@/components/account/PasswordSetupNotice.vue';
 import type { OwnedOrgSummary } from '@/data/auth/AuthDto';
 import { useAuthStore } from '@/store/core/auth';
 import { useNotificationStore } from '@/store/ui/notifications';
@@ -125,7 +128,8 @@ const blockingOrgs = computed(() => props.ownedOrgs.filter(o => !o.soleMember));
 const totpEnabled = computed(() => authStore.user?.totpEnabled ?? false);
 
 const canSubmit = computed(() =>
-  password.value.length > 0
+  authStore.hasPassword
+  && password.value.length > 0
   && (!totpEnabled.value || code.value.length >= 6)
   && (soleMemberOrgs.value.length === 0 || deleteOwnedOrgs.value));
 

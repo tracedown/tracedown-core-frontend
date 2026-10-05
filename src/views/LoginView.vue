@@ -43,6 +43,14 @@
 
         <!-- Credentials, expanding into the TOTP challenge after sign-in. -->
         <template v-else>
+          <!-- Extension point: a host application can offer additional sign-in
+               methods here, ahead of the credentials form. Only before the
+               password step resolves — never during the challenge. -->
+          <SlotOutlet
+            v-if="phase === 'credentials'"
+            name="login-methods"
+          />
+
           <form
             class="space-y-4"
             @submit.prevent="handleLogin"

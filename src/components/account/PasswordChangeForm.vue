@@ -1,5 +1,17 @@
 <template>
+    <!-- No password yet (the account signs in another way): there is nothing to
+         re-verify, so the emailed reset link is how one gets set. -->
+    <div
+      v-if="!authStore.hasPassword"
+      class="space-y-3 max-w-sm"
+    >
+      <SectionHeading :label="t('account.passwordSection')" />
+
+      <PasswordSetupNotice :hint="t('account.passwordNotSetHint')" />
+    </div>
+
     <form
+      v-else
       class="space-y-3 max-w-sm"
       @submit.prevent="handleSubmit"
     >
@@ -62,10 +74,14 @@ import { useI18n } from 'vue-i18n';
 import LabeledInput from '@/components/core/input/LabeledInput.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import SectionHeading from '@/components/core/SectionHeading.vue';
+import PasswordSetupNotice from '@/components/account/PasswordSetupNotice.vue';
 import { useAuthStore } from '@/store/core/auth';
 import { useNotificationStore } from '@/store/ui/notifications';
 
-/** Change-password section of the account profile tab. */
+/**
+ * Change-password section of the account profile tab. An account without a
+ * password is offered the reset email instead, sent to its own address.
+ */
 const { t } = useI18n();
 const authStore = useAuthStore();
 const notifications = useNotificationStore();

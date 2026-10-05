@@ -8,14 +8,16 @@
       </p>
 
       <div class="space-y-3 max-w-sm">
+        <PasswordSetupNotice v-if="!authStore.hasPassword" />
         <TextInput
+          v-else
           v-model="password"
           compact
           type="password"
           autocomplete="current-password"
           :placeholder="t('auth.password')"
         />
-        <div v-if="totpEnabled">
+        <div v-if="authStore.hasPassword && totpEnabled">
           <span class="block text-xs font-medium text-text-secondary mb-1">
             {{ t('auth.totpLabel') }}
           </span>
@@ -31,7 +33,7 @@
         <div class="flex items-center gap-2">
           <DangerButton
             :label-text="t('settings.deleteOrgConfirm')"
-            :disabled="!password || (totpEnabled && code.length < 6) || submitting"
+            :disabled="!canSubmit || submitting"
             :hold-offset-sec="3"
             @safe-click="submit"
           />
@@ -53,6 +55,7 @@ import TextInput from '@/components/core/input/TextInput.vue';
 import OtpCodeInput from '@/components/core/input/OtpCodeInput.vue';
 import DangerButton from '@/components/core/buttons/DangerButton.vue';
 import GhostButton from '@/components/core/buttons/GhostButton.vue';
+import PasswordSetupNotice from '@/components/account/PasswordSetupNotice.vue';
 import { useAuthStore } from '@/store/core/auth';
 import { useOrgStore } from '@/store/core/org';
 import { useNotificationStore } from '@/store/ui/notifications';
@@ -78,9 +81,11 @@ const code = ref<string>('');
 const submitting = ref<boolean>(false);
 
 const totpEnabled = computed(() => authStore.user?.totpEnabled ?? false);
+const canSubmit = computed(() =>
+  authStore.hasPassword && !!password.value && (!totpEnabled.value || code.value.length >= 6));
 
 async function submit() {
-  if (submitting.value) return;
+  if (submitting.value || !canSubmit.value) return;
   submitting.value = true;
   try {
     // A host may route deletion through its own flow; otherwise delete

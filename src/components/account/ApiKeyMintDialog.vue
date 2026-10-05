@@ -87,7 +87,9 @@
           {{ t('apiKeys.mint.customDaysInvalid', { min: MIN_EXPIRY_DAYS, max: MAX_EXPIRY_DAYS }) }}
         </p>
 
-        <div>
+        <!-- No password to confirm with: how to set one, and nothing to submit. -->
+        <PasswordSetupNotice v-if="!hasPassword" />
+        <div v-else>
           <LabeledInput
             v-model="password"
             :label="t('account.currentPassword')"
@@ -184,6 +186,7 @@ import AppSelect from '@/components/core/input/AppSelect.vue';
 import PrimaryButton from '@/components/core/buttons/PrimaryButton.vue';
 import SecondaryButton from '@/components/core/buttons/SecondaryButton.vue';
 import ApiKeyIssuedPanel from '@/components/account/ApiKeyIssuedPanel.vue';
+import PasswordSetupNotice from '@/components/account/PasswordSetupNotice.vue';
 import { useApiKeyMint } from '@/composables/useApiKeyMint';
 import { useLeaveGuard } from '@/composables/useLeaveGuard';
 import { useOrgStore } from '@/store/core/org';
@@ -195,6 +198,8 @@ import type { SelectOption } from '@/types/ui/common';
  * Mints an API key acting as the signed-in user in the session's current
  * organization. Asks for the password again, and a TOTP or recovery code when
  * the user has a second factor — a key outlives the session it was made in.
+ * An account without a password is offered the link that sets one instead,
+ * and cannot mint until it has one.
  *
  * The key is shown once, inside this dialog, and is dropped with it. Neither
  * closing the dialog nor leaving the page lets go of an unacknowledged key or a
@@ -210,7 +215,7 @@ const issuedPanel = useTemplateRef<InstanceType<typeof ApiKeyIssuedPanel>>('issu
 const nameId = useId();
 const {
   name, access, expiry, customDays, password, code, submitting, errors,
-  issued, acknowledged, blockedMessage, expiresInDays, showCode, canSubmit, dirty,
+  issued, acknowledged, blockedMessage, expiresInDays, hasPassword, showCode, canSubmit, dirty,
   passwordIsBlank, submit, mustStay,
 } = useApiKeyMint(nameId);
 

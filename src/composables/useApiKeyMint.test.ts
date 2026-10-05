@@ -134,4 +134,19 @@ describe('useApiKeyMint', () => {
     useAuthStore().user = { totpEnabled: true } as UserSummary;
     expect(mint().showCode.value).toBe(true);
   });
+
+  it('cannot mint, and asks no code, for an account with no password', async () => {
+    useAuthStore().user = { totpEnabled: true, hasPassword: false } as UserSummary;
+    const form = mint();
+    form.name.value = 'ci';
+    form.password.value = 'pw';
+    form.code.value = '123456';
+    await nextTick();
+
+    expect(form.hasPassword.value).toBe(false);
+    expect(form.showCode.value).toBe(false);
+    expect(form.canSubmit.value).toBe(false);
+    await form.submit();
+    expect(http.post).not.toHaveBeenCalled();
+  });
 });

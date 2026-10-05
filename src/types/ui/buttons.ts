@@ -17,4 +17,6 @@ export interface ButtonPresetProps {
   /** Shows a spinner in place of the icon and disables the button. */
   loading?: boolean;
   fullWidth?: boolean;
+  /** Id of the element that explains the button — e.g. why it is disabled. */
+  describedBy?: string;
 }
