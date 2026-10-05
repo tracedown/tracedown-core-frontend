@@ -62,6 +62,8 @@ export type ErrorCode =
   | 'account_closure_disabled'
   | 'account_owns_organizations'
   | 'email_taken'
+  | 'email_change_disabled'
+  | 'email_change_cooldown'
   // Rate limit / general
   | 'rate_limited'
   | 'internal_error'

@@ -26,6 +26,12 @@ export const appRoutes: RouteRecordRaw[] = [
     meta: { public: true, title: 'auth.reset.title' },
   },
   {
+    path: '/confirm-email/:token',
+    name: 'confirm-email',
+    component: () => import('@/views/ConfirmEmailView.vue'),
+    meta: { public: true, title: 'auth.confirmEmail.title' },
+  },
+  {
     path: '/',
     name: 'authorized',
     component: AuthorizedView,
