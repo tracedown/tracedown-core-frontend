@@ -18,7 +18,10 @@ import {
   requestPasswordReset,
 } from '@/lib/authApi';
 import type {
+  ChangeEmailPending,
   ChangeEmailRequest,
+  ConfirmEmailChangeRequest,
+  ConfirmEmailChangeResponse,
   LoginRequest,
   LoginResponse,
   MeResponse,
@@ -31,7 +34,7 @@ import type {
 import type { UserSummary } from '@/data/user/UserDto';
 import type { AcceptInviteRequest, AcceptInviteResponse } from '@/data/orgs/InviteDto';
 import type { AccessSection } from '@/types/access';
-import type { ActionResult } from '@/types/actions';
+import type { ActionDataResult, ActionResult } from '@/types/actions';
 
 /**
  * What a password login resolved to: a session, a TOTP challenge to answer,
@@ -63,7 +66,6 @@ export const useAuthStore = defineStore('auth', () => {
   const orgDefaultTimezone = ref<string>('UTC');
   const trustedDomainMode = ref<boolean>(false);
   const resources = ref<Record<string, number>>({});
-
   const isAuthenticated = computed(() => token.value != null);
   const isOwner = computed(() => permissions.value?.isOwner ?? false);
 
@@ -213,17 +215,42 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Changes the account email. Requires the current password (plus a TOTP code
-   * when enrolled); the server revokes every other session. On success the
-   * session user is refreshed from the returned profile.
+   * Requests an email change. Requires the current password (plus a TOTP code
+   * when enrolled). Nothing changes yet — the server mails a confirmation link
+   * to the new address, so the session user is deliberately left as it is and
+   * the pending request is handed back instead. `code` is set on failure so the
+   * caller can tell a rate-limited repeat from a real refusal.
    */
-  async function changeEmail(newEmail: string, currentPassword: string, code?: string): Promise<ActionResult> {
-    const res = await http.post<UserSummary, ChangeEmailRequest>('/me/email', { newEmail, currentPassword, code });
+  async function changeEmail(
+    newEmail: string,
+    currentPassword: string,
+    code?: string,
+  ): Promise<ActionDataResult<ChangeEmailPending>> {
+    const res = await http.post<ChangeEmailPending, ChangeEmailRequest>('/me/email', { newEmail, currentPassword, code });
     if (!res.success || !res.data) {
-      return { ok: false, message: res.errorInfo?.message };
+      return { ok: false, message: res.errorInfo?.message, code: res.errorInfo?.code };
     }
-    user.value = res.data;
-    return { ok: true };
+    return { ok: true, data: res.data };
+  }
+
+  /**
+   * Confirms an email change with the token from the link mailed to the new
+   * address. Public — no session needed. On success the server has signed out
+   * every session of that account, so the local one is dropped too (it is
+   * revoked, and keeping it would bounce the login page back to a dead
+   * session).
+   */
+  async function confirmEmailChange(confirmToken: string): Promise<ActionDataResult<ConfirmEmailChangeResponse>> {
+    const res = await http.post<ConfirmEmailChangeResponse, ConfirmEmailChangeRequest>(
+      '/me/email/confirm',
+      { token: confirmToken },
+    );
+    if (!res.success || !res.data) {
+      return { ok: false, message: res.errorInfo?.message, code: res.errorInfo?.code };
+    }
+    // The server signed every session of the account out, this one included.
+    clearSession();
+    return { ok: true, data: res.data };
   }
 
   /** Confirms enrollment with a TOTP code; on success a fresh session is stored. */
@@ -281,7 +308,7 @@ export const useAuthStore = defineStore('auth', () => {
     canRead, canWrite, hasResourceGrant, canWriteScoped,
     login, verifyTotpLogin, acceptInvite, fetchMe, setSession, clearSession,
     orgDefaultTimezone, trustedDomainMode,
-    updateProfile, changeEmail, confirmTotpEnroll, disableTotp, logout,
+    updateProfile, changeEmail, confirmEmailChange, confirmTotpEnroll, disableTotp, logout,
     // Session-stateless account calls (lib/authApi), re-exposed unchanged so
     // components keep a single auth surface.
     fetchInviteInfo, requestPasswordReset, confirmPasswordReset,
