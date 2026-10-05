@@ -2,6 +2,7 @@ import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { http } from '@/config/requests';
 import type { Page } from '@/types/pfs';
+import { defaultPfsParams, pfsToQueryString } from '@/utils/pfs';
 import type { OrgSectionPermissions, OrgUserSummary, PermissionSet, ResourceGrant, UpdatePermissionsRequest } from '@/data/orgs/PermissionDto';
 import type { InviteRequest, InviteResponse, PendingInvite } from '@/data/orgs/InviteDto';
 import type { ActionDataResult, ActionResult, FetchOptions } from '@/types/actions';
@@ -33,6 +34,29 @@ export const useOrgUserStore = defineStore('orgUser', () => {
     } finally {
       usersLoading.value = false;
     }
+  }
+
+  /**
+   * Every member, for pickers (filters by member). The API answers at most 100
+   * rows a page, so this pages until it has them all — or meets an empty page,
+   * which bounds the loop should the total overstate the rows. A failed page
+   * fails the whole call rather than offering a partial list. Leaves `users`
+   * as it is.
+   */
+  async function fetchOrgUserChoices(): Promise<ActionDataResult<OrgUserSummary[]>> {
+    const byId = new Map<string, OrgUserSummary>();
+    let seen = 0;
+    for (let page = 1; ; page += 1) {
+      const pfs = defaultPfsParams({ page, pageSize: 100 });
+      const res = await http.get<Page<OrgUserSummary>>(`/users${pfsToQueryString(pfs)}`, { disableLoading: true });
+      if (!res.success || !res.data) {
+        return { ok: false, message: res.errorInfo?.message };
+      }
+      res.data.items.forEach(u => byId.set(u.userId, u));
+      seen += res.data.items.length;
+      if (res.data.items.length === 0 || seen >= res.data.total) break;
+    }
+    return { ok: true, data: [...byId.values()] };
   }
 
   async function fetchInvites(opts: FetchOptions = {}): Promise<ActionResult> {
@@ -183,7 +207,7 @@ export const useOrgUserStore = defineStore('orgUser', () => {
 
   return {
     users, totalUsers, usersLoading, invites,
-    fetchUsers, fetchInvites, inviteUser, revokeInvite,
+    fetchUsers, fetchOrgUserChoices, fetchInvites, inviteUser, revokeInvite,
     refreshUsers, refreshInvites,
     toggleUserActive, removeUser, transferOwnership,
     fetchUserPermissions, updateUserPermissions, updateUserResources, applyGroupMembership, clear,

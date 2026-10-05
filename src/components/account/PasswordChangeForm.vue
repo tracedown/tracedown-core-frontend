@@ -55,6 +55,10 @@
         {{ t('auth.reset.mismatch') }}
       </p>
 
+      <p class="text-xs text-text-secondary">
+        {{ t('account.apiKeysUnaffected') }}
+      </p>
+
       <PrimaryButton
         type="submit"
         :label-text="t('account.changePassword')"

@@ -13,9 +13,18 @@
                text-text-primary focus:border-accent-primary transition-colors"
           :class="{ 'opacity-50 cursor-not-allowed': disabled }"
           :disabled="disabled"
+          :aria-labelledby="ariaLabel ? `${labelId} ${valueId}` : undefined"
           @click="toggle"
         >
-          <span class="truncate">{{ selectedLabel }}</span>
+          <span
+            v-if="ariaLabel"
+            :id="labelId"
+            class="sr-only"
+          >{{ ariaLabel }}</span>
+          <span
+            :id="valueId"
+            class="truncate"
+          >{{ selectedLabel }}</span>
           <FontAwesomeIcon :icon="faChevronDown" class="w-2.5 h-2.5 text-text-secondary" />
         </button>
       </template>
@@ -67,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faCheck, faChevronDown } from '@fortawesome/free-solid-svg-icons';
@@ -84,7 +93,15 @@ const props = defineProps<{
   multiple?: boolean;
   /** Trigger text while nothing is selected (multi-select only). */
   placeholder?: string;
+  /**
+   * Accessible name of the trigger, for a select whose visible label is not a
+   * `<label>`. Read together with the current choice.
+   */
+  ariaLabel?: string;
 }>();
+
+const labelId = useId();
+const valueId = useId();
 
 const model = defineModel<string | string[]>({ required: true });
 

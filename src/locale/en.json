@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Tracedown",
+    "none": "—",
     "actionUnavailable": "This action is currently unavailable.",
     "actions": {
       "save": "Save",
@@ -442,7 +443,7 @@
     "emailSection": "Email address",
     "newEmail": "New email address",
     "totpCode": "Two-factor code",
-    "emailChangeHint": "We send a confirmation link to the new address. Nothing changes until you follow it.",
+    "emailChangeHint": "We send a confirmation link to the new address. Nothing changes until you follow it. API keys keep working; review them under My account → API keys.",
     "changeEmail": "Change email",
     "emailChangeSent": "We sent a confirmation link to {email}. Nothing changes until you follow it.",
     "emailChangeExpiry": "The link is good for 60 minutes, until {time}.",
@@ -450,6 +451,7 @@
     "emailChangeSignOut": "Once you confirm, you are signed out everywhere and sign in again with the new address.",
     "emailChangeAgain": "Request a new link",
     "passwordSection": "Password",
+    "apiKeysUnaffected": "API keys keep working; review them under My account → API keys.",
     "currentPassword": "Current password",
     "changePassword": "Change password",
     "passwordChanged": "Password changed.",
@@ -478,7 +480,7 @@
     "recoveryRegen": "Regenerate recovery codes",
     "recoveryRegenHint": "Lost your recovery codes? Regenerate a new set — the old ones stop working. Store them somewhere safe.",
     "sessionsSection": "Active sessions",
-    "sessionsHint": "Devices currently signed in to your account. Revoke any you don't recognize.",
+    "sessionsHint": "Devices currently signed in to your account. Revoke any you don't recognize. API keys keep working; review them under My account → API keys.",
     "noSessions": "No active sessions.",
     "currentSession": "This device",
     "unknownDevice": "Unknown device",
@@ -680,7 +682,7 @@
       "repeatPassword": "Repeat password",
       "mismatch": "Passwords do not match.",
       "confirmButton": "Set new password",
-      "changed": "Your password has been changed. You can sign in with it now."
+      "changed": "Your password has been changed. You can sign in with it now. API keys keep working; review them under My account → API keys."
     },
     "confirmEmail": {
       "title": "Confirm email address",
@@ -715,6 +717,7 @@
     "invalid_uuid": "Invalid identifier.",
     "not_found": "The requested resource was not found.",
     "already_exists": "This item already exists.",
+    "binding_exists": "This webhook is already bound to this resource.",
     "agent_slug_taken": "An agent is already registered under this slug.",
     "version_conflict": "This was changed by someone else while you were editing. Reload it and reapply your change.",
     "forbidden": "You do not have access to this resource.",
@@ -749,7 +752,9 @@
     "store_field_required": "A required field for this kind of store is missing.",
     "body_store_location_locked": "Stored bodies still point at where this store keeps them, so its kind, bucket, prefix and root path can no longer change. The endpoint, region, name and credentials still can.",
     "body_store_unavailable": "The body store could not be reached. Try again in a moment.",
-    "body_too_large": "This response body is too large to show here."
+    "body_too_large": "This response body is too large to show here.",
+    "api_key_limit_reached": "You hold as many API keys as one account may. Revoked and expired keys count until they are deleted: delete one you no longer need, then try again.",
+    "session_required": "This needs a signed-in session. An API key cannot be used here."
   },
   "meta": {
     "description": "API monitoring and uptime tracking"
@@ -821,23 +826,104 @@
     }
   },
   "apiKeys": {
-    "title": "API keys",
-    "none": "No API keys yet.",
+    "ownTitle": "Your API keys",
+    "ownHint": "A key lets a script or a tool call the API as you. Each one works in a single organization and can never do more than you can there; it stops working the moment you could no longer act in that organization yourself. Changing your password or email, or signing out other sessions, does not affect a key: revoke it here if it leaks.",
+    "orgTitle": "API keys in this organization",
+    "orgHint": "Every key that acts in this organization, grouped by the member it acts as. A key can do no more than its member; revoking one cuts it off at once. Members make their keys themselves, from their account. Revoke rather than delete while you investigate: a deleted key's activity stays in the audit log until purge.",
+    "none": "You have no API keys yet.",
+    "noneInOrg": "No API keys act in this organization.",
+    "noneMatching": "No keys match these filters.",
     "create": "New API key",
-    "name": "Name",
     "namePlaceholder": "ci-deploy",
     "expiry": "Expires",
     "never": "Never",
-    "days": "After {n} days",
-    "created": "Created",
-    "lastUsed": "Last used",
     "neverUsed": "Never used",
-    "expires": "Expires",
-    "expired": "Expired",
-    "revoked": "Revoked",
     "revoke": "Revoke",
-    "issued": "Key \"{name}\" — copy it now, it is not shown again.",
-    "issuedHint": "Send it as the Authorization: Bearer header on API requests."
+    "revokedToast": "Key \"{name}\" revoked.",
+    "deletedToast": "Key \"{name}\" deleted.",
+    "goneToast": "Key \"{name}\" was already gone.",
+    "erasedUser": "Deleted account",
+    "filterUser": "Member",
+    "filterPrefix": "Key prefix",
+    "prefixPlaceholder": "td_",
+    "loadFailed": "The keys could not be loaded.",
+    "retry": "Retry",
+    "actionFailed": "That did not go through, and the key is still listed. Try again.",
+    "activity": "Activity in the audit log",
+    "enrolmentNeeded": "{org} requires two-factor sign-in and you have not enrolled: your keys there are refused until you do.",
+    "prefixEllipsis": "{prefix}…",
+    "labels": {
+      "keyWithPrefix": "{name} ({prefix}…)",
+      "member": "{name} ({email})"
+    },
+    "allUsers": "Everyone",
+    "noOrgSelected": "Select an organization to make a key in it.",
+    "columns": {
+      "organization": "Organization",
+      "user": "Member",
+      "name": "Name",
+      "prefix": "Key",
+      "access": "Access",
+      "state": "State",
+      "lastUsed": "Last used",
+      "expires": "Expires",
+      "created": "Created"
+    },
+    "access": {
+      "read": "Read",
+      "write": "Read and write"
+    },
+    "accessHints": {
+      "read": "GET requests only, within what you can see.",
+      "write": "Everything you can do in this organization."
+    },
+    "states": {
+      "active": "Active",
+      "revoked": "Revoked",
+      "expired": "Expired",
+      "inactive": "Inactive",
+      "orphaned": "Deleted account"
+    },
+    "stateHints": {
+      "active": "Accepted, within its access level. In an organization that requires two-factor sign-in, its member must have enrolled.",
+      "activeOwn": "Accepted, within its access level. You must be enrolled in two-factor authentication while the organization requires it, or the key is refused.",
+      "revoked": "Refused for good. A revoked key cannot be restored. Create a new key to continue.",
+      "expired": "Past its expiry date, and refused. Create a new key to continue.",
+      "inactive": "Its member cannot currently act in this organization, so the key is refused until they can again.",
+      "inactiveOwn": "You cannot currently act in this organization, so the key is refused until you can again.",
+      "orphaned": "Its account was deleted, so the key can never be used again. Delete it.",
+      "orphanedReadOnly": "Its account was deleted, so the key can never be used again."
+    },
+    "expiryChoices": {
+      "never": "Never",
+      "30": "In 30 days",
+      "90": "In 90 days",
+      "365": "In a year",
+      "custom": "Custom"
+    },
+    "mint": {
+      "title": "New API key",
+      "issuedTitle": "Your new API key",
+      "orgNote": "The key will act as you in {org}, the organization you are signed in to. To make one for another organization, switch organizations, then open My account → API keys again.",
+      "submit": "Create key",
+      "shownOnce": "The key is shown once, right after it is made. Have somewhere ready to keep it.",
+      "customDaysLabel": "Days until it expires",
+      "customDaysPlaceholder": "Days",
+      "customDaysInvalid": "Enter a whole number of days from {min} to {max}.",
+      "codeHint": "A code from your authenticator app, or one of your recovery codes.",
+      "issued": "Key \"{name}\" for {org} is ready. Copy it now:",
+      "notShownAgain": "It will not be shown again. Once this dialog closes, nobody can see it, you included.",
+      "usageHint": "Send it in the Authorization header, as Bearer followed by the key.",
+      "acknowledge": "I have copied the key and stored it somewhere safe.",
+      "acknowledgeFirst": "Confirm you have copied the key before closing. It cannot be shown again.",
+      "waitForMint": "Wait for the key to be made before leaving.",
+      "passwordBlank": "Enter your password.",
+      "baseUrl": "Base URL:",
+      "description": "API description (OpenAPI)",
+      "survivesAccountChanges": "Changing your password or email, or signing out other sessions, does not affect this key. Revoke it under My account → API keys if it leaks.",
+      "outcomeUnknown": "The answer did not arrive, so the key may have been made all the same. If it is in your list, revoke it: it cannot be shown.",
+      "copyFailed": "Could not copy. Select the key and copy it by hand."
+    }
   },
   "systemAlerts": {
     "dispatchCapacity": "Probes are being skipped — the platform is over its probing capacity (since {since}). Add another probe agent, increase the available resource pool, or reduce probe frequency.",
@@ -964,7 +1050,31 @@
     "filterActor": "Actor",
     "allEntities": "All types",
     "allActors": "Everyone",
-    "noDetail": "No additional detail recorded."
+    "noDetail": "No additional detail recorded.",
+    "filterApiKey": "API key",
+    "allSources": "Any source",
+    "anyApiKey": "Any API key",
+    "viaKey": "via key {name}",
+    "viaDeletedKey": "via a deleted API key",
+    "deletedKeyChoice": "Deleted key {id}",
+    "entityTypes": {
+      "agent": "Agent",
+      "api-key": "API key",
+      "domain": "Domain",
+      "grafana-integration": "Grafana integration",
+      "group": "Group",
+      "invite": "Invite",
+      "notification-template": "Notification template",
+      "org": "Organization",
+      "project": "Project",
+      "rule-preset": "Rule preset",
+      "service": "Service",
+      "user": "User",
+      "variable": "Variable",
+      "webhook": "Webhook",
+      "webhook-binding": "Webhook binding",
+      "workspace": "Workspace"
+    }
   },
   "domains": {
     "title": "Verified domains",
