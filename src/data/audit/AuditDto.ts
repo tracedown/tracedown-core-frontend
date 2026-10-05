@@ -12,5 +12,9 @@ export interface AuditLogEntry {
   entityDisplayName: string | null;
   diff: string | null;
   comment: string | null;
+  /** The API key the action came through, when it was not a signed-in session. */
+  apiKeyId?: string | null;
+  /** That key's name, while the key still exists. */
+  apiKeyName?: string | null;
   createdAt: string;
 }

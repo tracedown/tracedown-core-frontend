@@ -22,6 +22,9 @@ export type ErrorCode =
   | 'totp_not_configured'
   | 'setup_token_expired'
   | 'invalid_setup_token'
+  | 'session_required'
+  // API keys
+  | 'api_key_limit_reached'
   // Invites
   | 'invalid_invite_token'
   | 'invite_expired'
@@ -36,6 +39,7 @@ export type ErrorCode =
   // Resources
   | 'not_found'
   | 'already_exists'
+  | 'binding_exists'
   | 'agent_slug_taken'
   | 'version_conflict'
   // Body stores

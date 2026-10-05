@@ -10,8 +10,13 @@
         @touchmove.prevent
       >
         <div
-          class="bg-background-secondary relative shadow-xl"
+          ref="panel"
+          class="bg-background-secondary relative shadow-xl outline-none"
           :class="panelClass"
+          tabindex="-1"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="modalName"
           @click.stop
           @wheel.stop
           @touchmove.stop
@@ -58,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, useTemplateRef } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useBodyScrollLock } from '@/composables/useBodyScrollLock';
@@ -103,16 +108,71 @@ const onBackdropClick = () => {
   }
 };
 
+const panel = useTemplateRef<HTMLElement>('panel');
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), '
+  + 'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/** What Tab can reach inside the panel, in document order. */
+function focusables(): HTMLElement[] {
+  if (!panel.value) return [];
+  return [...panel.value.querySelectorAll<HTMLElement>(FOCUSABLE)]
+    .filter(el => el.getClientRects().length > 0 || el === document.activeElement);
+}
+
+/**
+ * Keeps Tab and Shift+Tab inside the dialog: past the last control focus wraps
+ * to the first, and back from the first to the last. Focus that has escaped
+ * the panel (a click on the backdrop, say) is brought back on the next Tab.
+ */
+function trapTab(event: KeyboardEvent) {
+  const items = focusables();
+  if (items.length === 0) {
+    event.preventDefault();
+    panel.value?.focus();
+    return;
+  }
+  const first = items[0];
+  const last = items[items.length - 1];
+  const active = document.activeElement;
+  const inside = active instanceof Node && panel.value?.contains(active);
+  if (event.shiftKey && (active === first || !inside)) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (active === last || !inside)) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
 const onKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Tab') {
+    trapTab(event);
+    return;
+  }
   if (event.key === 'Escape' && !props.persistent) {
     emit('close');
   }
 };
 
+/** Whatever had focus when the dialog opened gets it back when it closes. */
+let opener: HTMLElement | null = null;
+
 // Reference-counted so a dialog opened from inside another overlay (the nav
 // drawer, a select sheet) does not hand page scrolling back on close.
 useBodyScrollLock();
 
-onMounted(() => document.addEventListener('keydown', onKeydown));
-onUnmounted(() => document.removeEventListener('keydown', onKeydown));
+onMounted(() => {
+  opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  document.addEventListener('keydown', onKeydown);
+  // Move focus into the dialog unless its content already took it.
+  void nextTick(() => {
+    const active = document.activeElement;
+    if (!(active instanceof Node && panel.value?.contains(active))) panel.value?.focus();
+  });
+});
+onUnmounted(() => {
+  document.removeEventListener('keydown', onKeydown);
+  if (opener?.isConnected) opener.focus();
+});
 </script>
