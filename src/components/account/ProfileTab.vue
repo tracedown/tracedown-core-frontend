@@ -38,7 +38,7 @@
         />
       </form>
 
-      <EmailChangeForm />
+      <EmailChangeForm v-if="allowEmailChange" />
 
       <PasswordChangeForm />
 
@@ -74,9 +74,10 @@ import { useAuthStore } from '@/store/core/auth';
 import { useNotificationStore } from '@/store/ui/notifications';
 
 /**
- * Profile & security: display name, email change, password change, two-factor,
- * data export and — where the platform allows it — account closure. Export sits
- * above closure deliberately: take your data before you end the account.
+ * Profile & security: display name, password change, two-factor, data export
+ * and — where the platform allows them — email change and account closure.
+ * Export sits above closure deliberately: take your data before you end the
+ * account.
  */
 const { t } = useI18n();
 const authStore = useAuthStore();
@@ -85,6 +86,7 @@ const notifications = useNotificationStore();
 const displayName = ref<string>(authStore.user?.displayName ?? '');
 const canEdit = ref<boolean>(true);
 const allowClosure = ref<boolean>(false);
+const allowEmailChange = ref<boolean>(false);
 const ownedOrgs = ref<OwnedOrgSummary[]>([]);
 const savingName = ref<boolean>(false);
 
@@ -92,6 +94,7 @@ onMounted(async () => {
   const capabilities = await authStore.fetchProfileCapabilities();
   canEdit.value = capabilities.allowProfileEdit;
   allowClosure.value = capabilities.allowAccountClosure;
+  allowEmailChange.value = capabilities.allowEmailChange;
   ownedOrgs.value = capabilities.ownedOrgs;
 });
 

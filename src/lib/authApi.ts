@@ -60,11 +60,12 @@ export async function confirmPasswordReset(token: string, newPassword: string): 
 export async function fetchProfileCapabilities(): Promise<ProfileCapabilities> {
   const res = await http.get<ProfileCapabilities>('/auth/profile/capabilities');
   if (!res.success || !res.data) {
-    return { allowProfileEdit: false, allowAccountClosure: false, ownedOrgs: [] };
+    return { allowProfileEdit: false, allowAccountClosure: false, allowEmailChange: false, ownedOrgs: [] };
   }
   return {
     allowProfileEdit: res.data.allowProfileEdit === true,
     allowAccountClosure: res.data.allowAccountClosure === true,
+    allowEmailChange: res.data.allowEmailChange === true,
     ownedOrgs: res.data.ownedOrgs ?? [],
   };
 }
