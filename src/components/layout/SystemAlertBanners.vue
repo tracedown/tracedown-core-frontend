@@ -77,6 +77,8 @@ function messageOf(alert: SystemAlertSummary): string {
       });
     case 'scheduler_error':
       return t('systemAlerts.schedulerError', { since });
+    case 'variable_unreadable':
+      return t('systemAlerts.variableUnreadable', { since });
     case 'result_ingest_failed':
       return t('systemAlerts.resultIngestFailed', { since });
     case 'outbox_consumer_stalled':
