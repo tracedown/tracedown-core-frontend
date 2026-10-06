@@ -304,6 +304,12 @@
     "timingOverlapNote": "Phases may overlap; sum may exceed total response time.",
     "expected": "expected",
     "got": "got",
+    "versus": "vs",
+    "assertionOutcome": {
+      "passed": "passed",
+      "failed": "failed",
+      "indeterminate": "indeterminate"
+    },
     "skippedQueueFull": "Probe skipped — the platform is over its probing capacity. Contact your system administrator.",
     "skippedTargetOptedOut": "Probe skipped — the target publishes a do-not-probe record (_tracedown-noprobe TXT), so it was never dispatched.",
     "skippedGeneric": "Probe skipped — it was never dispatched to an agent.",
@@ -934,6 +940,7 @@
     "healthTokenUnavailable": "Probe agent health checks cannot complete — {endpoint} is unreachable (since {since}). Agent statuses are being held until it responds again.",
     "healthRoundSlow": "Probe agent health checks were slow across the fleet — {slow} of {agents} agents over their threshold in the same round (since {since}). This is the platform side of the check, not the agents: check the host, the gateway and its path out.",
     "schedulerError": "Probes are being skipped — the scheduler itself is failing to start them (since {since}). Nothing is wrong with your agents or your settings: check the scheduler service and its database connection.",
+    "variableUnreadable": "Probes are being skipped — a variable their scripts use cannot be read (since {since}). Nothing is wrong with your targets or your scripts: the platform's encryption keys need repair. Contact your administrator.",
     "resultIngestFailed": "A finished probe run could not be recorded and has been set aside (since {since}). Its history is missing and will not appear on its own — check the result-ingestor service and its dead-letter queue.",
     "outboxConsumerStalled": "An internal event consumer ({consumers}) has stopped reading and is falling behind (since {since}). Events it never read will age out. Restart it, or remove its cursor if it is retired.",
     "notificationDropped": "A notification for this service could not be delivered and has been given up on (since {since}, last error: {error}). The probe result itself is recorded; the alert for it was never sent. Check the notification-dispatcher log for the cause.",
@@ -960,6 +967,7 @@
       "health_token_unavailable": "Agent health checks unavailable",
       "health_round_slow": "Agent health checks slow fleet-wide",
       "scheduler_error": "Scheduler fault",
+      "variable_unreadable": "Variables unreadable",
       "result_ingest_failed": "Probe result not recorded",
       "outbox_consumer_stalled": "Event consumer stalled",
       "notification_dropped": "Notification not delivered"
