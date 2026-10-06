@@ -1,9 +1,15 @@
 import type { ServiceMetricsDto } from '@/data/metrics/MetricsDto';
 
+/**
+ * One failed assertion of the last run. A scope assertion carries its scope
+ * and expected value; an `.assert()` condition has scope `assert`, its source
+ * `expression`, and its left operand as `actual`.
+ */
 export interface FailedAssertion {
   scope: string;
   expected: string | null;
   actual: string | null;
+  expression?: string | null;
 }
 
 export interface LastFailureInfo {

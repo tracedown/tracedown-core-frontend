@@ -59,6 +59,7 @@ import { useI18n } from 'vue-i18n';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faClock } from '@fortawesome/free-solid-svg-icons';
 import { computeSuccessRate, metricsSuccessStyle, statusDotClass } from '@/lib/metrics-utils';
+import { failedAssertionText } from '@/utils/assertions';
 import { useRelativeTime } from '@/composables/useRelativeTime';
 import { useProjectStore } from '@/store/core/project';
 import type { ServiceSummary } from '@/data/services/ServiceDto';
@@ -113,10 +114,8 @@ const statusSince = computed(() => {
 const failurePreview = computed(() => {
   const failure = props.service.lastFailure;
   if (!failure || failure.assertions.length === 0) return null;
-  const parts = failure.assertions.slice(0, 2).map(a => {
-    const prefix = a.expected ? `${t('results.expected')} ${a.expected}, ` : '';
-    return `${a.scope}: ${prefix}${t('results.got')} ${a.actual ?? '?'}`;
-  });
+  const words = { expected: t('results.expected'), got: t('results.got') };
+  const parts = failure.assertions.slice(0, 2).map(a => failedAssertionText(a, words));
   const extra = failure.assertions.length > 2 ? ` +${failure.assertions.length - 2}` : '';
   return parts.join('; ') + extra;
 });

@@ -36,39 +36,7 @@
         {{ step.error }}
       </div>
 
-      <!-- Assertions -->
-      <div
-        v-if="assertions.length > 0"
-        class="text-xs space-y-1"
-      >
-        <p class="text-text-secondary font-medium">
-          {{ t('results.assertions') }}
-        </p>
-        <div
-          v-for="(a, i) in assertions"
-          :key="i"
-          class="flex items-center gap-2 px-2 py-1 max-md:flex-wrap"
-          :class="a.outcome === 'passed' ? 'bg-status-success/5' : 'bg-status-failure/5'"
-        >
-          <span
-            class="w-1.5 h-1.5 rounded-full flex-shrink-0"
-            :class="a.outcome === 'passed' ? 'bg-status-success' : 'bg-status-failure'"
-          />
-          <span class="text-text-primary font-medium">{{ a.scope }}</span>
-          <span class="text-text-secondary">{{ a.op }}</span>
-          <span class="text-text-primary font-mono break-all">{{ a.expected }}</span>
-          <template v-if="a.outcome === 'failed'">
-            <span class="text-text-secondary">→</span>
-            <span class="text-status-failure font-mono break-all">{{ a.actual }}</span>
-          </template>
-          <span
-            class="ml-auto"
-            :class="a.outcome === 'passed' ? 'text-status-success' : 'text-status-failure'"
-          >
-            {{ a.outcome }}
-          </span>
-        </div>
-      </div>
+      <ResultAssertions :assertions="assertions" />
 
       <!-- Headers (collapsible) -->
       <details
@@ -187,6 +155,7 @@ import { useI18n } from 'vue-i18n';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import LinkButton from '@/components/core/buttons/LinkButton.vue';
 import LoadingSpinner from '@/components/core/LoadingSpinner.vue';
+import ResultAssertions from '@/components/service/results/ResultAssertions.vue';
 import { formatBytes } from '@/lib/metrics-utils';
 import { parseAssertions } from '@/utils/assertions';
 import { bodyNotStoredPrefixKey } from '@/utils/resultBodies';

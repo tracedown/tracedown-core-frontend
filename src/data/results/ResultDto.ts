@@ -38,14 +38,34 @@ export interface ProbeResultDetail {
   steps: ProbeStepSummary[];
 }
 
-/** A step assertion normalized from the raw `assertionResults` payload. */
-export interface ParsedAssertion {
-  scope: string;
-  op: string;
-  expected: string;
-  actual: string;
-  outcome: string;
-}
+/**
+ * A step assertion normalized from the raw `assertionResults` payload (spec
+ * §9.2). A scope assertion (`.expect()`/`.check()`) names a scope and compares
+ * it; an `.assert()` condition is an expression with its two resolved operands.
+ * Values are display text: JSON, so `"404"` and `404` stay apart.
+ */
+export type ParsedAssertion =
+  | {
+    type: 'scope';
+    /** `expect` | `check`. */
+    method: string;
+    /** `passed` | `failed` | `indeterminate`, verbatim. */
+    outcome: string;
+    scope: string;
+    op: string;
+    expected: string;
+    actual: string;
+  }
+  | {
+    type: 'condition';
+    /** `expect` | `check` — whether a failure is hard or soft. */
+    kind: string;
+    /** `passed` | `failed` | `indeterminate`, verbatim. */
+    outcome: string;
+    expression: string;
+    actualLhs: string;
+    actualRhs: string;
+  };
 
 /** Response of GET .../steps/{stepId}/body — exactly one field is set.
  * `url` is a short-lived presigned object-storage URL the client fetches
