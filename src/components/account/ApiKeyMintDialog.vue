@@ -1,16 +1,13 @@
 <template>
     <ModalDialog
       :modal-name="issued ? t('apiKeys.mint.issuedTitle') : t('apiKeys.mint.title')"
-      :persistent="!issued && (dirty || submitting)"
+      :persistent="issued != null || dirty || submitting"
       @close="requestClose"
     >
-      <!-- The key, this once. Closing is held back until it is acknowledged. -->
+      <!-- The key, this once. Only Done or the close control dismisses it. -->
       <ApiKeyIssuedPanel
         v-if="issued"
-        ref="issuedPanel"
-        v-model:acknowledged="acknowledged"
         :issued="issued"
-        :blocked-message="blockedMessage"
       />
 
       <form
@@ -178,7 +175,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useId, useTemplateRef } from 'vue';
+import { computed, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ModalDialog from '@/components/core/ModalDialog.vue';
 import LabeledInput from '@/components/core/input/LabeledInput.vue';
@@ -201,21 +198,20 @@ import type { SelectOption } from '@/types/ui/common';
  * An account without a password is offered the link that sets one instead,
  * and cannot mint until it has one.
  *
- * The key is shown once, inside this dialog, and is dropped with it. Neither
- * closing the dialog nor leaving the page lets go of an unacknowledged key or a
- * mint in flight: a refused close says why, and on the key moves focus to the
- * acknowledgement. Done stays enabled so that a click on it can say so too.
+ * The key is shown once, inside this dialog, and is dropped with it. While it
+ * is shown, a click outside the dialog or Escape does not close it: only Done
+ * or the close control does. Neither closing nor leaving the page lets go of a
+ * mint in flight; a refused close says why.
  */
 const emit = defineEmits<{ close: [] }>();
 
 const { t } = useI18n();
 const orgStore = useOrgStore();
-const issuedPanel = useTemplateRef<InstanceType<typeof ApiKeyIssuedPanel>>('issuedPanel');
 
 const nameId = useId();
 const {
   name, access, expiry, customDays, password, code, submitting, errors,
-  issued, acknowledged, blockedMessage, expiresInDays, hasPassword, showCode, canSubmit, dirty,
+  issued, blockedMessage, expiresInDays, hasPassword, showCode, canSubmit, dirty,
   passwordIsBlank, submit, mustStay,
 } = useApiKeyMint(nameId);
 
@@ -226,15 +222,10 @@ const expiryOptions = computed<SelectOption[]>(() => EXPIRY_CHOICES.map(choice =
   label: t(`apiKeys.expiryChoices.${choice}`),
 })));
 
-/** Refuses to let go while a mint is in flight or its key is unacknowledged. */
+/** Refuses to let go while a mint is in flight. */
 function holdBack(): boolean {
   if (!mustStay.value) return false;
-  if (issued.value) {
-    blockedMessage.value = t('apiKeys.mint.acknowledgeFirst');
-    issuedPanel.value?.focusAcknowledge();
-  } else {
-    blockedMessage.value = t('apiKeys.mint.waitForMint');
-  }
+  blockedMessage.value = t('apiKeys.mint.waitForMint');
   return true;
 }
 

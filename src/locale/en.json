@@ -877,11 +877,13 @@
     },
     "access": {
       "read": "Read",
-      "write": "Read and write"
+      "write": "Read and write",
+      "admin": "Administration"
     },
     "accessHints": {
       "read": "GET requests only, within what you can see.",
-      "write": "Everything you can do in this organization."
+      "write": "Everything you can do in this organization.",
+      "admin": "Read and write, plus organization administration once the API offers it."
     },
     "states": {
       "active": "Active",
@@ -920,8 +922,6 @@
       "issued": "Key \"{name}\" for {org} is ready. Copy it now:",
       "notShownAgain": "It will not be shown again. Once this dialog closes, nobody can see it, you included.",
       "usageHint": "Send it in the Authorization header, as Bearer followed by the key.",
-      "acknowledge": "I have copied the key and stored it somewhere safe.",
-      "acknowledgeFirst": "Confirm you have copied the key before closing. It cannot be shown again.",
       "waitForMint": "Wait for the key to be made before leaving.",
       "passwordBlank": "Enter your password.",
       "baseUrl": "Base URL:",

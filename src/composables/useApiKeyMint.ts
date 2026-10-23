@@ -30,7 +30,6 @@ export function useApiKeyMint(nameInputId: string) {
   const codeAsked = ref<boolean>(false);
 
   const issued = ref<ApiKeySummary | null>(null);
-  const acknowledged = ref<boolean>(false);
   /** Why the last close or navigation was refused. */
   const blockedMessage = ref<string>('');
 
@@ -58,13 +57,12 @@ export function useApiKeyMint(nameInputId: string) {
   const dirty = computed(() =>
     name.value.trim() !== '' || password.value !== '' || code.value !== '' || customDays.value !== '');
 
-  const mustStay = computed(() => mustStayFor(submitting.value, issued.value != null, acknowledged.value));
+  const mustStay = computed(() => mustStayFor(submitting.value));
 
   // An error belongs to what was typed; typing again retracts it.
   watch(password, () => { errors.password = ''; });
   watch(code, () => { errors.code = ''; if (!totpEnabled.value) errors.form = ''; });
   watch([name, access, expiry, customDays], () => { errors.form = ''; });
-  watch(acknowledged, (value) => { if (value) blockedMessage.value = ''; });
   watch(submitting, (value) => { if (!value && !issued.value) blockedMessage.value = ''; });
 
   async function submit() {
@@ -108,7 +106,7 @@ export function useApiKeyMint(nameInputId: string) {
 
   return {
     name, access, expiry, customDays, password, code, submitting, errors,
-    issued, acknowledged, blockedMessage, expiresInDays, hasPassword, showCode, canSubmit, dirty,
+    issued, blockedMessage, expiresInDays, hasPassword, showCode, canSubmit, dirty,
     passwordIsBlank, submit, mustStay,
   };
 }
