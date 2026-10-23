@@ -40,21 +40,6 @@
         </p>
       </div>
 
-      <label class="flex items-start gap-2 cursor-pointer">
-        <input
-          :id="ackId"
-          v-model="acknowledged"
-          type="checkbox"
-          class="mt-0.5 accent-accent-primary"
-        >
-        <span class="text-sm text-text-primary">{{ t('apiKeys.mint.acknowledge') }}</span>
-      </label>
-      <p
-        role="status"
-        class="text-xs text-status-warning"
-      >
-        {{ blockedMessage }}
-      </p>
       <p
         role="status"
         class="sr-only"
@@ -75,22 +60,17 @@ import { publicApiUrls } from '@/lib/apiKeys';
 import type { ApiKeySummary } from '@/data/apikeys/ApiKeyDto';
 
 /**
- * The just-minted key, shown this once: the key with a copy control, where to
- * send it, and the acknowledgement the dialog waits for before it may close.
- * `blockedMessage` is the dialog's explanation of a close it refused.
+ * The just-minted key, shown this once: the key with a copy control and where
+ * to send it.
  */
 const props = defineProps<{
   issued: ApiKeySummary;
-  blockedMessage: string;
 }>();
-
-const acknowledged = defineModel<boolean>('acknowledged', { required: true });
 
 const { t } = useI18n();
 const notifications = useNotificationStore();
 
 const copyButtonId = useId();
-const ackId = useId();
 const copyStatus = ref<string>('');
 
 const urls = computed(() => publicApiUrls(env.apiUrl, window.location.origin));
@@ -107,13 +87,6 @@ async function copyKey() {
     notifications.show(copyStatus.value, 'error');
   }
 }
-
-/** Moves focus to the acknowledgement, after a close that was refused for want of it. */
-function focusAcknowledge() {
-  document.getElementById(ackId)?.focus();
-}
-
-defineExpose({ focusAcknowledge });
 
 onMounted(() => {
   void nextTick(() => document.getElementById(copyButtonId)?.focus());

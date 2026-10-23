@@ -80,9 +80,9 @@ export function canSubmitMint(form: {
     && (!form.showCode || form.code.trim().length > 0);
 }
 
-/** Leaving now would lose a mint in flight, or a key not yet acknowledged. */
-export function mustStay(submitting: boolean, issued: boolean, acknowledged: boolean): boolean {
-  return submitting || (issued && !acknowledged);
+/** Leaving now would lose a mint in flight. */
+export function mustStay(submitting: boolean): boolean {
+  return submitting;
 }
 
 export type ExpiryChoice = 'never' | '30' | '90' | '365' | 'custom';

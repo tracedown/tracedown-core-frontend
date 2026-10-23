@@ -76,11 +76,9 @@ describe('mint form', () => {
     expect(canSubmitMint({ ...valid, showCode: true, code: '123456' })).toBe(true);
   });
 
-  it('holds the dialog during a mint and on an unacknowledged key', () => {
-    expect(mustStay(true, false, false)).toBe(true);
-    expect(mustStay(false, true, false)).toBe(true);
-    expect(mustStay(false, true, true)).toBe(false);
-    expect(mustStay(false, false, false)).toBe(false);
+  it('holds the dialog during a mint only', () => {
+    expect(mustStay(true)).toBe(true);
+    expect(mustStay(false)).toBe(false);
   });
 });
 

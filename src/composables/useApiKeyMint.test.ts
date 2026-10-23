@@ -110,7 +110,7 @@ describe('useApiKeyMint', () => {
     expect(http.post.mock.calls[0][1]).toMatchObject({ password: ' pw ' });
   });
 
-  it('holds a minted key until acknowledged, and clears the secrets typed', async () => {
+  it('shows a minted key without asking for a confirmation, and clears the secrets typed', async () => {
     http.post.mockResolvedValue({ success: true, data: { id: 'k', key: 'td_x' } });
     const form = mint();
     form.name.value = 'ci';
@@ -121,12 +121,12 @@ describe('useApiKeyMint', () => {
     expect(http.post).not.toHaveBeenCalled();
 
     form.customDays.value = '30';
+    form.access.value = 'admin';
     await form.submit();
 
-    expect(http.post.mock.calls[0][1]).toMatchObject({ expiresInDays: 30, password: 'pw' });
+    expect(http.post.mock.calls[0][1]).toMatchObject({ expiresInDays: 30, password: 'pw', access: 'admin' });
     expect(form.password.value).toBe('');
-    expect(form.mustStay.value).toBe(true);
-    form.acknowledged.value = true;
+    expect(form.issued.value).toMatchObject({ key: 'td_x' });
     expect(form.mustStay.value).toBe(false);
   });
 

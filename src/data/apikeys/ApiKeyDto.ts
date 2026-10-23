@@ -1,7 +1,7 @@
 /** The ceiling a key is issued at: `read` keys can only make reads. */
-export type ApiKeyAccess = 'read' | 'write';
+export type ApiKeyAccess = 'read' | 'write' | 'admin';
 
-export const API_KEY_ACCESS_LEVELS: readonly ApiKeyAccess[] = ['read', 'write'];
+export const API_KEY_ACCESS_LEVELS: readonly ApiKeyAccess[] = ['read', 'write', 'admin'];
 
 /**
  * Where a key stands. `inactive`: the user it acts as cannot currently act in
